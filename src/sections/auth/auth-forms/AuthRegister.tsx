@@ -71,13 +71,13 @@ export default function AuthRegister() {
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          firstname: Yup.string().max(255).required('First Name is required'),
-          lastname: Yup.string().max(255).required('Last Name is required'),
-          email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+          firstname: Yup.string().max(255).required('El nombre es obligatorio'),
+          lastname: Yup.string().max(255).required('El apellido es obligatorio'),
+          email: Yup.string().email('Debe ser un correo válido').max(255).required('El correo es obligatorio'),
           password: Yup.string()
-            .required('Password is required')
-            .test('no-leading-trailing-whitespace', 'Password can not start or end with spaces', (value) => value === value.trim())
-            .max(10, 'Password must be less than 10 characters')
+            .required('La contraseña es obligatoria')
+            .test('no-leading-trailing-whitespace', 'La contraseña no puede comenzar ni terminar con espacios', (value) => value === value.trim())
+            .max(10, 'La contraseña debe tener menos de 10 caracteres')
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
@@ -88,7 +88,7 @@ export default function AuthRegister() {
               setSubmitting(false);
               openSnackbar({
                 open: true,
-                message: 'Your registration has been successfully completed.',
+                message: 'Tu registro se ha completado exitosamente.',
                 variant: 'alert',
                 alert: {
                   color: 'success'
@@ -114,7 +114,7 @@ export default function AuthRegister() {
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, md: 6 }}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="firstname-signup">First Name*</InputLabel>
+                  <InputLabel htmlFor="firstname-signup">Nombre*</InputLabel>
                   <OutlinedInput
                     id="firstname-login"
                     type="firstname"
@@ -122,7 +122,7 @@ export default function AuthRegister() {
                     name="firstname"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="John"
+                    placeholder="Juan"
                     fullWidth
                     error={Boolean(touched.firstname && errors.firstname)}
                   />
@@ -135,7 +135,7 @@ export default function AuthRegister() {
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="lastname-signup">Last Name*</InputLabel>
+                  <InputLabel htmlFor="lastname-signup">Apellido*</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.lastname && errors.lastname)}
@@ -145,7 +145,7 @@ export default function AuthRegister() {
                     name="lastname"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="Doe"
+                    placeholder="Pérez"
                     inputProps={{}}
                   />
                 </Stack>
@@ -157,7 +157,7 @@ export default function AuthRegister() {
               </Grid>
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="company-signup">Company</InputLabel>
+                  <InputLabel htmlFor="company-signup">Empresa</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.company && errors.company)}
@@ -166,7 +166,7 @@ export default function AuthRegister() {
                     name="company"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="Demo Inc."
+                    placeholder="Demo S.A."
                     inputProps={{}}
                   />
                 </Stack>
@@ -178,7 +178,7 @@ export default function AuthRegister() {
               </Grid>
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="email-signup">Email Address*</InputLabel>
+                  <InputLabel htmlFor="email-signup">Correo electrónico*</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.email && errors.email)}
@@ -188,7 +188,7 @@ export default function AuthRegister() {
                     name="email"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="demo@company.com"
+                    placeholder="demo@empresa.com"
                     inputProps={{}}
                   />
                 </Stack>
@@ -200,7 +200,7 @@ export default function AuthRegister() {
               </Grid>
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="password-signup">Password</InputLabel>
+                  <InputLabel htmlFor="password-signup">Contraseña</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.password && errors.password)}
@@ -216,7 +216,7 @@ export default function AuthRegister() {
                     endAdornment={
                       <InputAdornment position="end">
                         <IconButton
-                          aria-label="toggle password visibility"
+                          aria-label="Mostrar u ocultar contraseña"
                           onClick={handleClickShowPassword}
                           onMouseDown={handleMouseDownPassword}
                           edge="end"
@@ -250,13 +250,13 @@ export default function AuthRegister() {
               </Grid>
               <Grid size={12}>
                 <Typography variant="body2">
-                  By Signing up, you agree to our &nbsp;
+                  Al registrarte, aceptas nuestros &nbsp;
                   <Link variant="subtitle2" component={RouterLink} to="#">
-                    Terms of Service
+                    Términos de servicio
                   </Link>
-                  &nbsp; and &nbsp;
+                  &nbsp; y &nbsp;
                   <Link variant="subtitle2" component={RouterLink} to="#">
-                    Privacy Policy
+                    Política de privacidad
                   </Link>
                 </Typography>
               </Grid>
@@ -268,7 +268,7 @@ export default function AuthRegister() {
               <Grid size={12}>
                 <AnimateButton>
                   <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="primary">
-                    Create Account
+                    Crear cuenta
                   </Button>
                 </AnimateButton>
               </Grid>

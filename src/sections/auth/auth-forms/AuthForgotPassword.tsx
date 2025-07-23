@@ -38,7 +38,7 @@ export default function AuthForgotPassword() {
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          email: Yup.string().email('Must be a valid email').max(255).required('Email is required')
+          email: Yup.string().email('Debe ser un correo electrónico válido').max(255).required('El correo electrónico es obligatorio')
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
@@ -48,7 +48,7 @@ export default function AuthForgotPassword() {
                 setSubmitting(false);
                 openSnackbar({
                   open: true,
-                  message: 'Check mail for reset password link',
+                  message: 'Revisa tu correo para el enlace de restablecimiento de contraseña',
                   variant: 'alert',
                   alert: {
                     color: 'success'
@@ -57,11 +57,6 @@ export default function AuthForgotPassword() {
                 setTimeout(() => {
                   navigate(isLoggedIn ? '/auth/check-mail' : '/check-mail', { replace: true });
                 }, 1500);
-
-                // WARNING: do not set any formik state here as formik might be already destroyed here. You may get following error by doing so.
-                // Warning: Can't perform a React state update on an unmounted component. This is a no-op, but it indicates a memory leak in your application.
-                // To fix, cancel all subscriptions and asynchronous tasks in a useEffect cleanup function.
-                // github issue: https://github.com/formium/formik/issues/2430
               },
               (err: any) => {
                 setStatus({ success: false });
@@ -84,7 +79,7 @@ export default function AuthForgotPassword() {
             <Grid container spacing={3}>
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="email-forgot">Email Address</InputLabel>
+                  <InputLabel htmlFor="email-forgot">Correo electrónico</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.email && errors.email)}
@@ -94,7 +89,7 @@ export default function AuthForgotPassword() {
                     name="email"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="Enter email address"
+                    placeholder="Ingresa tu correo electrónico"
                     inputProps={{}}
                   />
                 </Stack>
@@ -110,12 +105,12 @@ export default function AuthForgotPassword() {
                 </Grid>
               )}
               <Grid sx={{ mb: -2 }} size={12}>
-                <Typography variant="caption">Do not forgot to check SPAM box.</Typography>
+                <Typography variant="caption">No olvides revisar tu bandeja de SPAM.</Typography>
               </Grid>
               <Grid size={12}>
                 <AnimateButton>
                   <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="primary">
-                    Send Password Reset Email
+                    Enviar correo para restablecer contraseña
                   </Button>
                 </AnimateButton>
               </Grid>

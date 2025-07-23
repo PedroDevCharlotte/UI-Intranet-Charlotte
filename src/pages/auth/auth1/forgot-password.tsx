@@ -10,7 +10,7 @@ import useAuth from 'hooks/useAuth';
 import AuthWrapper from 'sections/auth/AuthWrapper';
 import AuthForgotPassword from 'sections/auth/auth-forms/AuthForgotPassword';
 
-// ================================|| FORGOT PASSWORD ||================================ //
+// ================================|| OLVIDÓ SU CONTRASEÑA ||================================ //
 
 export default function ForgotPassword() {
   const { isLoggedIn } = useAuth();
@@ -20,7 +20,7 @@ export default function ForgotPassword() {
       <Grid container spacing={3}>
         <Grid size={12}>
           <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', mb: { xs: -0.5, sm: 0.5 } }}>
-            <Typography variant="h3">Forgot Password</Typography>
+            <Typography variant="h3">Olvidó su contraseña</Typography>
             <Typography
               component={Link}
               to={isLoggedIn ? '/auth/login' : '/login'}
@@ -28,7 +28,7 @@ export default function ForgotPassword() {
               sx={{ textDecoration: 'none' }}
               color="primary"
             >
-              Back to Login
+              Volver al inicio de sesión
             </Typography>
           </Stack>
         </Grid>

@@ -20,7 +20,9 @@ const MaintenanceComingSoon2 = Loadable(lazy(() => import('pages/maintenance/com
 
 
 // pages users
-const AppCustomerList = Loadable(lazy(() => import('pages/apps/customer/list')));
+
+const AppUserList = Loadable(lazy(() => import('pages/apps/user/list')));
+const AppUserCard = Loadable(lazy(() => import('pages/apps/user/card')));
 
 // render - sample page
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
@@ -52,7 +54,85 @@ const MainRoutes = {
               element: <DashboardFinance />
             }
           ]
-        }
+        },
+        {
+          path: 'apps',
+          children: [
+            
+            {
+              path: 'user',
+              children: [
+                {
+                  path: 'user-list',
+                  element: <AppUserList />
+                },
+                {
+                  path: 'user-card',
+                  element: <AppUserCard />
+                }
+              ]
+            },
+           
+            // {
+            //   path: 'profiles',
+            //   children: [
+            //     {
+            //       path: 'account',
+            //       element: <AccountProfile />,
+            //       children: [
+            //         {
+            //           path: 'basic',
+            //           element: <AccountTabProfile />
+            //         },
+            //         {
+            //           path: 'personal',
+            //           element: <AccountTabPersonal />
+            //         },
+            //         {
+            //           path: 'my-account',
+            //           element: <AccountTabAccount />
+            //         },
+            //         {
+            //           path: 'password',
+            //           element: <AccountTabPassword />
+            //         },
+            //         {
+            //           path: 'role',
+            //           element: <AccountTabRole />
+            //         },
+            //         {
+            //           path: 'settings',
+            //           element: <AccountTabSettings />
+            //         }
+            //       ]
+            //     },
+            //     {
+            //       path: 'user',
+            //       element: <UserProfile />,
+            //       children: [
+            //         {
+            //           path: 'personal',
+            //           element: <UserTabPersonal />
+            //         },
+            //         {
+            //           path: 'payment',
+            //           element: <UserTabPayment />
+            //         },
+            //         {
+            //           path: 'password',
+            //           element: <UserTabPassword />
+            //         },
+            //         {
+            //           path: 'settings',
+            //           element: <UserTabSettings />
+            //         }
+            //       ]
+            //     }
+            //   ]
+            // },
+            
+          ]
+        },
       ]
     },
     {

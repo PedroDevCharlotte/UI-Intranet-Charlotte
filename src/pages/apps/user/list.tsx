@@ -50,22 +50,22 @@ import {
 } from 'components/third-party/react-table';
 
 import EmptyReactTable from 'pages/tables/react-table/empty';
-import AlertCustomerDelete from 'sections/apps/customer/AlertCustomerDelete';
-import CustomerModal from 'sections/apps/customer/CustomerModal';
-import CustomerView from 'sections/apps/customer/CustomerView';
+import AlertUserDelete from 'sections/apps/user/AlertUserDelete';
+import UserModal from 'sections/apps/user/UserModal';
+import UserView from 'sections/apps/user/UserView';
 
-import { useGetCustomer } from 'api/customer';
+import { useGetUser } from 'api/user';
 import { ImagePath, getImageUrl } from 'utils/getImageUrl';
 
 // types
-import { CustomerList } from 'types/customer';
+import { UserList } from 'types/user';
 
 // assets
 import { Add, Edit, Eye, Trash } from 'iconsax-react';
 
 interface Props {
-  columns: ColumnDef<CustomerList>[];
-  data: CustomerList[];
+  columns: ColumnDef<UserList>[];
+  data: UserList[];
   modalToggler: () => void;
 }
 
@@ -81,7 +81,7 @@ function ReactTable({ data, columns, modalToggler }: Props) {
 
   const filteredData = useMemo(() => {
     if (statusFilter === '') return data;
-    return data.filter((customer) => customer.status === statusFilter);
+    return data.filter((user) => user.status === statusFilter);
   }, [statusFilter, data]);
 
   const table = useReactTable({
@@ -132,7 +132,7 @@ function ReactTable({ data, columns, modalToggler }: Props) {
         <DebouncedInput
           value={globalFilter ?? ''}
           onFilterChange={(value) => setGlobalFilter(String(value))}
-          placeholder={`Search ${data.length} records...`}
+          placeholder={`Buscar en ${data.length} registros...`}
         />
 
         <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2, alignItems: 'center' }}>
@@ -140,17 +140,17 @@ function ReactTable({ data, columns, modalToggler }: Props) {
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
             displayEmpty
-            inputProps={{ 'aria-label': 'Status Filter' }}
+            inputProps={{ 'aria-label': 'Filtro de estado' }}
           >
-            <MenuItem value="">All Status</MenuItem>
-            <MenuItem value={1}>Verified</MenuItem>
-            <MenuItem value={2}>Pending</MenuItem>
-            <MenuItem value={3}>Rejected</MenuItem>
+            <MenuItem value="">Todos los estados</MenuItem>
+            <MenuItem value={1}>Verificado</MenuItem>
+            <MenuItem value={2}>Pendiente</MenuItem>
+            <MenuItem value={3}>Rechazado</MenuItem>
           </Select>
           <SelectColumnSorting sortBy={sortBy.id} {...{ getState: table.getState, getAllColumns: table.getAllColumns, setSorting }} />
           <Stack direction="row" sx={{ gap: 2, alignItems: 'center' }}>
             <Button variant="contained" startIcon={<Add />} onClick={modalToggler} size="large">
-              Add Customer
+              Agregar usuario
             </Button>
             <CSVExport
               {...{
@@ -159,7 +159,7 @@ function ReactTable({ data, columns, modalToggler }: Props) {
                     ? data
                     : table.getSelectedRowModel().flatRows.map((row) => row.original),
                 headers,
-                filename: 'customer-list.csv'
+                filename: 'lista-usuarios.csv'
               }}
             />
           </Stack>
@@ -220,7 +220,7 @@ function ReactTable({ data, columns, modalToggler }: Props) {
                       })}
                     >
                       <TableCell colSpan={row.getVisibleCells().length} sx={{ p: 2.5, overflow: 'hidden' }}>
-                        <CustomerView data={row.original} />
+                        <UserView data={row.original} />
                       </TableCell>
                     </TableRow>
                   )}
@@ -246,22 +246,22 @@ function ReactTable({ data, columns, modalToggler }: Props) {
     </MainCard>
   );
 }
-// ==============================|| CUSTOMER LIST ||============================== //
+// ==============================|| USER LIST ||============================== //
 
-export default function CustomerListPage() {
-  const { customersLoading: loading, customers: lists } = useGetCustomer();
+export default function UserListPage() {
+  const { usersLoading: loading, users: lists } = useGetUser();
 
   const [open, setOpen] = useState<boolean>(false);
 
-  const [customerModal, setCustomerModal] = useState<boolean>(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerList | null>(null);
-  const [customerDeleteId, setCustomerDeleteId] = useState<any>('');
+  const [userModal, setUserModal] = useState<boolean>(false);
+  const [selectedUser, setSelectedUser] = useState<UserList | null>(null);
+  const [userDeleteId, setUserDeleteId] = useState<any>('');
 
   const handleClose = () => {
     setOpen(!open);
   };
 
-  const columns = useMemo<ColumnDef<CustomerList>[]>(
+  const columns = useMemo<ColumnDef<UserList>[]>(
     () => [
       {
         id: 'Row Selection',
@@ -293,7 +293,7 @@ export default function CustomerListPage() {
         }
       },
       {
-        header: 'Customer Name',
+        header: 'Nombre de usuario',
         accessorKey: 'name',
         cell: ({ row, getValue }) => (
           <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center' }}>
@@ -310,38 +310,38 @@ export default function CustomerListPage() {
         )
       },
       {
-        header: 'Contact',
+        header: 'Contacto',
         accessorKey: 'contact',
         cell: ({ getValue }) => <PatternFormat displayType="text" format="+1 (###) ###-####" mask="_" defaultValue={getValue() as number} />
       },
       {
-        header: 'Age',
+        header: 'Edad',
         accessorKey: 'age',
         meta: {
           className: 'cell-right'
         }
       },
       {
-        header: 'Country',
+        header: 'País',
         accessorKey: 'country'
       },
       {
-        header: 'Status',
+        header: 'Estado',
         accessorKey: 'status',
         cell: (cell) => {
           switch (cell.getValue()) {
             case 3:
-              return <Chip color="error" label="Rejected" size="small" variant="light" />;
+              return <Chip color="error" label="Rechazado" size="small" variant="light" />;
             case 1:
-              return <Chip color="success" label="Verified" size="small" variant="light" />;
+              return <Chip color="success" label="Verificado" size="small" variant="light" />;
             case 2:
             default:
-              return <Chip color="info" label="Pending" size="small" variant="light" />;
+              return <Chip color="info" label="Pendiente" size="small" variant="light" />;
           }
         }
       },
       {
-        header: 'Actions',
+        header: 'Acciones',
         meta: {
           className: 'cell-center'
         },
@@ -357,32 +357,32 @@ export default function CustomerListPage() {
             );
           return (
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Tooltip title="View">
+              <Tooltip title="Ver">
                 <IconButton color="secondary" onClick={row.getToggleExpandedHandler()}>
                   {collapseIcon}
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Edit">
+              <Tooltip title="Editar">
                 <IconButton
                   color="primary"
                   sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
                   onClick={(e: MouseEvent<HTMLButtonElement>) => {
                     e.stopPropagation();
-                    setSelectedCustomer(row.original);
-                    setCustomerModal(true);
+                    setSelectedUser(row.original);
+                    setUserModal(true);
                   }}
                 >
                   <Edit />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Delete">
+              <Tooltip title="Eliminar">
                 <IconButton
                   sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
                   color="error"
                   onClick={(e: MouseEvent<HTMLButtonElement>) => {
                     e.stopPropagation();
                     handleClose();
-                    setCustomerDeleteId(Number(row.original.id));
+                    setUserDeleteId(Number(row.original.id));
                   }}
                 >
                   <Trash />
@@ -406,13 +406,13 @@ export default function CustomerListPage() {
           data: lists,
           columns,
           modalToggler: () => {
-            setCustomerModal(true);
-            setSelectedCustomer(null);
+            setUserModal(true);
+            setSelectedUser(null);
           }
         }}
       />
-      <AlertCustomerDelete id={Number(customerDeleteId)} title={customerDeleteId} open={open} handleClose={handleClose} />
-      <CustomerModal open={customerModal} modalToggler={setCustomerModal} customer={selectedCustomer} />
+      <AlertUserDelete id={Number(userDeleteId)} title={userDeleteId} open={open} handleClose={handleClose} />
+      <UserModal open={userModal} modalToggler={setUserModal} user={selectedUser} />
     </>
   );
 }

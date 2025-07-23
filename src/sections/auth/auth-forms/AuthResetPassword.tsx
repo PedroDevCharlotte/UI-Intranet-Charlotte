@@ -68,10 +68,10 @@ export default function AuthResetPassword() {
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          password: Yup.string().max(255).required('Password is required'),
+          password: Yup.string().max(255).required('La contraseña es obligatoria'),
           confirmPassword: Yup.string()
-            .required('Confirm Password is required')
-            .test('confirmPassword', 'Both Password must be match!', (confirmPassword, yup) => yup.parent.password === confirmPassword)
+            .required('La confirmación de la contraseña es obligatoria')
+            .test('confirmPassword', '¡Las contraseñas deben coincidir!', (confirmPassword, yup) => yup.parent.password === confirmPassword)
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
@@ -82,7 +82,7 @@ export default function AuthResetPassword() {
 
               openSnackbar({
                 open: true,
-                message: 'Successfuly reset password.',
+                message: 'Contraseña restablecida exitosamente.',
                 variant: 'alert',
                 alert: {
                   color: 'success'
@@ -108,7 +108,7 @@ export default function AuthResetPassword() {
             <Grid container spacing={3}>
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="password-reset">Password</InputLabel>
+                  <InputLabel htmlFor="password-reset">Contraseña</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.password && errors.password)}
@@ -124,7 +124,7 @@ export default function AuthResetPassword() {
                     endAdornment={
                       <InputAdornment position="end">
                         <IconButton
-                          aria-label="toggle password visibility"
+                          aria-label="mostrar/ocultar contraseña"
                           onClick={handleClickShowPassword}
                           onMouseDown={handleMouseDownPassword}
                           edge="end"
@@ -134,7 +134,7 @@ export default function AuthResetPassword() {
                         </IconButton>
                       </InputAdornment>
                     }
-                    placeholder="Enter password"
+                    placeholder="Ingresa la contraseña"
                   />
                 </Stack>
                 {touched.password && errors.password && (
@@ -157,7 +157,7 @@ export default function AuthResetPassword() {
               </Grid>
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="confirm-password-reset">Confirm Password</InputLabel>
+                  <InputLabel htmlFor="confirm-password-reset">Confirmar Contraseña</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.confirmPassword && errors.confirmPassword)}
@@ -167,7 +167,7 @@ export default function AuthResetPassword() {
                     name="confirmPassword"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="Enter confirm password"
+                    placeholder="Ingresa la confirmación de la contraseña"
                   />
                 </Stack>
                 {touched.confirmPassword && errors.confirmPassword && (
@@ -185,7 +185,7 @@ export default function AuthResetPassword() {
               <Grid size={12}>
                 <AnimateButton>
                   <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="primary">
-                    Reset Password
+                    Restablecer Contraseña
                   </Button>
                 </AnimateButton>
               </Grid>

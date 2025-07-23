@@ -25,12 +25,12 @@ export default function CodeVerification() {
       <Grid container spacing={3}>
         <Grid size={12}>
           <Stack sx={{ gap: 1 }}>
-            <Typography variant="h3">Enter Verification Code</Typography>
-            <Typography color="secondary">We send you on mail.</Typography>
+            <Typography variant="h3">Ingresa el código de verificación</Typography>
+            <Typography color="secondary">Te lo enviamos por correo.</Typography>
           </Stack>
         </Grid>
         <Grid size={12}>
-          <Typography>We`ve send you code on {email && finalArr.length > 0 ? finalArr.join('') : '****@company.com'}</Typography>
+          <Typography>Te hemos enviado un código a {email && finalArr.length > 0 ? finalArr.join('') : '****@company.com'}</Typography>
         </Grid>
         <Grid size={12}>
           <AuthCodeVerification />

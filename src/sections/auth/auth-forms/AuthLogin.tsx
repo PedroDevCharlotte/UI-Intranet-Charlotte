@@ -55,11 +55,11 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+          email: Yup.string().email('Debe ser un correo electrónico válido').max(255).required('El correo electrónico es obligatorio'),
           password: Yup.string()
-            .required('Password is required')
-            .test('no-leading-trailing-whitespace', 'Password can not start or end with spaces', (value) => value === value.trim())
-            .max(10, 'Password must be less than 10 characters')
+            .required('La contraseña es obligatoria')
+            .test('no-leading-trailing-whitespace', 'La contraseña no puede comenzar ni terminar con espacios', (value) => value === value.trim())
+            .max(10, 'La contraseña debe tener menos de 10 caracteres')
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
@@ -85,7 +85,7 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
             <Grid container spacing={3}>
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="email-login">Email Address</InputLabel>
+                  <InputLabel htmlFor="email-login">Correo electrónico</InputLabel>
                   <OutlinedInput
                     id="email-login"
                     type="email"
@@ -93,7 +93,7 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
                     name="email"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="Enter email address"
+                    placeholder="Ingresa tu correo electrónico"
                     fullWidth
                     error={Boolean(touched.email && errors.email)}
                   />
@@ -106,7 +106,7 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
               </Grid>
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="password-login">Password</InputLabel>
+                  <InputLabel htmlFor="password-login">Contraseña</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.password && errors.password)}
@@ -119,7 +119,7 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
                     endAdornment={
                       <InputAdornment position="end">
                         <IconButton
-                          aria-label="toggle password visibility"
+                          aria-label="mostrar/ocultar contraseña"
                           onClick={handleClickShowPassword}
                           onMouseDown={handleMouseDownPassword}
                           edge="end"
@@ -129,7 +129,7 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
                         </IconButton>
                       </InputAdornment>
                     }
-                    placeholder="Enter password"
+                    placeholder="Ingresa tu contraseña"
                   />
                 </Stack>
                 {touched.password && errors.password && (
@@ -151,11 +151,11 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
                         size="small"
                       />
                     }
-                    label={<Typography variant="h6">Keep me sign in</Typography>}
+                    label={<Typography variant="h6">Mantener sesión iniciada</Typography>}
                   />
 
                   <Link variant="h6" component={RouterLink} to={isLoggedIn && forgot ? forgot : '/forgot-password'} color="text.primary">
-                    Forgot Password?
+                    ¿Olvidaste tu contraseña?
                   </Link>
                 </Stack>
               </Grid>
@@ -167,7 +167,7 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
               <Grid size={12}>
                 <AnimateButton>
                   <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="primary">
-                    Login
+                    Iniciar sesión
                   </Button>
                 </AnimateButton>
               </Grid>

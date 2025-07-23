@@ -24,7 +24,7 @@ export default function AuthCodeVerification() {
     <Formik
       initialValues={{ otp: '' }}
       validationSchema={Yup.object({
-        otp: Yup.string().length(4, 'OTP must be exactly 4 digits').required('OTP is required')
+        otp: Yup.string().length(4, 'El código debe tener exactamente 4 dígitos').required('El código es obligatorio')
       })}
       onSubmit={(values, { resetForm }) => {
         resetForm();
@@ -74,15 +74,15 @@ export default function AuthCodeVerification() {
             <Grid size={12}>
               <AnimateButton>
                 <Button disableElevation fullWidth size="large" type="submit" variant="contained">
-                  Continue
+                  Continuar
                 </Button>
               </AnimateButton>
             </Grid>
             <Grid size={12}>
               <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <Typography>Did not receive the email? Check your spam filter, or</Typography>
+                <Typography>¿No recibiste el correo? Revisa tu carpeta de spam, o</Typography>
                 <Typography variant="body1" sx={{ minWidth: 87, textDecoration: 'none', cursor: 'pointer' }} color="primary">
-                  Resend code
+                  Reenviar código
                 </Typography>
               </Stack>
             </Grid>
