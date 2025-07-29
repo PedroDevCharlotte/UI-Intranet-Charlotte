@@ -51,7 +51,7 @@ export enum DropzopType {
 const config: DefaultConfigProps = {
   fontFamily: `Inter var`,
   i18n: 'es',
-  menuOrientation: MenuOrientation.VERTICAL,
+  menuOrientation: MenuOrientation.HORIZONTAL,
   menuCaption: true,
   miniDrawer: false,
   container: true,

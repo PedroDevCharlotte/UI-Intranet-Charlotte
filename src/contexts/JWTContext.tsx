@@ -16,12 +16,15 @@ import axios from 'utils/axios';
 import { AuthProps, JWTContextType } from 'types/auth';
 import { KeyedObject } from 'types/root';
 
+
 const chance = new Chance();
 
 // constant
 const initialState: AuthProps = {
   isLoggedIn: false,
   isInitialized: false,
+  requires2FA: false,
+  register2FA:  false,
   user: null
 };
 
@@ -52,6 +55,7 @@ const JWTContext = createContext<JWTContextType | null>(null);
 
 export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+
 
   useEffect(() => {
     const init = async () => {
@@ -84,14 +88,16 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
     init();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const response = await axios.post('/api/account/login', { email, password });
-    const { serviceToken, user } = response.data;
+  const login = async (email: string, password: string)  => {
+    const response = await axios.post('/auth/login', { email, password });
+    const { serviceToken, user, register2FA, requires2FA } = response.data;
     setSession(serviceToken);
     dispatch({
       type: LOGIN,
       payload: {
         isLoggedIn: true,
+        register2FA: register2FA,
+        requires2FA: requires2FA,
         user
       }
     });

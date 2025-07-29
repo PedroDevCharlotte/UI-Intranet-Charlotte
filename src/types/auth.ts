@@ -19,6 +19,8 @@ type UserProfile = {
 export interface AuthProps {
   isLoggedIn: boolean;
   isInitialized?: boolean;
+  register2FA?: boolean;
+  requires2FA?: boolean;
   user?: UserProfile | null;
   token?: string | null;
 }

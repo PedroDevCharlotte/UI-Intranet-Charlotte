@@ -1,7 +1,11 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
-const axiosServices = axios.create({ baseURL: import.meta.env.VITE_APP_API_URL || 'http://localhost:3010/' });
+const axiosServices = axios.create({ baseURL: 'http://localhost:3006/' });
+// const axiosServices = axios.create({ baseURL: import.meta.env.VITE_APP_API_URL || 'http://localhost:3010/' });
 
+axiosServices.defaults.withCredentials = true;
+axiosServices.defaults.headers.common['Content-Type'] = 'application/json';
+axiosServices.defaults.headers.common['Accept'] = 'application/json';
 // ==============================|| AXIOS - FOR MOCK SERVICES ||============================== //
 
 axiosServices.interceptors.request.use(

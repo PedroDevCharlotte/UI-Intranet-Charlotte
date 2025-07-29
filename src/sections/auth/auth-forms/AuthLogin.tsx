@@ -1,5 +1,5 @@
 import { useState, SyntheticEvent } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { preload } from 'swr';
 
 // material-ui
@@ -34,6 +34,8 @@ import { Eye, EyeSlash } from 'iconsax-react';
 export default function AuthLogin({ forgot }: { forgot?: string }) {
   const [checked, setChecked] = useState(false);
 
+  const navigate = useNavigate();
+
   const { isLoggedIn, login } = useAuth();
   const scriptedRef = useScriptRef();
 
@@ -49,22 +51,35 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
   return (
     <>
       <Formik
+        // initialValues={{
+        //   email: 'info@phoenixcoded.co',
+        //   password: '123456',
+        //   submit: null
+        // }}
         initialValues={{
-          email: 'info@phoenixcoded.co',
-          password: '123456',
+          email: 'administrador@charlotte.com.mx',
+          password: '1234567',
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          email: Yup.string().email('Debe ser un correo electrónico válido').max(255).required('El correo electrónico es obligatorio'),
+          email: Yup.string()
+            .email('Debe ser un correo electrónico válido')
+            .max(255)
+            .required('El correo electrónico es obligatorio')
+            .test(
+              'domain',
+              'El correo debe ser del dominio charlotte.com.mx',
+              (value) => !!value && value.endsWith('@charlotte.com.mx')
+            ),
           password: Yup.string()
             .required('La contraseña es obligatoria')
             .test('no-leading-trailing-whitespace', 'La contraseña no puede comenzar ni terminar con espacios', (value) => value === value.trim())
-            .max(10, 'La contraseña debe tener menos de 10 caracteres')
+            .min(7, 'La contraseña debe tener al menos 8 caracteres')
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
             const trimmedEmail = values.email.trim();
-            await login(trimmedEmail, values.password);
+            await login(trimmedEmail, values.password,navigate);
             if (scriptedRef.current) {
               setStatus({ success: true });
               setSubmitting(false);
