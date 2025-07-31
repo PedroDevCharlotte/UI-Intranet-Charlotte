@@ -1,3 +1,4 @@
+import { bo } from '@fullcalendar/core/internal-common';
 import axios, { AxiosRequestConfig } from 'axios';
 
 const axiosServices = axios.create({ baseURL: 'http://localhost:3006/' });
@@ -25,7 +26,8 @@ axiosServices.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response.status === 401 && !window.location.href.includes('/login')) {
-      window.location.pathname = '/maintenance/500';
+      // window.location.pathname = '/maintenance/500';
+      console.error('Unauthorized access - redirecting to login', error);
     }
     return Promise.reject((error.response && error.response.data) || 'Wrong Services');
   }
@@ -40,3 +42,4 @@ export const fetcher = async (args: string | [string, AxiosRequestConfig]) => {
 
   return res.data;
 };
+

@@ -4,7 +4,8 @@ import { useMemo } from 'react';
 import useSWR, { mutate } from 'swr';
 
 // project-imports
-import { fetcher } from 'utils/axios';
+import { fetcher  }  from 'utils/axios';
+import axios  from 'utils/axios';
 
 // types
 import { UserList, UserProps } from 'types/user';
@@ -16,7 +17,7 @@ const initialState: UserProps = {
 // ==============================|| API - USER ||============================== //
 
 const endpoints = {
-  key: 'api/user',
+  key: 'user',
   list: '/list', // server URL
   modal: '/modal', // server URL
   insert: '/insert', // server URL
@@ -26,10 +27,14 @@ const endpoints = {
 
 export function useGetUser() {
   const { data, isLoading, error, isValidating } = useSWR(endpoints.key + endpoints.list, fetcher, {
-    revalidateIfStale: false,
+    refreshInterval: 0,
+    revalidateOnMount: true,
+    // revalidateIfStale: false,
     revalidateOnFocus: false,
     revalidateOnReconnect: false
   });
+
+  console.log('useGetUser', data);
 
   const memoizedValue = useMemo(
     () => ({
@@ -41,74 +46,73 @@ export function useGetUser() {
     }),
     [data, error, isLoading, isValidating]
   );
-
+  console.log('memoizedValue', memoizedValue);
   return memoizedValue;
 }
-
 export async function insertUser(newUser: UserList) {
-  // to update local state based on key
-  mutate(
-    endpoints.key + endpoints.list,
-    (currentUser: any) => {
-      newUser.id = currentUser.users.length + 1;
-      const addedUser: UserList[] = [...currentUser.users, newUser];
+  try {
+    const response = await axios.post(endpoints.key + endpoints.insert, newUser);
+    console.log('insertUser response', response);
+    if ([200, 201].indexOf(response.status) == -1) throw new Error('Failed to insert user');
 
-      return {
-        ...currentUser,
-        users: addedUser
-      };
-    },
-    false
-  );
+    // Actualiza el caché local
+    mutate(endpoints.key + endpoints.list);
 
-  // to hit server
-  // you may need to refetch latest data after server hit and based on your logic
-  //   const data = { newUser };
-  //   await axios.post(endpoints.key + endpoints.insert, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error inserting user:', error);
+    let errorMessage = 'Error al insertar el usuario';
+    if (error && typeof error === 'object' && 'message' in error) {
+      errorMessage = (error as { message?: string }).message || errorMessage;
+    }
+    return { error: errorMessage };
+  }
 }
 
-export async function updateUser(userId: number, updatedUser: UserList) {
-  // to update local state based on key
-  mutate(
-    endpoints.key + endpoints.list,
-    (currentUser: any) => {
-      const newUser: UserList[] = currentUser.users.map((user: UserList) =>
-        user.id === userId ? { ...user, ...updatedUser } : user
-      );
 
-      return {
-        ...currentUser,
-        users: newUser
-      };
-    },
-    false
-  );
+export async function updateUser(userId: number, updatedUser: Partial<UserList>) {
+  try {
+    const response = await axios.put(endpoints.key + endpoints.update, {
+      id: userId,
+      ...updatedUser
+    });
 
-  // to hit server
-  // you may need to refetch latest data after server hit and based on your logic
-  //   const data = { list: updatedUser };
-  //   await axios.post(endpoints.key + endpoints.update, data);
+    if ([200, 201].indexOf(response.status) == -1) throw new Error('Failed to update user');
+
+    // Actualiza el caché local
+    mutate(endpoints.key + endpoints.list);
+
+    return response.data;
+  } catch (error) {
+    console.error('Error al actualizar el usuario:', error);
+    let errorMessage = 'Error al actualizar el usuario';
+    if (error && typeof error === 'object' && 'message' in error) {
+      errorMessage = (error as { message?: string }).message || errorMessage;
+    }
+    return { error: errorMessage };
+  }
 }
+
 
 export async function deleteUser(userId: number) {
-  // to update local state based on key
-  mutate(
-    endpoints.key + endpoints.list,
-    (currentUser: any) => {
-      const nonDeletedUser = currentUser.users.filter((user: UserList) => user.id !== userId);
+  try {
+    const response = await axios.delete(endpoints.key + endpoints.delete, {
+      data: { id: userId }
+    });
+    if ([200, 201].indexOf(response.status) == -1) throw new Error('Failed to delete user');
 
-      return {
-        ...currentUser,
-        users: nonDeletedUser
-      };
-    },
-    false
-  );
+    // Actualiza el caché local
+    mutate(endpoints.key + endpoints.list);
 
-  // to hit server
-  // you may need to refetch latest data after server hit and based on your logic
-  //   const data = { userId };
-  //   await axios.post(endpoints.key + endpoints.delete, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    let errorMessage = 'Error al eliminar el usuario, por favor intente de nuevo o contacte al administrador';
+    if (error && typeof error === 'object' && 'message' in error) {
+      errorMessage = (error as { message?: string }).message || errorMessage;
+    }
+    return { error: errorMessage };
+  }
 }
 
 export function useGetUserMaster() {
@@ -137,6 +141,6 @@ export function handlerUserDialog(modal: boolean) {
     (currentUserMaster: any) => {
       return { ...currentUserMaster, modal };
     },
-    false
+    true
   );
 }

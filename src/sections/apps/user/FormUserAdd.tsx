@@ -183,7 +183,19 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
         newUser.name = newUser.firstName + ' ' + newUser.lastName;
 
         if (user) {
-          updateUser(newUser.id!, newUser).then(() => {
+          updateUser(newUser.id!, newUser).then((re) => {
+            if (re.error) {
+              openSnackbar({
+                open: true,
+                message: re.error,
+                variant: 'alert',
+                alert: {
+                  color: 'error'
+                }
+              } as SnackbarProps);
+              setSubmitting(false);
+              return;
+            }
             openSnackbar({
               open: true,
               message: 'Usuario actualizado correctamente.',
@@ -196,7 +208,19 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
             closeModal();
           });
         } else {
-          await insertUser(newUser).then(() => {
+          await insertUser(newUser).then((resp) => {
+            if (resp.error) {
+              openSnackbar({
+                open: true,
+                message: resp.error,
+                variant: 'alert',
+                alert: {
+                  color: 'error'
+                }
+              } as SnackbarProps);
+              setSubmitting(false);
+              return;
+            }
             openSnackbar({
               open: true,
               message: 'Usuario agregado correctamente.',
@@ -336,7 +360,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
           </Form>
         </LocalizationProvider>
       </FormikProvider>
-      {user && <AlertUserDelete id={user.id!} title={user.name} open={openAlert} handleClose={handleAlertClose} />}
+      {user && <AlertUserDelete id={user.id!} title={user.firstName} open={openAlert} handleClose={handleAlertClose} />}
     </>
   );
 }

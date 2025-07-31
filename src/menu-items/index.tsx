@@ -11,7 +11,7 @@ import users from './users';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems: { items: NavItemType[] } = {
-  items: [loadingMenu , users,samplePage, pages, support]
+  items: [loadingMenu, users]
 };
 
 export default menuItems;

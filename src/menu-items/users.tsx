@@ -16,28 +16,13 @@ const icons = {
 
 // ==============================|| MENU ITEMS - PAGES ||============================== //
 
+
 const users: NavItemType = {
-  id: 'group-users',
+  id: 'user-list',
   title: 'users',
   type: 'group',
   icon: icons.user,
-  children: [
-    {
-      id: 'user-list',
-      title: 'list',
-      type: 'item',
-      url: '/apps/user/user-list',
-      actions: [
-        {
-          type: NavActionType.FUNCTION,
-          label: 'Add User',
-          function: () => handlerUserDialog(true),
-          icon: icons.add
-        }
-      ]
-    },
-   
-  ]
+  url: '/apps/user/user-list',
 };
 
 export default users;

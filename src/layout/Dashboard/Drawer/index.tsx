@@ -37,6 +37,7 @@ export default function MainDrawer({ window }: Props) {
       {!downLG ? (
         <MiniDrawerStyled variant="permanent" open={drawerOpen}>
           {drawerHeader}
+         
           {drawerContent}
         </MiniDrawerStyled>
       ) : (

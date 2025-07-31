@@ -61,7 +61,7 @@ import { ImagePath, getImageUrl } from 'utils/getImageUrl';
 import { UserList } from 'types/user';
 
 // assets
-import { Add, Edit, Eye, Trash } from 'iconsax-react';
+import { Add, Edit, Eye, Global, Ticket, Trash } from 'iconsax-react';
 
 interface Props {
   columns: ColumnDef<UserList>[];
@@ -78,7 +78,7 @@ function ReactTable({ data, columns, modalToggler }: Props) {
   const [globalFilter, setGlobalFilter] = useState('');
   const sortBy = { id: 'id', desc: false };
   const [statusFilter, setStatusFilter] = useState<string | number>('');
-
+  console.log('data in list', data);
   const filteredData = useMemo(() => {
     if (statusFilter === '') return data;
     return data.filter((user) => user.status === statusFilter);
@@ -304,40 +304,33 @@ export default function UserListPage() {
             />
             <Stack>
               <Typography variant="subtitle1">{getValue() as string}</Typography>
-              <Typography sx={{ color: 'text.secondary' }}>{row.original.email as string}</Typography>
+              <Typography sx={{ color: 'text.secondary' }}>{row.original.firstName as string}</Typography>
             </Stack>
           </Stack>
         )
       },
       {
-        header: 'Contacto',
-        accessorKey: 'contact',
-        cell: ({ getValue }) => <PatternFormat displayType="text" format="+1 (###) ###-####" mask="_" defaultValue={getValue() as number} />
-      },
-      {
-        header: 'Edad',
-        accessorKey: 'age',
-        meta: {
-          className: 'cell-right'
+        header: 'Correo',
+        accessorKey: 'email',
+         meta: {
+          className: 'cell-center'
         }
       },
       {
-        header: 'País',
-        accessorKey: 'country'
+        header: 'Rol',
+        accessorKey: 'role',
+        meta: {
+          className: 'cell-center'
+        }
       },
+      
       {
         header: 'Estado',
-        accessorKey: 'status',
+        accessorKey: 'isActive',
         cell: (cell) => {
-          switch (cell.getValue()) {
-            case 3:
-              return <Chip color="error" label="Rechazado" size="small" variant="light" />;
-            case 1:
-              return <Chip color="success" label="Verificado" size="small" variant="light" />;
-            case 2:
-            default:
-              return <Chip color="info" label="Pendiente" size="small" variant="light" />;
-          }
+          if (!cell.getValue()) return <Chip color="success" label="Activo" size="small" variant="light" />;
+          if (cell.getValue()) return <Chip color="error" label="Inactivo" size="small" variant="light" />;
+          
         }
       },
       {
@@ -388,6 +381,50 @@ export default function UserListPage() {
                   <Trash />
                 </IconButton>
               </Tooltip>
+              
+              <Tooltip title="Asignar Equipo de Trabajo">
+                <IconButton
+                  sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
+                  color="secondary"
+                  onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                    e.stopPropagation();
+                    handleClose();
+                    setUserModal(true);
+                  }}
+                >
+                  <Ticket />
+                </IconButton>
+              </Tooltip>
+              
+              <Tooltip title="Historial de Cambios">
+                <IconButton
+                  sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
+                  color="primary"
+                  onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                    e.stopPropagation();
+                    handleClose();
+                    setUserModal(true);
+                  }}
+                >
+                  <Global />
+                </IconButton>
+              </Tooltip>
+
+              
+              <Tooltip title="Historial de Sesiones">
+                <IconButton
+                  sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
+                  color="info"
+                  onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                    e.stopPropagation();
+                    handleClose();
+                    setUserModal(true);
+                  }}
+                >
+                  <Global />
+                </IconButton>
+              </Tooltip>
+
             </Stack>
           );
         }

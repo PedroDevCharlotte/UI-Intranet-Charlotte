@@ -15,6 +15,7 @@ import axios from 'utils/axios';
 // types
 import { AuthProps, JWTContextType } from 'types/auth';
 import { KeyedObject } from 'types/root';
+import { r } from 'react-router/dist/development/fog-of-war-DLtn2OLr';
 
 
 const chance = new Chance();
@@ -63,7 +64,7 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
         const serviceToken = window.localStorage.getItem('serviceToken');
         if (serviceToken && verifyToken(serviceToken)) {
           setSession(serviceToken);
-          const response = await axios.get('/api/account/me');
+          const response = await axios.get('/account/me');
           const { user } = response.data;
           dispatch({
             type: LOGIN,
@@ -90,8 +91,9 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
 
   const login = async (email: string, password: string)  => {
     const response = await axios.post('/auth/login', { email, password });
-    const { serviceToken, user, register2FA, requires2FA } = response.data;
-    setSession(serviceToken);
+    const { access_token, user, register2FA, requires2FA } = response.data;
+    // console.log('Login response serviceToken:', response);
+    setSession(access_token);
     dispatch({
       type: LOGIN,
       payload: {
@@ -101,6 +103,7 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
         user
       }
     });
+    return { requires2FA, register2FA };
   };
 
   const register = async (email: string, password: string, firstName: string, lastName: string) => {
@@ -137,7 +140,9 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
   };
 
   const resetPassword = async (email: string) => {
+    // Replace this with actual API call and response handling as needed
     console.log('email - ', email);
+    
   };
 
   const updateProfile = () => {};
@@ -146,7 +151,109 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
     return <Loader />;
   }
 
-  return <JWTContext.Provider value={{ ...state, login, logout, register, resetPassword, updateProfile }}>{children}</JWTContext.Provider>;
+  const verify2FA = async (code: string) => {
+    const response = await axios.post('/auth/2fa/verify', { userId: state?.user?.id, token: code });
+    const { access_token, user, register2FA, requires2FA } = response.data;
+    console.log('2FA verification response serviceToken:', access_token);
+    setSession(access_token);
+    dispatch({
+      type: LOGIN,
+      payload: {
+        isLoggedIn: true,
+        register2FA: false,
+        requires2FA: false,
+        user
+      }
+    });
+    return response.data;
+  };
+
+  const setup2FA = async () => {
+    // const { user } = state;
+    const userId = 1;
+    let response;
+    try {
+        const serviceToken = window.localStorage.getItem('serviceToken');
+
+      const token = axios.defaults.headers.common.Authorization ;
+      
+      response = await axios.post('/auth/2fa/setup', { userId });
+      if ([200,201].indexOf(response.status) == -1) {
+        throw new Error('Failed to set up 2FA');
+      }
+      response = response.data;
+    } catch (error) {
+      console.error('Error setting up 2FA:', error);
+      throw error; // Re-throw the error to be handled by the caller
+      
+    }
+
+    return response;
+  };
+
+  const enable2FA = async (token: string) => {
+    
+      const tokenAutorization = axios.defaults.headers.common.Authorization ;
+    console.log('Enabling 2FA with code:', token, tokenAutorization);
+    console.log('Axios', axios.defaults);
+    console.log('estate', state);
+    let response;
+    try {
+      response = await axios.post('/auth/2fa/enable', { token, userId: state.user?.id });
+      response = response.data;
+      if (!response.isError) {
+        console.log('2FA enabled successfully:', response);
+        const { access_token, user, register2FA, requires2FA } = response;
+        setSession(access_token);
+        dispatch({
+          type: LOGIN,
+          payload: {
+            isLoggedIn: true,
+            register2FA: false,
+            requires2FA: false,
+            user
+          }
+        });
+        
+      }
+    } catch (error) {
+      console.error('Error enabling 2FA:', error);
+      // throw error; // Re-throw the error to be handled by the caller
+      
+    }
+    return response;
+    // 
+    // const { serviceToken, user, register2FA, requires2FA } = response.data;
+    // setSession(serviceToken);
+    // dispatch({
+    //   type: LOGIN,
+    //   payload: {
+    //     isLoggedIn: true,
+    //     register2FA,
+    //     requires2FA,
+    //     user
+    //   }
+    // });
+    return {};
+  };
+
+  const disable2FA = async () => {
+    const response = await axios.post('/auth/2fa/disable');
+    const { serviceToken, user, register2FA, requires2FA } = response.data;
+    setSession(serviceToken);
+    dispatch({
+      type: LOGIN,
+      payload: {
+        isLoggedIn: true,
+        register2FA,
+        requires2FA,
+        user
+      }
+    });
+    return response.data;
+  };
+
+  return <JWTContext.Provider value={{ ...state, login, logout, register, resetPassword, updateProfile, setup2FA, enable2FA, disable2FA, verify2FA }}>{children}</JWTContext.Provider>;
 };
 
 export default JWTContext;

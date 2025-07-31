@@ -30,13 +30,25 @@ export interface AuthActionProps {
   payload?: AuthProps;
 }
 
+type ResponseAuth = {
+  requires2FA?: boolean;
+  register2FA?: boolean;
+  user?: UserProfile;
+};
+
 export type JWTContextType = {
   isLoggedIn: boolean;
+  register2FA?: boolean;
+  requires2FA?: boolean;
   isInitialized?: boolean;
   user?: UserProfile | null | undefined;
   logout: () => void;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<ResponseAuth>;
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateProfile: VoidFunction;
+  setup2FA: () => Promise<any>;
+  verify2FA: (code: string) => Promise<any>;
+  enable2FA: (code: string) => Promise<any>;
+  disable2FA: (code: string) => Promise<any>;
 };

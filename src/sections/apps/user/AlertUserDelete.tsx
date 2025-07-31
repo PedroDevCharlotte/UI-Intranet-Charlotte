@@ -28,10 +28,22 @@ interface Props {
 
 export default function AlertUserDelete({ id, title, open, handleClose }: Props) {
   const deletehandler = async () => {
-    await deleteUser(id).then(() => {
+    await deleteUser(id).then((resp) => {
+      if (resp.status !== 200 && resp.status !== 201) {
+        openSnackbar({
+          open: true,
+          message: 'Error al eliminar el usuario, por favor intente de nuevo',
+          anchorOrigin: { vertical: 'top', horizontal: 'right' },
+          variant: 'alert',
+          alert: {
+        color: 'error'
+          }
+        } as SnackbarProps);
+        return;
+      }
       openSnackbar({
         open: true,
-        message: 'User deleted successfully',
+        message: 'Ususuario eliminado correctamente',
         anchorOrigin: { vertical: 'top', horizontal: 'right' },
         variant: 'alert',
         alert: {

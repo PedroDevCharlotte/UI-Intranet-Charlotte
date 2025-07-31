@@ -50,7 +50,7 @@ const icons = {
 export function MenuFromAPI() {
   const { menu, menuLoading } = useGetMenu();
 
-  if (menuLoading) return loadingMenu;
+  // if (menuLoading) return loadingMenu;
 
   const subChildrenList = (children: NavItemType[]) => {
     return children?.map((subList: NavItemType) => {
@@ -68,12 +68,13 @@ export function MenuFromAPI() {
     return list;
   };
 
-  const childrenList: NavItemType[] | undefined = menu?.children?.map((subList: NavItemType) => {
-    return itemList(subList);
-  });
+  // const childrenList: NavItemType[] | undefined = menu?.children?.map((subList: NavItemType) => {
+  //   return itemList(subList);
+  // });
 
-  let menuList = fillItem(menu, childrenList);
-  return menuList;
+  // let menuList = fillItem(menu, childrenList);
+  return [];
+  // return menuList;
 }
 
 function fillItem(item: NavItemType, children?: NavItemType[] | undefined) {

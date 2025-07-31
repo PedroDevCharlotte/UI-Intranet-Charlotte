@@ -116,6 +116,8 @@ export default function NavGroup({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item, lastItem, downLG]);
 
+  console.log('item', item);
+
   const checkOpenForParent = (child: NavItemType[], id: string) => {
     child.forEach((ele: NavItemType) => {
       if (ele.children?.length) {

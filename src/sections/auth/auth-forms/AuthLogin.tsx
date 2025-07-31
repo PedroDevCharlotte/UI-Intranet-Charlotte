@@ -79,11 +79,22 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
             const trimmedEmail = values.email.trim();
-            await login(trimmedEmail, values.password,navigate);
+            
+            const { requires2FA, register2FA } = await login(trimmedEmail, values.password);
+
+            console.log('Login successful', scriptedRef);
             if (scriptedRef.current) {
               setStatus({ success: true });
               setSubmitting(false);
-              preload('api/menu/dashboard', fetcher); // load menu on login success
+              
+              if (requires2FA) {
+                navigate('/verify-2fa');
+              } else if (register2FA) {
+                navigate('/setup-2fa');
+              } else {
+                navigate('/dashboard');
+              }
+
             }
           } catch (err: any) {
             console.error(err);

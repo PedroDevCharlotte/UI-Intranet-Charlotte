@@ -8,6 +8,8 @@ import { AuthProps, AuthActionProps } from 'types/auth';
 const initialState: AuthProps = {
   isLoggedIn: false,
   isInitialized: false,
+  register2FA: false,
+  requires2FA: false,
   user: null
 };
 
@@ -24,10 +26,14 @@ const auth = (state = initialState, action: AuthActionProps) => {
     }
     case LOGIN: {
       const { user } = action.payload!;
+      // console.log('AuthReducer LOGIN action payload:', action.payload);
+      // console.log('AuthReducer LOGIN state before update:', state);
       return {
         ...state,
         isLoggedIn: true,
         isInitialized: true,
+        register2FA: action.payload?.register2FA || false,
+        requires2FA: action.payload?.requires2FA || false,
         user
       };
     }

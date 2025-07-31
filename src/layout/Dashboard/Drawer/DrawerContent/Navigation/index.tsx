@@ -33,7 +33,7 @@ export default function Navigation() {
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
 
   const { menuOrientation } = useConfig();
-  const { menuLoading } = useGetMenu();
+  // const { menuLoading } = useGetMenu();
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
 
@@ -65,7 +65,8 @@ export default function Navigation() {
   let lastItemIndex = menuItem.items.length - 1;
   let remItems: NavItemType[] = [];
   let lastItemId: string;
-
+  // console.log('menuItem.items', menuItem.items);
+  // console.log('lastItem', lastItem);
   if (lastItem && lastItem < menuItem.items.length) {
     lastItemId = menuItem.items[lastItem - 1].id!;
     lastItemIndex = lastItem - 1;
@@ -78,8 +79,10 @@ export default function Navigation() {
       })
     }));
   }
+  // console.log('remItems', remItems);
 
   const navGroups = menuItem.items.slice(0, lastItemIndex + 1).map((item) => {
+    // console.log('item', item);
     switch (item.type) {
       case 'group':
         if (item.url && item.id !== lastItemId) {
@@ -113,6 +116,8 @@ export default function Navigation() {
         );
     }
   });
+
+  // console.log('navGroups', navGroups);
 
   return (
     <Box

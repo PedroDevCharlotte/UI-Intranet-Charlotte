@@ -53,7 +53,7 @@ const LoginRoutes = {
           element: <AuthCodeVerification />
         },
         {
-          path: '2fa',
+          path: 'verify-2fa',
           element: <Auth2FA/>
         },
         {

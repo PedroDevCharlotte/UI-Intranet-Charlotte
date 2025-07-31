@@ -161,6 +161,7 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
   const { pathname } = useLocation();
 
   // menu collapse for sub-levels
+
   useMenuCollapse(menu, pathname, miniMenuOpened, setSelected, setOpen, setAnchorEl);
 
   useEffect(() => {
