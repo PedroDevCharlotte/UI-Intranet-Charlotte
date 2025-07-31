@@ -160,7 +160,15 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
   const UserSchema = Yup.object().shape({
     firstName: Yup.string().max(255).required('El nombre es obligatorio'),
     lastName: Yup.string().max(255).required('El apellido es obligatorio'),
-    email: Yup.string().max(255).required('El correo electrónico es obligatorio').email('Debe ser un correo válido'),
+    email: Yup.string()
+      .max(255)
+      .required('El correo electrónico es obligatorio')
+      .email('Debe ser un correo válido')
+      .test(
+        'domain',
+        'El correo debe ser del dominio charlotte.com.mx',
+        (value) => !!value && value.endsWith('@charlotte.com.mx')
+      ),
     status: Yup.string().required('El estado es obligatorio'),
     location: Yup.string().max(500),
     about: Yup.string().max(500)
