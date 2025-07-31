@@ -215,7 +215,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                 message: resp.error,
                 variant: 'alert',
                 alert: {
-                  color: 'error'
+                  color: 'error' 
                 }
               } as SnackbarProps);
               setSubmitting(false);
