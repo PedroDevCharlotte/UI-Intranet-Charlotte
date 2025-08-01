@@ -138,11 +138,14 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
     setSession(null);
     dispatch({ type: LOGOUT });
   };
-
   const resetPassword = async (email: string) => {
-    // Replace this with actual API call and response handling as needed
-    console.log('email - ', email);
-    
+    try {
+      const response = await axios.post('/user/request-password-reset', { email });
+      return response.data;
+    } catch (error) {
+      console.error('Error requesting password reset:', error);
+      throw error;
+    }
   };
 
   const updateProfile = () => {};
@@ -169,23 +172,24 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
   };
 
   const setup2FA = async () => {
-    // const { user } = state;
-    const userId = 1;
+    const { user } = state;
     let response;
     try {
-        const serviceToken = window.localStorage.getItem('serviceToken');
+      const serviceToken = window.localStorage.getItem('serviceToken');
 
-      const token = axios.defaults.headers.common.Authorization ;
-      
-      response = await axios.post('/auth/2fa/setup', { userId });
-      if ([200,201].indexOf(response.status) == -1) {
+      const token = axios.defaults.headers.common.Authorization;
+      if (!user || !user.id) {
+        throw new Error('User is not defined');
+      }
+      response = await axios.post('/auth/2fa/setup', { userId: user.id });
+      if ([200, 201].indexOf(response.status) === -1) {
         throw new Error('Failed to set up 2FA');
       }
       response = response.data;
     } catch (error) {
       console.error('Error setting up 2FA:', error);
       throw error; // Re-throw the error to be handled by the caller
-      
+
     }
 
     return response;
@@ -253,7 +257,17 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
     return response.data;
   };
 
-  return <JWTContext.Provider value={{ ...state, login, logout, register, resetPassword, updateProfile, setup2FA, enable2FA, disable2FA, verify2FA }}>{children}</JWTContext.Provider>;
+  const verifyPasswordReset = async (email: string, code: string, newPassword: string) => {
+    try {
+      const response = await axios.post('/user/verify-password-reset', { email, code, newPassword });
+      return response.data;
+    } catch (error) {
+      console.error('Error verifying password reset:', error);
+      throw error;
+    }
+  };
+
+  return <JWTContext.Provider value={{ ...state, login, logout, register, resetPassword, verifyPasswordReset, updateProfile, setup2FA, enable2FA, disable2FA, verify2FA }}>{children}</JWTContext.Provider>;
 };
 
 export default JWTContext;

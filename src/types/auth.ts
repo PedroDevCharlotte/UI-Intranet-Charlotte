@@ -13,6 +13,7 @@ type UserProfile = {
   image?: string;
   name?: string;
   role?: string;
+  department?: string;
   tier?: string;
 };
 
@@ -46,6 +47,7 @@ export type JWTContextType = {
   login: (email: string, password: string) => Promise<ResponseAuth>;
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  verifyPasswordReset: (email: string, code: string, newPassword: string) => Promise<void>;
   updateProfile: VoidFunction;
   setup2FA: () => Promise<any>;
   verify2FA: (code: string) => Promise<any>;

@@ -4,6 +4,10 @@ import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+
+// react
+import { useState } from 'react';
 
 // project-imports
 import { deleteUser } from 'api/user';
@@ -27,37 +31,71 @@ interface Props {
 // ==============================|| USER - DELETE ||============================== //
 
 export default function AlertUserDelete({ id, title, open, handleClose }: Props) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const deletehandler = async () => {
-    await deleteUser(id).then((resp) => {
-      if (resp.status !== 200 && resp.status !== 201) {
+    setIsDeleting(true);
+    
+    try {
+      const result = await deleteUser(id);
+      
+      // Verificar si hay error
+      if (result.error || !result.success) {
+        openSnackbar({
+          open: true,
+          message: result.error || 'Error al eliminar el usuario',
+          anchorOrigin: { vertical: 'top', horizontal: 'right' },
+          variant: 'alert',
+          alert: {
+            color: 'error'
+          }
+        } as SnackbarProps);
+        return;
+      }
+      
+      // Verificar si el resultado es exitoso
+      if (result.success) {
+        openSnackbar({
+          open: true,
+          message: result.message || 'Usuario eliminado correctamente',
+          anchorOrigin: { vertical: 'top', horizontal: 'right' },
+          variant: 'alert',
+          alert: {
+            color: 'success'
+          }
+        } as SnackbarProps);
+        handleClose();
+      } else {
         openSnackbar({
           open: true,
           message: 'Error al eliminar el usuario, por favor intente de nuevo',
           anchorOrigin: { vertical: 'top', horizontal: 'right' },
           variant: 'alert',
           alert: {
-        color: 'error'
+            color: 'error'
           }
         } as SnackbarProps);
-        return;
       }
+    } catch (error) {
+      console.error('Error inesperado:', error);
       openSnackbar({
         open: true,
-        message: 'Ususuario eliminado correctamente',
+        message: 'Error inesperado al eliminar el usuario',
         anchorOrigin: { vertical: 'top', horizontal: 'right' },
         variant: 'alert',
         alert: {
-          color: 'success'
+          color: 'error'
         }
       } as SnackbarProps);
-      handleClose();
-    });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={isDeleting ? undefined : handleClose}
       keepMounted
       TransitionComponent={PopupTransition}
       maxWidth="xs"
@@ -71,24 +109,38 @@ export default function AlertUserDelete({ id, title, open, handleClose }: Props)
           </Avatar>
           <Stack sx={{ gap: 2 }}>
             <Typography variant="h4" align="center">
-              Are you sure you want to delete?
+              ¿Estás seguro de que quieres eliminar?
             </Typography>
             <Typography align="center">
-              By deleting
+              Al eliminar
               <Typography variant="subtitle1" component="span">
                 {' '}
                 &quot;{title}&quot;{' '}
               </Typography>
-              user, all task assigned to that user will also be deleted.
+              usuario, todas las tareas asignadas a ese usuario también se eliminarán.
             </Typography>
           </Stack>
 
           <Stack direction="row" sx={{ gap: 2, width: 1 }}>
-            <Button fullWidth onClick={handleClose} color="secondary" variant="outlined">
-              Cancel
+            <Button 
+              fullWidth 
+              onClick={handleClose} 
+              color="secondary" 
+              variant="outlined"
+              disabled={isDeleting}
+            >
+              Cancelar
             </Button>
-            <Button fullWidth color="error" variant="contained" onClick={deletehandler} autoFocus>
-              Delete
+            <Button 
+              fullWidth 
+              color="error" 
+              variant="contained" 
+              onClick={deletehandler} 
+              autoFocus
+              disabled={isDeleting}
+              startIcon={isDeleting ? <CircularProgress size={16} color="inherit" /> : undefined}
+            >
+              {isDeleting ? 'Eliminando...' : 'Eliminar'}
             </Button>
           </Stack>
         </Stack>

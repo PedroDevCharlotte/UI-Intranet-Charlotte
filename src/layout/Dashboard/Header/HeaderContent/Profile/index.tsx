@@ -157,11 +157,18 @@ export default function ProfilePage() {
                       <Grid>
                         <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center' }}>
                           <Avatar alt="profile user" src={avatar1} />
-                          <Stack>
-                            <Typography variant="subtitle1">{user?.name}</Typography>
-                            <Typography variant="body2" color="secondary">
-                              UI/UX Designer
+                          <Stack sx={{ minWidth: 0, flex: 1 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                              {user?.name || 'Usuario'}
                             </Typography>
+                            <Typography variant="body2" color="primary.main" sx={{ fontWeight: 500 }}>
+                              {user?.role || 'Usuario'}
+                            </Typography>
+                            {user?.department && (
+                              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                                {user.department}
+                              </Typography>
+                            )}
                           </Stack>
                         </Stack>
                       </Grid>

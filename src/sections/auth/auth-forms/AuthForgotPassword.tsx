@@ -42,8 +42,8 @@ export default function AuthForgotPassword() {
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
-            await resetPassword(values.email).then(
-              () => {
+            await resetPassword(values.email)
+              .then(() => {
                 setStatus({ success: true });
                 setSubmitting(false);
                 openSnackbar({
@@ -57,13 +57,12 @@ export default function AuthForgotPassword() {
                 setTimeout(() => {
                   navigate(isLoggedIn ? '/auth/check-mail' : '/check-mail', { replace: true });
                 }, 1500);
-              },
-              (err: any) => {
+              })
+              .catch((err: any) => {
                 setStatus({ success: false });
-                setErrors({ submit: err.message });
+                setErrors({ submit: err.message || 'No se pudo enviar el correo de restablecimiento.' });
                 setSubmitting(false);
-              }
-            );
+              });
           } catch (err: any) {
             console.error(err);
             if (scriptedRef.current) {

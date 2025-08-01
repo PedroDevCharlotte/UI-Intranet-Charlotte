@@ -1,8 +1,10 @@
-import { useEffect, useState, ChangeEvent } from 'react';
+import { useEffect, useState, ChangeEvent, SyntheticEvent } from 'react';
 
 // material-ui
 import Autocomplete from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import InputAdornment from '@mui/material/InputAdornment';
 import Chip from '@mui/material/Chip';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -40,18 +42,21 @@ import AlertUserDelete from './AlertUserDelete';
 import Avatar from 'components/@extended/Avatar';
 import IconButton from 'components/@extended/IconButton';
 import CircularWithPath from 'components/@extended/progress/CircularWithPath';
+import { strengthColor, strengthIndicator } from 'utils/password-strength';
 
-import { insertUser, updateUser } from 'api/user';
+import { insertUser, updateUser, useGetRoles, useGetDepartments } from 'api/user';
 import { openSnackbar } from 'api/snackbar';
 import { Gender } from 'config';
 import { ImagePath, getImageUrl } from 'utils/getImageUrl';
 
 // assets
-import { Camera, CloseCircle, Trash } from 'iconsax-react';
+import { Camera, CloseCircle, Eye, EyeSlash, Key, Trash } from 'iconsax-react';
 
 // types
 import { SnackbarProps } from 'types/snackbar';
 import { UserList } from 'types/user';
+import { passiveEventSupported } from '@tanstack/react-table';
+import { StringColorProps } from 'types/password';
 
 interface StatusProps {
   value: number;
@@ -105,24 +110,11 @@ const getInitialValues = (user: UserList | null) => {
   const newUser = {
     firstName: '',
     lastName: '',
-    name: '',
     email: '',
-    age: 18,
-    avatar: 1,
-    gender: Gender.FEMALE,
-    role: '',
-    fatherName: '',
-    orders: 0,
-    progress: 50,
-    status: 2,
-    orderStatus: '',
-    contact: '',
-    country: '',
-    location: '',
-    about: '',
-    skills: [],
-    time: ['just now'],
-    date: ''
+    password: '',
+    roleId: 0,
+    departmentId: 0,
+    active: true
   };
 
   if (user) {
@@ -140,8 +132,45 @@ const allStatus: StatusProps[] = [
 
 // ==============================|| USER ADD / EDIT - FORM ||============================== //
 
+// Función para generar contraseña segura
+const generateSecurePassword = (length: number = 12): string => {
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  const specialChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+  
+  // Asegurar que la contraseña tenga al menos un carácter de cada tipo
+  let password = '';
+  password += lowercase[Math.floor(Math.random() * lowercase.length)];
+  password += uppercase[Math.floor(Math.random() * uppercase.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+  password += specialChars[Math.floor(Math.random() * specialChars.length)];
+  
+  // Completar el resto de la longitud con caracteres aleatorios
+  const allChars = lowercase + uppercase + numbers + specialChars;
+  for (let i = password.length; i < length; i++) {
+    password += allChars[Math.floor(Math.random() * allChars.length)];
+  }
+  
+  // Mezclar los caracteres para que no tengan un patrón predecible
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+};
+
 export default function FormUserAdd({ user, closeModal }: { user: UserList | null; closeModal: () => void }) {
   const [loading, setLoading] = useState<boolean>(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [level, setLevel] = useState<StringColorProps>();
+  
+  // API calls for roles and departments
+  const { roles, rolesLoading } = useGetRoles();
+  const { departments, departmentsLoading } = useGetDepartments();
+  
+  // Debug logs
+  console.log('FormUserAdd - roles:', roles);
+  console.log('FormUserAdd - rolesLoading:', rolesLoading);
+  console.log('FormUserAdd - departments:', departments);
+  console.log('FormUserAdd - departmentsLoading:', departmentsLoading);
+  
   const [selectedImage, setSelectedImage] = useState<File | undefined>(undefined);
   const [avatar, setAvatar] = useState<string | undefined>(
     getImageUrl(`avatar-${user && user !== null && user?.avatar ? user.avatar : 1}.png`, ImagePath.USERS)
@@ -154,8 +183,9 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
   }, [selectedImage]);
 
   useEffect(() => {
-    setLoading(false);
-  }, []);
+    // El loading se controlará por las APIs de roles y departamentos
+    setLoading(rolesLoading || departmentsLoading);
+  }, [rolesLoading, departmentsLoading]);
 
   const UserSchema = Yup.object().shape({
     firstName: Yup.string().max(255).required('El nombre es obligatorio'),
@@ -164,17 +194,34 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
       .max(255)
       .required('El correo electrónico es obligatorio')
       .email('Debe ser un correo válido')
-      .test(
-        'domain',
-        'El correo debe ser del dominio charlotte.com.mx',
-        (value) => !!value && value.endsWith('@charlotte.com.mx')
-      ),
-    status: Yup.string().required('El estado es obligatorio'),
-    location: Yup.string().max(500),
-    about: Yup.string().max(500)
+      .test('domain', 'El correo debe ser del dominio charlotte.com.mx', (value) => !!value && value.endsWith('@charlotte.com.mx')),
+    departmentId: Yup.number().min(1, 'El departamento es obligatorio').required('El departamento es obligatorio'),
+    roleId: Yup.number().min(1, 'El rol es obligatorio').required('El rol es obligatorio'),
+    active: Yup.boolean().required('El estado es obligatorio'),
+    password: Yup.string()
+      .required('La contraseña es obligatoria')
+      .min(8, 'La contraseña debe tener al menos 8 caracteres')
+      .matches(/[a-z]/, 'Debe contener al menos una minúscula')
+      .matches(/[A-Z]/, 'Debe contener al menos una mayúscula')
+      .matches(/[0-9]/, 'Debe contener al menos un número')
+      .matches(/[^a-zA-Z0-9]/, 'Debe contener al menos un carácter especial')
   });
 
   const [openAlert, setOpenAlert] = useState(false);
+
+
+   const handleClickShowPassword = () => {
+      setShowPassword(!showPassword);
+    };
+  
+    const handleMouseDownPassword = (event: SyntheticEvent) => {
+      event.preventDefault();
+    };
+
+    const changePassword = (value: string) => {
+      const temp = strengthIndicator(value);
+      setLevel(strengthColor(temp));
+    };
 
   const handleAlertClose = () => {
     setOpenAlert(!openAlert);
@@ -187,65 +234,97 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
     enableReinitialize: true,
     onSubmit: async (values, { setSubmitting }) => {
       try {
-        let newUser: UserList = values;
-        newUser.name = newUser.firstName + ' ' + newUser.lastName;
+        // Construir el objeto de usuario con solo los campos necesarios para el DTO
+        const userData = {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          password: values.password,
+          roleId: values.roleId,
+          departmentId: values.departmentId,
+          active: values.active,
+          role: roles?.find((r: any) => r.id === values.roleId)?.name || ''
+        };
 
         if (user) {
-          updateUser(newUser.id!, newUser).then((re) => {
-            if (re.error) {
-              openSnackbar({
-                open: true,
-                message: re.error,
-                variant: 'alert',
-                alert: {
-                  color: 'error'
-                }
-              } as SnackbarProps);
-              setSubmitting(false);
-              return;
-            }
+          // Para actualización, incluir el ID
+          const updateData = { ...userData, id: user.id };
+          const result = await updateUser(user.id!, updateData);
+          
+          if (result.error || !result.success) {
             openSnackbar({
               open: true,
-              message: 'Usuario actualizado correctamente.',
+              message: result.error || 'Error al actualizar el usuario',
               variant: 'alert',
               alert: {
-                color: 'success'
+                color: 'error'
               }
             } as SnackbarProps);
             setSubmitting(false);
-            closeModal();
-          });
+            return;
+          }
+          
+          openSnackbar({
+            open: true,
+            message: result.message || 'Usuario actualizado correctamente.',
+            variant: 'alert',
+            alert: {
+              color: 'success'
+            }
+          } as SnackbarProps);
+          setSubmitting(false);
+          closeModal();
         } else {
-          await insertUser(newUser).then((resp) => {
-            if (resp.error) {
-              openSnackbar({
-                open: true,
-                message: resp.error,
-                variant: 'alert',
-                alert: {
-                  color: 'error' 
-                }
-              } as SnackbarProps);
-              setSubmitting(false);
-              return;
-            }
+          // Para inserción, enviar solo los datos necesarios
+          const result = await insertUser(userData);
+          
+          if (result.error || !result.success) {
             openSnackbar({
               open: true,
-              message: 'Usuario agregado correctamente.',
+              message: result.error || 'Error al crear el usuario',
               variant: 'alert',
               alert: {
-                color: 'success'
+                color: 'error'
               }
             } as SnackbarProps);
             setSubmitting(false);
-            closeModal();
-          });
+            return;
+          }
+          
+          openSnackbar({
+            open: true,
+            message: result.message || 'Usuario agregado correctamente.',
+            variant: 'alert',
+            alert: {
+              color: 'success'
+            }
+          } as SnackbarProps);
+          setSubmitting(false);
+          closeModal();
         }
-      } catch {}
+      } catch (error) {
+        console.error('Error inesperado en onSubmit:', error);
+        openSnackbar({
+          open: true,
+          message: 'Error inesperado. Por favor intente de nuevo.',
+          variant: 'alert',
+          alert: {
+            color: 'error'
+          }
+        } as SnackbarProps);
+        setSubmitting(false);
+      }
     }
   });
 
-  const { errors, touched, handleSubmit, isSubmitting, getFieldProps, setFieldValue } = formik;
+  const { errors, touched, handleSubmit, handleBlur, handleChange,  isSubmitting, getFieldProps, setFieldValue } = formik;
+
+  // Función para generar y asignar contraseña segura
+  const handleGeneratePassword = () => {
+    const newPassword = generateSecurePassword(12);
+    setFieldValue('password', newPassword);
+    changePassword(newPassword);
+  };
 
   if (loading)
     return (
@@ -263,9 +342,8 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
           <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
             <DialogTitle>{user ? 'Editar usuario' : 'Nuevo usuario'}</DialogTitle>
             <Divider />
-            <DialogContent  sx={{ p: 2.5 }}>
-              <Grid container spacing={2} >
-               
+            <DialogContent sx={{ p: 2.5 }}>
+              <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 12 }}>
                   <Grid container spacing={3}>
                     <Grid size={{ xs: 12 }}>
@@ -307,36 +385,174 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                         />
                       </Stack>
                     </Grid>
+
                     <Grid size={12}>
                       <Stack sx={{ gap: 1 }}>
-                        <InputLabel htmlFor="user-skills">Rol/es Asignado/s</InputLabel>
-                        <Autocomplete
-                          multiple
+                        <InputLabel htmlFor="user-department">Departamento</InputLabel>
+                        <Select
                           fullWidth
-                          id="user-skills"
-                          options={skills}
-                          {...getFieldProps('skills')}
-                          getOptionLabel={(label) => label}
-                          onChange={(event, newValue) => {
-                            setFieldValue('skills', newValue);
-                          }}
-                          renderInput={(params) => <TextField {...params} name="skill" placeholder="Asignar Rol" />}
-                          renderTags={(value, getTagProps) =>
-                            value.map((option, index) => (
-                              <Chip
-                                {...getTagProps({ index })}
-                                variant="combined"
-                                key={index}
-                                label={option}
-                                deleteIcon={<CloseCircle style={{ fontSize: '0.75rem' }} />}
-                                sx={{ color: 'text.primary' }}
-                              />
-                            ))
-                          }
-                        />
+                          id="user-department"
+                          value={getFieldProps('departmentId').value}
+                          name="departmentId"
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          error={Boolean(touched.departmentId && errors.departmentId)}
+                          displayEmpty
+                          disabled={departmentsLoading}
+                        >
+                          <MenuItem value={0} disabled>
+                            <em>{departmentsLoading ? 'Cargando departamentos...' : 'Seleccione un departamento'}</em>
+                          </MenuItem>
+                          {(() => {
+                            console.log('Rendering departments:', departments, 'isArray:', Array.isArray(departments), 'length:', departments?.length);
+                            return Array.isArray(departments) && departments.map((dept: any) => {
+                              console.log('Rendering department item:', dept);
+                              return (
+                                <MenuItem key={dept.id} value={dept.id}>
+                                  {dept.name}
+                                </MenuItem>
+                              );
+                            });
+                          })()}
+                        </Select>
+                        {touched.departmentId && errors.departmentId && (
+                          <FormHelperText error>
+                            {errors.departmentId}
+                          </FormHelperText>
+                        )}
                       </Stack>
                     </Grid>
-                   
+
+                    <Grid size={12}>
+                      <Stack sx={{ gap: 1 }}>
+                        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                          <InputLabel htmlFor="password">Contraseña</InputLabel>
+                          <Tooltip title="Generar contraseña segura">
+                            <IconButton
+                              onClick={handleGeneratePassword}
+                              color="primary"
+                              size="small"
+                              sx={{ ml: 1 }}
+                            >
+                              <Key size={16} />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                        <OutlinedInput
+                          fullWidth
+                          error={Boolean(touched.password && errors.password)}
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          value={getFieldProps('password').value}
+                          name="password"
+                          onBlur={handleBlur}
+                          onChange={(e) => {
+                            handleChange(e);
+                            changePassword(e.target.value);
+                          }}
+                          endAdornment={
+                            <InputAdornment position="end">
+                              <IconButton
+                                aria-label="Mostrar u ocultar contraseña"
+                                onClick={handleClickShowPassword}
+                                onMouseDown={handleMouseDownPassword}
+                                edge="end"
+                                color="secondary"
+                              >
+                                {showPassword ? <Eye /> : <EyeSlash />}
+                              </IconButton>
+                            </InputAdornment>
+                          }
+                          placeholder="******"
+                          inputProps={{}}
+                        />
+                      </Stack>
+                      {touched.password && errors.password && (
+                        <FormHelperText error id="helper-text-password">
+                          {errors.password}
+                        </FormHelperText>
+                      )}
+                      <FormControl fullWidth sx={{ mt: 2 }}>
+                        <Grid container spacing={2} sx={{ alignItems: 'center', flexWrap: 'nowrap' }}>
+                          <Grid >
+                            <Box sx={{ bgcolor: level?.color, width: 85, height: 8, borderRadius: '7px' }} />
+                          </Grid>
+                          <Grid >
+                            <Typography variant="subtitle1" sx={{ fontSize: '0.75rem' }}>
+                              {level?.label}
+                            </Typography>
+                          </Grid>
+                          <Grid  sx={{ flexGrow: 1 }} />
+                        </Grid>
+                      </FormControl>
+                    </Grid>
+                    <Grid size={12}>
+                      <Stack sx={{ gap: 1 }}>
+                        <InputLabel htmlFor="user-role">Rol del Usuario</InputLabel>
+                        <Select
+                          fullWidth
+                          id="user-role"
+                          value={getFieldProps('roleId').value}
+                          name="roleId"
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          error={Boolean(touched.roleId && errors.roleId)}
+                          displayEmpty
+                          disabled={rolesLoading}
+                        >
+                          <MenuItem value={0} disabled>
+                            <em>{rolesLoading ? 'Cargando roles...' : 'Seleccione un rol'}</em>
+                          </MenuItem>
+                          {(() => {
+                            console.log('Rendering roles:', roles, 'isArray:', Array.isArray(roles), 'length:', roles?.length);
+                            return Array.isArray(roles) && roles.map((role: any) => {
+                              console.log('Rendering role item:', role);
+                              return (
+                                <MenuItem key={role.id} value={role.id}>
+                                  {role.name}
+                                </MenuItem>
+                              );
+                            });
+                          })()}
+                        </Select>
+                        {touched.roleId && errors.roleId && (
+                          <FormHelperText error>
+                            {errors.roleId}
+                          </FormHelperText>
+                        )}
+                      </Stack>
+                    </Grid>
+
+                    <Grid size={12}>
+                      <Stack sx={{ gap: 1 }}>
+                        <InputLabel htmlFor="user-active">Estado del Usuario</InputLabel>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              id="user-active"
+                              checked={getFieldProps('active').value}
+                              onChange={(event) => {
+                                setFieldValue('active', event.target.checked);
+                              }}
+                              color="primary"
+                            />
+                          }
+                          label={getFieldProps('active').value ? 'Activo' : 'Inactivo'}
+                          sx={{ 
+                            '& .MuiFormControlLabel-label': {
+                              color: getFieldProps('active').value ? 'success.main' : 'error.main',
+                              fontWeight: 'medium'
+                            }
+                          }}
+                        />
+                        {touched.active && errors.active && (
+                          <FormHelperText error>
+                            {errors.active}
+                          </FormHelperText>
+                        )}
+                      </Stack>
+                    </Grid>
+
                   </Grid>
                 </Grid>
               </Grid>
@@ -355,11 +571,19 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                 </Grid>
                 <Grid>
                   <Stack direction="row" sx={{ gap: 2, alignItems: 'center' }}>
-                    <Button color="error" onClick={closeModal}>
+                    <Button color="error" onClick={closeModal} disabled={isSubmitting}>
                       Cancelar
                     </Button>
-                    <Button type="submit" variant="contained" disabled={isSubmitting}>
-                      {user ? 'Editar' : 'Agregar'}
+                    <Button 
+                      type="submit" 
+                      variant="contained" 
+                      disabled={isSubmitting}
+                      startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : undefined}
+                    >
+                      {isSubmitting 
+                        ? (user ? 'Actualizando...' : 'Creando...')
+                        : (user ? 'Editar' : 'Agregar')
+                      }
                     </Button>
                   </Stack>
                 </Grid>
