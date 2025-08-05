@@ -38,7 +38,15 @@ export default function AuthForgotPassword() {
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          email: Yup.string().email('Debe ser un correo electrónico válido').max(255).required('El correo electrónico es obligatorio')
+          email: Yup.string()
+                      .email('Debe ser un correo electrónico válido')
+                      .max(255)
+                      .required('El correo electrónico es obligatorio')
+                      .test(
+                        'domain',
+                        'El correo debe ser del dominio charlotte.com.mx',
+                        (value) => !!value && value.endsWith('@charlotte.com.mx')
+                      )
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {

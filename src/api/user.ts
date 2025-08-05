@@ -113,14 +113,14 @@ export async function insertUser(newUser: UserList) {
     console.log('Iniciando inserción de usuario:', newUser);
     
     // Crear estructura simple sin id - usando los nombres correctos del tipo UserList
-    const userData = {
-      name: newUser.firstName || newUser.name || '',
-      lastname: newUser.lastName || '',
-      rol: Array.isArray(newUser.role) ? [newUser.role] : [newUser.role || ''],
-      email: newUser.email || '',
-      password: (newUser as any).password || ''
-    };
-    
+    // const userData = {
+    //   name: newUser.firstName || newUser.name || '',
+    //   lastname: newUser.lastName || '',
+    //   rol: Array.isArray(newUser.role) ? [newUser.role] : [newUser.role || ''],
+    //   email: newUser.email || '',
+    //   password: (newUser as any).password || ''
+    // };
+    let userData = newUser;
     console.log('Datos para enviar (INSERT):', userData);
     
     const response = await axios.post(endpoints.key + endpoints.insert, userData);
@@ -185,25 +185,10 @@ export async function updateUser(userId: number, updatedUser: Partial<UserList>)
     
     // Crear estructura simple con los campos necesarios
     const userData: any = {
+      ...updatedUser,
       id: userId
     };
-    
-    // Solo agregar campos que existen
-    if (updatedUser.firstName || updatedUser.name) {
-      userData.name = updatedUser.firstName || updatedUser.name;
-    }
-    if (updatedUser.lastName) {
-      userData.lastname = updatedUser.lastName;
-    }
-    if (updatedUser.email) {
-      userData.email = updatedUser.email;
-    }
-    if (updatedUser.role) {
-      userData.rol = [updatedUser.role];
-    }
-    if ((updatedUser as any).password) {
-      userData.password = (updatedUser as any).password;
-    }
+ 
     
     console.log('Datos para enviar (UPDATE):', userData);
     
@@ -375,10 +360,6 @@ export function useGetRoles() {
     revalidateOnReconnect: false
   });
 
-  console.log('useGetRoles - data:', data);
-  console.log('useGetRoles - error:', error);
-  console.log('useGetRoles - isLoading:', isLoading);
-
   const memoizedValue = useMemo(
     () => ({
       roles: Array.isArray(data) ? data : [],
@@ -391,7 +372,7 @@ export function useGetRoles() {
     [data, error, isLoading, mutate]
   );
 
-  console.log('useGetRoles - memoizedValue:', memoizedValue);
+  // console.log('useGetRoles - memoizedValue:', memoizedValue);
   return memoizedValue;
 }
 
@@ -403,10 +384,6 @@ export function useGetDepartments() {
     revalidateOnFocus: false,
     revalidateOnReconnect: false
   });
-
-  console.log('useGetDepartments - data:', data);
-  console.log('useGetDepartments - error:', error);
-  console.log('useGetDepartments - isLoading:', isLoading);
 
   const memoizedValue = useMemo(
     () => ({
@@ -420,6 +397,5 @@ export function useGetDepartments() {
     [data, error, isLoading, mutate]
   );
 
-  console.log('useGetDepartments - memoizedValue:', memoizedValue);
   return memoizedValue;
 }

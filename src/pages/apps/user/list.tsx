@@ -54,7 +54,7 @@ import AlertUserDelete from 'sections/apps/user/AlertUserDelete';
 import UserModal from 'sections/apps/user/UserModal';
 import UserView from 'sections/apps/user/UserView';
 
-import { useGetUser } from 'api/user';
+import { useGetDepartments, useGetRoles, useGetUser } from 'api/user';
 import { ImagePath, getImageUrl } from 'utils/getImageUrl';
 
 // types
@@ -81,11 +81,13 @@ function ReactTable({ data, columns, modalToggler }: Props) {
   console.log('data in list', data);
   const filteredData = useMemo(() => {
     if (statusFilter === '') return data;
-    return data.filter((user) => user.status === statusFilter);
+    if (statusFilter === 1) return data.filter((user) => user.active == true);
+    if (statusFilter === 0) return data.filter((user) => user.active == false);
+    // return data.filter((user) => user.active === statusFilter);
   }, [statusFilter, data]);
 
   const table = useReactTable({
-    data: filteredData,
+    data: filteredData ?? [],
     columns,
     state: {
       columnFilters,
@@ -138,16 +140,16 @@ function ReactTable({ data, columns, modalToggler }: Props) {
         <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2, alignItems: 'center' }}>
           <Select
             value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
+            onChange={(event) => {
+              setStatusFilter(event.target.value)}}
             displayEmpty
             inputProps={{ 'aria-label': 'Filtro de estado' }}
           >
             <MenuItem value="">Todos los estados</MenuItem>
-            <MenuItem value={1}>Verificado</MenuItem>
-            <MenuItem value={2}>Pendiente</MenuItem>
-            <MenuItem value={3}>Rechazado</MenuItem>
+            <MenuItem value={1}>Activo</MenuItem>
+            <MenuItem value={0}>Inactivo</MenuItem>
           </Select>
-          <SelectColumnSorting sortBy={sortBy.id} {...{ getState: table.getState, getAllColumns: table.getAllColumns, setSorting }} />
+          {/* <SelectColumnSorting sortBy={sortBy.id} {...{ getState: table.getState, getAllColumns: table.getAllColumns, setSorting }} /> */}
           <Stack direction="row" sx={{ gap: 2, alignItems: 'center' }}>
             <Button variant="contained" startIcon={<Add />} onClick={modalToggler} size="large">
               Agregar usuario
@@ -252,6 +254,9 @@ export default function UserListPage() {
   const { usersLoading: loading, users: lists } = useGetUser();
 
   const [open, setOpen] = useState<boolean>(false);
+  const { roles, rolesLoading } = useGetRoles();
+  const { departments, departmentsLoading } = useGetDepartments();
+
 
   const [userModal, setUserModal] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<UserList | null>(null);
@@ -263,28 +268,28 @@ export default function UserListPage() {
 
   const columns = useMemo<ColumnDef<UserList>[]>(
     () => [
-      {
-        id: 'Row Selection',
-        header: ({ table }) => (
-          <IndeterminateCheckbox
-            {...{
-              checked: table.getIsAllRowsSelected(),
-              indeterminate: table.getIsSomeRowsSelected(),
-              onChange: table.getToggleAllRowsSelectedHandler()
-            }}
-          />
-        ),
-        cell: ({ row }) => (
-          <IndeterminateCheckbox
-            {...{
-              checked: row.getIsSelected(),
-              disabled: !row.getCanSelect(),
-              indeterminate: row.getIsSomeSelected(),
-              onChange: row.getToggleSelectedHandler()
-            }}
-          />
-        )
-      },
+      // {
+      //   id: 'Row Selection',
+      //   header: ({ table }) => (
+      //     <IndeterminateCheckbox
+      //       {...{
+      //         checked: table.getIsAllRowsSelected(),
+      //         indeterminate: table.getIsSomeRowsSelected(),
+      //         onChange: table.getToggleAllRowsSelectedHandler()
+      //       }}
+      //     />
+      //   ),
+      //   cell: ({ row }) => (
+      //     <IndeterminateCheckbox
+      //       {...{
+      //         checked: row.getIsSelected(),
+      //         disabled: !row.getCanSelect(),
+      //         indeterminate: row.getIsSomeSelected(),
+      //         onChange: row.getToggleSelectedHandler()
+      //       }}
+      //     />
+      //   )
+      // },
       {
         header: '#',
         accessorKey: 'id',
@@ -319,20 +324,35 @@ export default function UserListPage() {
       {
         header: 'Rol',
         accessorKey: 'role',
+        
         meta: {
           className: 'cell-center'
         }
       },
-      
       {
-        header: 'Estado',
-        accessorKey: 'isActive',
-        cell: (cell) => {
-          if (!cell.getValue()) return <Chip color="success" label="Activo" size="small" variant="light" />;
-          if (cell.getValue()) return <Chip color="error" label="Inactivo" size="small" variant="light" />;
-          
+        header: 'Departamento',
+        accessorKey: 'department',
+        // cell: ({ row, getValue }) => {
+        //   const department = departments.find((dept) => dept.id === getValue());
+        //   return (
+        //     <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
+        //       {department ? department.name : 'Sin departamento'}
+        //     </Typography>
+        //   );
+        // },
+        meta: {
+          className: 'cell-center'
         }
       },
+      {
+        header: 'Estado',
+        accessorKey: 'active',
+        cell: (cell) => {
+          if (cell.getValue()) return <Chip color="success" label="Activo" size="small" variant="light" />;
+          if (!cell.getValue()) return <Chip color="error" label="Inactivo" size="small" variant="light" />;
+        }
+      },
+      
       {
         header: 'Acciones',
         meta: {
@@ -350,11 +370,11 @@ export default function UserListPage() {
             );
           return (
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Tooltip title="Ver">
+              {/* <Tooltip title="Ver">
                 <IconButton color="secondary" onClick={row.getToggleExpandedHandler()}>
                   {collapseIcon}
                 </IconButton>
-              </Tooltip>
+              </Tooltip> */}
               <Tooltip title="Editar">
                 <IconButton
                   color="primary"

@@ -1,4 +1,5 @@
 // action - state management
+import { is } from 'immutable';
 import { REGISTER, LOGIN, LOGOUT } from './actions';
 
 // types
@@ -32,6 +33,7 @@ const auth = (state = initialState, action: AuthActionProps) => {
         ...state,
         isLoggedIn: true,
         isInitialized: true,
+        isFirstLogin: action.payload?.isFirstLogin || false,
         register2FA: action.payload?.register2FA || false,
         requires2FA: action.payload?.requires2FA || false,
         user
@@ -42,6 +44,9 @@ const auth = (state = initialState, action: AuthActionProps) => {
         ...state,
         isInitialized: true,
         isLoggedIn: false,
+        isFirstLogin: false,
+        register2FA: false,
+        requires2FA: false,
         user: null
       };
     }

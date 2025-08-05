@@ -22,6 +22,7 @@ export interface AuthProps {
   isInitialized?: boolean;
   register2FA?: boolean;
   requires2FA?: boolean;
+  isFirstLogin?: boolean;
   user?: UserProfile | null;
   token?: string | null;
 }
@@ -42,6 +43,7 @@ export type JWTContextType = {
   register2FA?: boolean;
   requires2FA?: boolean;
   isInitialized?: boolean;
+  isFirstLogin?: boolean;
   user?: UserProfile | null | undefined;
   logout: () => void;
   login: (email: string, password: string) => Promise<ResponseAuth>;
@@ -49,6 +51,7 @@ export type JWTContextType = {
   resetPassword: (email: string) => Promise<void>;
   verifyPasswordReset: (email: string, code: string, newPassword: string) => Promise<void>;
   updateProfile: VoidFunction;
+  changeFirstPassword: (oldPassword: string, newPassword: string) => Promise<void>;
   setup2FA: () => Promise<any>;
   verify2FA: (code: string) => Promise<any>;
   enable2FA: (code: string) => Promise<any>;

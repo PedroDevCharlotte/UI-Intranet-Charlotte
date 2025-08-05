@@ -17,7 +17,6 @@ import { AuthProps, JWTContextType } from 'types/auth';
 import { KeyedObject } from 'types/root';
 import { r } from 'react-router/dist/development/fog-of-war-DLtn2OLr';
 
-
 const chance = new Chance();
 
 // constant
@@ -25,7 +24,8 @@ const initialState: AuthProps = {
   isLoggedIn: false,
   isInitialized: false,
   requires2FA: false,
-  register2FA:  false,
+  register2FA: false,
+  isFirstLogin: false,
   user: null
 };
 
@@ -57,7 +57,6 @@ const JWTContext = createContext<JWTContextType | null>(null);
 export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-
   useEffect(() => {
     const init = async () => {
       try {
@@ -65,11 +64,14 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
         if (serviceToken && verifyToken(serviceToken)) {
           setSession(serviceToken);
           const response = await axios.get('/account/me');
-          const { user } = response.data;
+          const { user, register2FA, requires2FA, isFirstLogin } = response.data;
           dispatch({
             type: LOGIN,
             payload: {
               isLoggedIn: true,
+              register2FA,
+              requires2FA,
+              isFirstLogin,
               user
             }
           });
@@ -89,9 +91,9 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
     init();
   }, []);
 
-  const login = async (email: string, password: string)  => {
+  const login = async (email: string, password: string) => {
     const response = await axios.post('/auth/login', { email, password });
-    const { access_token, user, register2FA, requires2FA } = response.data;
+    const { access_token, user, register2FA, requires2FA, isFirstLogin } = response.data;
     // console.log('Login response serviceToken:', response);
     setSession(access_token);
     dispatch({
@@ -100,6 +102,7 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
         isLoggedIn: true,
         register2FA: register2FA,
         requires2FA: requires2FA,
+        isFirstLogin: isFirstLogin, // Assuming first login is false here, adjust as needed
         user
       }
     });
@@ -165,6 +168,7 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
         isLoggedIn: true,
         register2FA: false,
         requires2FA: false,
+        isFirstLogin: false, // Assuming first login is false here, adjust as needed
         user
       }
     });
@@ -189,15 +193,13 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
     } catch (error) {
       console.error('Error setting up 2FA:', error);
       throw error; // Re-throw the error to be handled by the caller
-
     }
 
     return response;
   };
 
   const enable2FA = async (token: string) => {
-    
-      const tokenAutorization = axios.defaults.headers.common.Authorization ;
+    const tokenAutorization = axios.defaults.headers.common.Authorization;
     console.log('Enabling 2FA with code:', token, tokenAutorization);
     console.log('Axios', axios.defaults);
     console.log('estate', state);
@@ -207,7 +209,7 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
       response = response.data;
       if (!response.isError) {
         console.log('2FA enabled successfully:', response);
-        const { access_token, user, register2FA, requires2FA } = response;
+        const { access_token, user, register2FA, requires2FA, isFirstLogin } = response;
         setSession(access_token);
         dispatch({
           type: LOGIN,
@@ -215,18 +217,17 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
             isLoggedIn: true,
             register2FA: false,
             requires2FA: false,
+            isFirstLogin: isFirstLogin,
             user
           }
         });
-        
       }
     } catch (error) {
       console.error('Error enabling 2FA:', error);
       // throw error; // Re-throw the error to be handled by the caller
-      
     }
     return response;
-    // 
+    //
     // const { serviceToken, user, register2FA, requires2FA } = response.data;
     // setSession(serviceToken);
     // dispatch({
@@ -267,7 +268,55 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
     }
   };
 
-  return <JWTContext.Provider value={{ ...state, login, logout, register, resetPassword, verifyPasswordReset, updateProfile, setup2FA, enable2FA, disable2FA, verify2FA }}>{children}</JWTContext.Provider>;
+  const changeFirstPassword = async (currentPassword: string, newPassword: string) => {
+    try {
+      const response = await axios.post('/auth/change-first-password', {
+        currentPassword,
+        newPassword
+      });
+      const { access_token, user, register2FA, requires2FA } = response.data;
+      console.log('Change first password response serviceToken:', access_token);
+      if (!access_token) {
+        throw new Error('No se recibió el token de acceso');
+      }
+      setSession(access_token);
+      dispatch({
+        type: LOGIN,
+        payload: {
+          isLoggedIn: true,
+          register2FA: false,
+          requires2FA: false,
+          isFirstLogin: false, // Assuming first login is false here, adjust as needed
+          user
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error changing first password:', error);
+      throw error;
+    }
+  };
+
+  return (
+    <JWTContext.Provider
+      value={{
+        ...state,
+        login,
+        logout,
+        register,
+        resetPassword,
+        verifyPasswordReset,
+        updateProfile,
+        setup2FA,
+        enable2FA,
+        disable2FA,
+        verify2FA,
+        changeFirstPassword
+      }}
+    >
+      {children}
+    </JWTContext.Provider>
+  );
 };
 
 export default JWTContext;

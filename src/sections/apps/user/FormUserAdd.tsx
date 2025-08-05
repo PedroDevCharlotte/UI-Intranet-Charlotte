@@ -114,7 +114,8 @@ const getInitialValues = (user: UserList | null) => {
     password: '',
     roleId: 0,
     departmentId: 0,
-    active: true
+    active: true,
+    daysToPasswordExpiration: 90
   };
 
   if (user) {
@@ -166,16 +167,13 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
   const { departments, departmentsLoading } = useGetDepartments();
   
   // Debug logs
-  console.log('FormUserAdd - roles:', roles);
-  console.log('FormUserAdd - rolesLoading:', rolesLoading);
-  console.log('FormUserAdd - departments:', departments);
-  console.log('FormUserAdd - departmentsLoading:', departmentsLoading);
+  
   
   const [selectedImage, setSelectedImage] = useState<File | undefined>(undefined);
   const [avatar, setAvatar] = useState<string | undefined>(
     getImageUrl(`avatar-${user && user !== null && user?.avatar ? user.avatar : 1}.png`, ImagePath.USERS)
   );
-
+  const isNewUser = !user;
   useEffect(() => {
     if (selectedImage) {
       setAvatar(URL.createObjectURL(selectedImage));
@@ -199,12 +197,24 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
     roleId: Yup.number().min(1, 'El rol es obligatorio').required('El rol es obligatorio'),
     active: Yup.boolean().required('El estado es obligatorio'),
     password: Yup.string()
-      .required('La contraseña es obligatoria')
-      .min(8, 'La contraseña debe tener al menos 8 caracteres')
-      .matches(/[a-z]/, 'Debe contener al menos una minúscula')
-      .matches(/[A-Z]/, 'Debe contener al menos una mayúscula')
-      .matches(/[0-9]/, 'Debe contener al menos un número')
-      .matches(/[^a-zA-Z0-9]/, 'Debe contener al menos un carácter especial')
+      .when('$isNewUser', {
+        is: true,
+        then: (schema) =>
+          schema
+            .required('La contraseña es obligatoria')
+            .min(8, 'La contraseña debe tener al menos 8 caracteres')
+            .matches(/[a-z]/, 'Debe contener al menos una minúscula')
+            .matches(/[A-Z]/, 'Debe contener al menos una mayúscula')
+            .matches(/[0-9]/, 'Debe contener al menos un número')
+            .matches(/[^a-zA-Z0-9]/, 'Debe contener al menos un carácter especial'),
+        otherwise: (schema) =>
+          schema
+            .min(8, 'La contraseña debe tener al menos 8 caracteres')
+            .matches(/[a-z]/, 'Debe contener al menos una minúscula')
+            .matches(/[A-Z]/, 'Debe contener al menos una mayúscula')
+            .matches(/[0-9]/, 'Debe contener al menos un número')
+            .matches(/[^a-zA-Z0-9]/, 'Debe contener al menos un carácter especial')
+      })
   });
 
   const [openAlert, setOpenAlert] = useState(false);
@@ -243,8 +253,11 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
           roleId: values.roleId,
           departmentId: values.departmentId,
           active: values.active,
+          daysToPasswordExpiration: values.daysToPasswordExpiration,
           role: roles?.find((r: any) => r.id === values.roleId)?.name || ''
         };
+
+        console.log('Submitting user data:', userData);
 
         if (user) {
           // Para actualización, incluir el ID
@@ -404,9 +417,9 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                             <em>{departmentsLoading ? 'Cargando departamentos...' : 'Seleccione un departamento'}</em>
                           </MenuItem>
                           {(() => {
-                            console.log('Rendering departments:', departments, 'isArray:', Array.isArray(departments), 'length:', departments?.length);
+                            // console.log('Rendering departments:', departments, 'isArray:', Array.isArray(departments), 'length:', departments?.length);
                             return Array.isArray(departments) && departments.map((dept: any) => {
-                              console.log('Rendering department item:', dept);
+                              // console.log('Rendering department item:', dept);
                               return (
                                 <MenuItem key={dept.id} value={dept.id}>
                                   {dept.name}
@@ -504,9 +517,9 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                             <em>{rolesLoading ? 'Cargando roles...' : 'Seleccione un rol'}</em>
                           </MenuItem>
                           {(() => {
-                            console.log('Rendering roles:', roles, 'isArray:', Array.isArray(roles), 'length:', roles?.length);
+                            // console.log('Rendering roles:', roles, 'isArray:', Array.isArray(roles), 'length:', roles?.length);
                             return Array.isArray(roles) && roles.map((role: any) => {
-                              console.log('Rendering role item:', role);
+                              // console.log('Rendering role item:', role);
                               return (
                                 <MenuItem key={role.id} value={role.id}>
                                   {role.name}
@@ -520,6 +533,25 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                             {errors.roleId}
                           </FormHelperText>
                         )}
+                      </Stack>
+                    </Grid>
+                    <Grid size={12}>
+                      <Stack sx={{ gap: 1 }}>
+                        <InputLabel htmlFor="user-daysToPasswordExpiration">Días para expiración de contraseña</InputLabel>
+                        <TextField
+                          fullWidth
+                          id="user-daysToPasswordExpiration"
+                          type="number"
+                          placeholder="Ingrese los días"
+                          {...getFieldProps('daysToPasswordExpiration')}
+                          error={Boolean(touched.daysToPasswordExpiration && errors.daysToPasswordExpiration)}
+                          helperText={touched.daysToPasswordExpiration && errors.daysToPasswordExpiration}
+                          inputProps={{ min: 1 }}
+                          onChange={(e) => {
+                            const value = Math.max(1, Number(e.target.value));
+                            setFieldValue('daysToPasswordExpiration', value);
+                          }}
+                        />
                       </Stack>
                     </Grid>
 

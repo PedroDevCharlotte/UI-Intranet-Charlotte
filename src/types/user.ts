@@ -13,8 +13,9 @@ export interface UserList {
   email: string;
   isTwoFactorEnabled?: boolean;
   last2FAVerifiedAt?: Date | string | number;
-  isActive?: boolean;
+  active?: boolean;
   isVerified?: boolean;
+  daysToPasswordExpiration?: number;
   isBlocked?: boolean;
   role: string;
   avatar?: number;
