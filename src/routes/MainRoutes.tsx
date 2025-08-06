@@ -20,15 +20,35 @@ const MaintenanceComingSoon2 = Loadable(lazy(() => import('pages/maintenance/com
 
 
 // pages users
-
 const AppUserList = Loadable(lazy(() => import('pages/apps/user/list')));
 const AppUserCard = Loadable(lazy(() => import('pages/apps/user/card')));
+
+// pages tickets
+const AppTicketList = Loadable(lazy(() => import('pages/apps/ticket/list')));
+const AppTicketDashboard = Loadable(lazy(() => import('pages/apps/ticket/dashboard')));
+const AppTicketCreate = Loadable(lazy(() => import('pages/apps/ticket/create')));
+const AppTicketDetails = Loadable(lazy(() => import('pages/apps/ticket/details')));
+const AppTicketEdit = Loadable(lazy(() => import('pages/apps/ticket/edit')));
 
 // render - sample page
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
 const ContactUS = Loadable(lazy(() => import('pages/contact-us')));
 
 // ==============================|| MAIN ROUTES ||============================== //
+const UserProfile = Loadable(lazy(() => import('pages/apps/profiles/user')));
+// const UserTabPersonal = Loadable(lazy(() => import('sections/apps/profiles/user/TabPersonal')));
+// const UserTabPayment = Loadable(lazy(() => import('sections/apps/profiles/user/TabPayment')));
+// const UserTabPassword = Loadable(lazy(() => import('sections/apps/profiles/user/TabPassword')));
+// const UserTabSettings = Loadable(lazy(() => import('sections/apps/profiles/user/TabSettings')));
+
+const AccountProfile = Loadable(lazy(() => import('pages/apps/profiles/account')));
+const AccountTabProfile = Loadable(lazy(() => import('sections/apps/profiles/account/TabProfile')));
+const AccountTabPersonal = Loadable(lazy(() => import('sections/apps/profiles/account/TabPersonal')));
+const AccountTabAccount = Loadable(lazy(() => import('sections/apps/profiles/account/TabAccount')));
+const AccountTabPassword = Loadable(lazy(() => import('sections/apps/profiles/account/TabPassword')));
+const AccountTabRole = Loadable(lazy(() => import('sections/apps/profiles/account/TabRole')));
+const AccountTabSettings = Loadable(lazy(() => import('sections/apps/profiles/account/TabSettings')));
+
 
 const MainRoutes = {
   path: '/',
@@ -72,64 +92,89 @@ const MainRoutes = {
                 }
               ]
             },
+            {
+              path: 'ticket',
+              children: [
+                {
+                  path: 'list',
+                  element: <AppTicketList />
+                },
+                {
+                  path: 'dashboard',
+                  element: <AppTicketDashboard />
+                },
+                {
+                  path: 'create',
+                  element: <AppTicketCreate />
+                },
+                {
+                  path: 'details/:id',
+                  element: <AppTicketDetails />
+                },
+                {
+                  path: 'edit/:id',
+                  element: <AppTicketEdit />
+                }
+              ]
+            },
            
-            // {
-            //   path: 'profiles',
-            //   children: [
-            //     {
-            //       path: 'account',
-            //       element: <AccountProfile />,
-            //       children: [
-            //         {
-            //           path: 'basic',
-            //           element: <AccountTabProfile />
-            //         },
-            //         {
-            //           path: 'personal',
-            //           element: <AccountTabPersonal />
-            //         },
-            //         {
-            //           path: 'my-account',
-            //           element: <AccountTabAccount />
-            //         },
-            //         {
-            //           path: 'password',
-            //           element: <AccountTabPassword />
-            //         },
-            //         {
-            //           path: 'role',
-            //           element: <AccountTabRole />
-            //         },
-            //         {
-            //           path: 'settings',
-            //           element: <AccountTabSettings />
-            //         }
-            //       ]
-            //     },
-            //     {
-            //       path: 'user',
-            //       element: <UserProfile />,
-            //       children: [
-            //         {
-            //           path: 'personal',
-            //           element: <UserTabPersonal />
-            //         },
-            //         {
-            //           path: 'payment',
-            //           element: <UserTabPayment />
-            //         },
-            //         {
-            //           path: 'password',
-            //           element: <UserTabPassword />
-            //         },
-            //         {
-            //           path: 'settings',
-            //           element: <UserTabSettings />
-            //         }
-            //       ]
-            //     }
-            //   ]
-            // },
+            {
+              path: 'profiles',
+              children: [
+                {
+                  path: 'account',
+                  element: <AccountProfile />,
+                  children: [
+                    {
+                      path: 'basic',
+                      element: <AccountTabProfile />
+                    },
+                    {
+                      path: 'personal',
+                      element: <AccountTabPersonal />
+                    },
+                    {
+                      path: 'my-account',
+                      element: <AccountTabAccount />
+                    },
+                    {
+                      path: 'password',
+                      element: <AccountTabPassword />
+                    },
+                    {
+                      path: 'role',
+                      element: <AccountTabRole />
+                    },
+                    {
+                      path: 'settings',
+                      element: <AccountTabSettings />
+                    }
+                  ]
+                },
+                // {
+                //   path: 'user',
+                //   element: <UserProfile />,
+                //   children: [
+                //     {
+                //       path: 'personal',
+                //       element: <UserTabPersonal />
+                //     },
+                //     {
+                //       path: 'payment',
+                //       element: <UserTabPayment />
+                //     },
+                //     {
+                //       path: 'password',
+                //       element: <UserTabPassword />
+                //     },
+                //     {
+                //       path: 'settings',
+                //       element: <UserTabSettings />
+                //     }
+                //   ]
+                // }
+              ]
+            },
             
           ]
         },

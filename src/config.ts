@@ -2,6 +2,8 @@
 import { DefaultConfigProps } from 'types/config';
 
 // ==============================|| THEME CONSTANT ||============================== //
+export const facebookColor = '#3b5998';
+export const linkedInColor = '#0e76a8';
 
 export const APP_DEFAULT_PATH = '/dashboard/default';
 export const HORIZONTAL_MAX_ITEM = 8;

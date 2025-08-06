@@ -81,7 +81,13 @@ const endpoints = {
   modal: '/modal', // server URL
   insert: '/insert', // server URL
   update: '/update', // server URL
-  delete: '/delete' // server URL
+  delete: '/delete', // server URL
+  disable2fa: '/auth/2fa/disable', // server URL for disabling 2FA
+  // Nuevos endpoints para historial
+  auditHistory: '/audit/entity/User', // historial de cambios de una entidad
+  userHistory: '/audit/user', // historial de cambios por usuario  
+  userSessions: '/audit/admin/sessions', // sesiones de usuario (admin)
+  activeSessions: '/audit/sessions/active' // sesiones activas
 };
 
 export function useGetUser() {
@@ -376,6 +382,78 @@ export function useGetRoles() {
   return memoizedValue;
 }
 
+// ==============================|| API - 2FA ||============================== //
+
+export async function disable2FA(userId: number, authCode?: string, from: boolean = false) {
+  try {
+    console.log(`Iniciando deshabilitación de 2FA para usuario con ID: ${userId}`);
+    
+    // Validación de parámetros
+    if (!userId || userId <= 0) {
+      throw new Error('ID de usuario inválido');
+    }
+    
+    // Validación del código de autenticación si se proporciona
+    if (authCode && (!/^\d{6}$/.test(authCode))) {
+      throw new Error('Código de autenticación debe tener 6 dígitos');
+    }
+    
+    const requestData = authCode ? { userId, token: authCode, from } : { userId, from };
+    const response = await axios.post(endpoints.disable2fa, requestData, getRequestConfig());
+    
+    console.log(`Respuesta del servidor (disable2FA):`, response.status, response.data);
+    
+    if ([200, 201, 204].indexOf(response.status) === -1) {
+      throw new Error(`Failed to disable 2FA. Status: ${response.status}`);
+    }
+
+    console.log('2FA deshabilitado exitosamente, actualizando caché...');
+    
+    // Actualiza el caché local para reflejar el cambio
+    mutate(endpoints.key + endpoints.list);
+
+    return { 
+      status: response.status, 
+      data: response.data,
+      success: true,
+      message: 'Autenticación de dos factores deshabilitada correctamente'
+    };
+  } catch (error: any) {
+    console.error('Error disabling 2FA:', error);
+    let errorMessage = 'Error al deshabilitar 2FA, por favor intente de nuevo o contacte al administrador';
+    
+    // Manejo de errores específicos
+    if (error.message === 'ID de usuario inválido') {
+      errorMessage = 'ID de usuario inválido. No se puede deshabilitar 2FA.';
+    } else if (error.response?.status === 400) {
+      errorMessage = 'Solicitud inválida. Verifique que el usuario tiene 2FA habilitado.';
+      if (error.response?.data?.message) {
+        errorMessage += ` Detalle: ${error.response.data.message}`;
+      }
+    } else if (error.response?.status === 401) {
+      errorMessage = 'No tiene permisos para deshabilitar 2FA para este usuario.';
+    } else if (error.response?.status === 403) {
+      errorMessage = 'Acceso denegado. No tiene autorización para esta acción.';
+    } else if (error.response?.status === 404) {
+      errorMessage = 'Usuario no encontrado o no tiene 2FA habilitado.';
+    } else if (error.response?.status === 409) {
+      errorMessage = 'Conflicto: El usuario no tiene 2FA habilitado actualmente.';
+    } else if (error.response?.status >= 500) {
+      errorMessage = 'Error interno del servidor. Por favor intente más tarde.';
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return { 
+      error: errorMessage,
+      status: error.response?.status || 500,
+      success: false
+    };
+  }
+}
+
 // ==============================|| API - DEPARTMENTS ||============================== //
 
 export function useGetDepartments() {
@@ -399,3 +477,130 @@ export function useGetDepartments() {
 
   return memoizedValue;
 }
+
+// ==============================|| API - USER HISTORY ||============================== //
+
+export async function getUserHistory(userId: number, limit: number = 50) {
+  try {
+    console.log(`Obteniendo historial de cambios para usuario con ID: ${userId}`);
+    
+    if (!userId || userId <= 0) {
+      throw new Error('ID de usuario inválido');
+    }
+    
+    const response = await axios.get(`${endpoints.auditHistory}/${userId}?limit=${limit}`, getRequestConfig());
+    
+    console.log(`Respuesta del servidor (getUserHistory):`, response.status, response.data);
+    
+    if ([200, 201].indexOf(response.status) === -1) {
+      throw new Error(`Error al obtener historial. Status: ${response.status}`);
+    }
+
+    return { 
+      status: response.status, 
+      data: response.data || [],
+      success: true,
+      message: 'Historial obtenido correctamente'
+    };
+  } catch (error: any) {
+    console.error('Error al obtener historial de usuario:', error);
+    
+    return {
+      status: error.response?.status || 500,
+      data: [],
+      success: false,
+      error: error.response?.data?.message || error.message || 'Error inesperado al obtener historial'
+    };
+  }
+}
+
+// ==============================|| API - USER SESSIONS ||============================== //
+
+export async function getUserSessions(userId: number, limit: number = 20) {
+  try {
+    console.log(`Obteniendo historial de sesiones para usuario con ID: ${userId}`);
+    
+    if (!userId || userId <= 0) {
+      throw new Error('ID de usuario inválido');
+    }
+    
+    const response = await axios.get(`${endpoints.userSessions}/${userId}?limit=${limit}`, getRequestConfig());
+    
+    console.log(`Respuesta del servidor (getUserSessions):`, response.status, response.data);
+    
+    if ([200, 201].indexOf(response.status) === -1) {
+      throw new Error(`Error al obtener sesiones. Status: ${response.status}`);
+    }
+
+    return { 
+      status: response.status, 
+      data: response.data || [],
+      success: true,
+      message: 'Sesiones obtenidas correctamente'
+    };
+  } catch (error: any) {
+    console.error('Error al obtener sesiones de usuario:', error);
+    
+    return {
+      status: error.response?.status || 500,
+      data: [],
+      success: false,
+      error: error.response?.data?.message || error.message || 'Error inesperado al obtener sesiones'
+    };
+  }
+}
+
+// ==============================|| API - ACTIVE SESSIONS ||============================== //
+
+export async function getActiveSessions() {
+  try {
+    console.log('Obteniendo sesiones activas');
+    
+    const response = await axios.get(endpoints.activeSessions, getRequestConfig());
+    
+    console.log(`Respuesta del servidor (getActiveSessions):`, response.status, response.data);
+    
+    if ([200, 201].indexOf(response.status) === -1) {
+      throw new Error(`Error al obtener sesiones activas. Status: ${response.status}`);
+    }
+
+    return { 
+      status: response.status, 
+      data: response.data || [],
+      success: true,
+      message: 'Sesiones activas obtenidas correctamente'
+    };
+  } catch (error: any) {
+    console.error('Error al obtener sesiones activas:', error);
+    
+    return {
+      status: error.response?.status || 500,
+      data: [],
+      success: false,
+      error: error.response?.data?.message || error.message || 'Error inesperado al obtener sesiones activas'
+    };
+  }
+}
+
+// ==============================|| LOGOUT FUNCTION ||============================== //
+
+export async function logoutUser() {
+  try {
+    const config = getRequestConfig();
+    const response = await axios.post('/auth/logout', {}, config);
+    
+    return {
+      success: true,
+      data: response.data,
+      message: response.data?.message || 'Sesión cerrada correctamente'
+    };
+  } catch (error: any) {
+    console.error('Error en logout:', error);
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || 'Error inesperado al cerrar sesión'
+    };
+  }
+}
+
+

@@ -7,11 +7,12 @@ import support from './support';
 // types
 import { NavItemType } from 'types/menu';
 import users from './users';
+import ticketsMenu from './tickets';
 
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems: { items: NavItemType[] } = {
-  items: [loadingMenu, users]
+  items: [loadingMenu, users, ticketsMenu]
 };
 
 export default menuItems;

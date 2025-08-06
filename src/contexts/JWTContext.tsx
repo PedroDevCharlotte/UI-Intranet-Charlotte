@@ -11,6 +11,7 @@ import authReducer from 'contexts/auth-reducer/auth';
 // project-imports
 import Loader from 'components/Loader';
 import axios from 'utils/axios';
+import { logoutUser } from 'api/user';
 
 // types
 import { AuthProps, JWTContextType } from 'types/auth';
@@ -137,9 +138,25 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
     window.localStorage.setItem('users', JSON.stringify(users));
   };
 
-  const logout = () => {
-    setSession(null);
-    dispatch({ type: LOGOUT });
+  const logout = async () => {
+    try {
+      // Llamar a la API para cerrar sesión en el servidor
+      const response = await logoutUser();
+      
+      if (response.success) {
+        console.log('Logout exitoso:', response.message);
+      } else {
+        console.error('Error en logout del servidor:', response.error);
+        // Continuar con el logout local incluso si falla el servidor
+      }
+    } catch (error) {
+      console.error('Error al hacer logout en el servidor:', error);
+      // Continuar con el logout local incluso si falla el servidor
+    } finally {
+      // Siempre limpiar el estado local
+      setSession(null);
+      dispatch({ type: LOGOUT });
+    }
   };
   const resetPassword = async (email: string) => {
     try {

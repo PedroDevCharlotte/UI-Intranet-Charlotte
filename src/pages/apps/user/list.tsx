@@ -51,17 +51,21 @@ import {
 
 import EmptyReactTable from 'pages/tables/react-table/empty';
 import AlertUserDelete from 'sections/apps/user/AlertUserDelete';
+import AlertDisable2FA from 'sections/apps/user/AlertDisable2FA';
+import AlertAssignTeam from 'sections/apps/user/AlertAssignTeam';
 import UserModal from 'sections/apps/user/UserModal';
 import UserView from 'sections/apps/user/UserView';
+import UserHistoryModal from 'sections/apps/user/UserHistoryModal';
+import UserSessionsModal from 'sections/apps/user/UserSessionsModal';
 
-import { useGetDepartments, useGetRoles, useGetUser } from 'api/user';
+import { useGetDepartments, useGetRoles, useGetUser, disable2FA, getUserHistory, getUserSessions } from 'api/user';
 import { ImagePath, getImageUrl } from 'utils/getImageUrl';
 
 // types
 import { UserList } from 'types/user';
 
 // assets
-import { Add, Edit, Eye, Global, Ticket, Trash } from 'iconsax-react';
+import { Add, Edit, Eye, Global, Lock1, SecuritySafe, Ticket, Trash, Shield, People, Monitor } from 'iconsax-react';
 
 interface Props {
   columns: ColumnDef<UserList>[];
@@ -257,14 +261,40 @@ export default function UserListPage() {
   const { roles, rolesLoading } = useGetRoles();
   const { departments, departmentsLoading } = useGetDepartments();
 
-
   const [userModal, setUserModal] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<UserList | null>(null);
   const [userDeleteId, setUserDeleteId] = useState<any>('');
+  const [disabling2FA, setDisabling2FA] = useState<number | null>(null);
+
+  // Nuevos estados para las alertas y modales
+  const [disable2FAAlert, setDisable2FAAlert] = useState<boolean>(false);
+  const [assignTeamAlert, setAssignTeamAlert] = useState<boolean>(false);
+  const [historyModal, setHistoryModal] = useState<boolean>(false);
+  const [sessionsModal, setSessionsModal] = useState<boolean>(false);
+  const [selectedUserId, setSelectedUserId] = useState<any>('');
+  const [selectedUserName, setSelectedUserName] = useState<string>('');
 
   const handleClose = () => {
     setOpen(!open);
   };
+
+  // Nuevos handlers para las alertas
+  const handleDisable2FAClose = () => {
+    setDisable2FAAlert(!disable2FAAlert);
+  };
+
+  const handleAssignTeamClose = () => {
+    setAssignTeamAlert(!assignTeamAlert);
+  };
+
+  const handleHistoryModalClose = () => {
+    setHistoryModal(!historyModal);
+  };
+
+  const handleSessionsModalClose = () => {
+    setSessionsModal(!sessionsModal);
+  };
+
 
   const columns = useMemo<ColumnDef<UserList>[]>(
     () => [
@@ -352,6 +382,17 @@ export default function UserListPage() {
           if (!cell.getValue()) return <Chip color="error" label="Inactivo" size="small" variant="light" />;
         }
       },
+      {
+        header: '2FA',
+        accessorKey: 'isTwoFactorEnabled',
+        cell: (cell) => {
+          if (cell.getValue()) return <Chip color="primary" label="Activado" size="small" variant="light" />;
+          return <Chip color="default" label="Desactivado" size="small" variant="light" />;
+        },
+        meta: {
+          className: 'cell-center'
+        }
+      },
       
       {
         header: 'Acciones',
@@ -370,11 +411,6 @@ export default function UserListPage() {
             );
           return (
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center' }}>
-              {/* <Tooltip title="Ver">
-                <IconButton color="secondary" onClick={row.getToggleExpandedHandler()}>
-                  {collapseIcon}
-                </IconButton>
-              </Tooltip> */}
               <Tooltip title="Editar">
                 <IconButton
                   color="primary"
@@ -388,17 +424,33 @@ export default function UserListPage() {
                   <Edit />
                 </IconButton>
               </Tooltip>
+              
               <Tooltip title="Eliminar">
                 <IconButton
                   sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
                   color="error"
                   onClick={(e: MouseEvent<HTMLButtonElement>) => {
                     e.stopPropagation();
-                    handleClose();
                     setUserDeleteId(Number(row.original.id));
+                    handleClose();
                   }}
                 >
                   <Trash />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Deshabilitar 2FA">
+                <IconButton
+                  sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
+                  color="warning"
+                  onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                    e.stopPropagation();
+                    setSelectedUserId(Number(row.original.id));
+                    setSelectedUserName(row.original.name || row.original.email || 'Usuario');
+                    handleDisable2FAClose();
+                  }}
+                >
+                  <Shield />
                 </IconButton>
               </Tooltip>
               
@@ -408,11 +460,12 @@ export default function UserListPage() {
                   color="secondary"
                   onClick={(e: MouseEvent<HTMLButtonElement>) => {
                     e.stopPropagation();
-                    handleClose();
-                    setUserModal(true);
+                    setSelectedUserId(Number(row.original.id));
+                    setSelectedUserName(row.original.name || row.original.email || 'Usuario');
+                    handleAssignTeamClose();
                   }}
                 >
-                  <Ticket />
+                  <People />
                 </IconButton>
               </Tooltip>
               
@@ -422,29 +475,29 @@ export default function UserListPage() {
                   color="primary"
                   onClick={(e: MouseEvent<HTMLButtonElement>) => {
                     e.stopPropagation();
-                    handleClose();
-                    setUserModal(true);
+                    setSelectedUserId(Number(row.original.id));
+                    setSelectedUserName(row.original.name || row.original.email || 'Usuario');
+                    handleHistoryModalClose();
                   }}
                 >
                   <Global />
                 </IconButton>
               </Tooltip>
 
-              
               <Tooltip title="Historial de Sesiones">
                 <IconButton
                   sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
                   color="info"
                   onClick={(e: MouseEvent<HTMLButtonElement>) => {
                     e.stopPropagation();
-                    handleClose();
-                    setUserModal(true);
+                    setSelectedUserId(Number(row.original.id));
+                    setSelectedUserName(row.original.name || row.original.email || 'Usuario');
+                    handleSessionsModalClose();
                   }}
                 >
-                  <Global />
+                  <Monitor />
                 </IconButton>
               </Tooltip>
-
             </Stack>
           );
         }
@@ -469,6 +522,10 @@ export default function UserListPage() {
         }}
       />
       <AlertUserDelete id={Number(userDeleteId)} title={userDeleteId} open={open} handleClose={handleClose} />
+      <AlertDisable2FA id={Number(selectedUserId)} userName={selectedUserName} open={disable2FAAlert} handleClose={handleDisable2FAClose} />
+      <AlertAssignTeam id={Number(selectedUserId)} userName={selectedUserName} open={assignTeamAlert} handleClose={handleAssignTeamClose} />
+      <UserHistoryModal open={historyModal} onClose={handleHistoryModalClose} userId={Number(selectedUserId)} userName={selectedUserName} />
+      <UserSessionsModal open={sessionsModal} onClose={handleSessionsModalClose} userId={Number(selectedUserId)} userName={selectedUserName} />
       <UserModal open={userModal} modalToggler={setUserModal} user={selectedUser} />
     </>
   );
