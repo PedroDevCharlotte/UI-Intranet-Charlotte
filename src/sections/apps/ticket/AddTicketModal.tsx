@@ -153,14 +153,20 @@ const AddTicketModal = ({ open, onClose, onSubmit }: AddTicketModalProps) => {
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         // Preparar el objeto para el API real
-        const participants = [];
+        interface Participant {
+          userId: number | null;
+          role: string;
+          canEdit: boolean;
+          canComment: boolean;
+        }
+        const participants: Participant[] = [];
 
         if (values.employeeRelated && values.employeeRelated.length > 0) {
           values.employeeRelated.forEach((employeeId) => {
             const user = users.find((u) => u.id !== undefined && u.id.toString() === employeeId);
             if (user) {
               participants.push({
-                userId: user.id,
+                userId: user.id ?? null,
                 role: user.role,
                 canEdit: true,
                 canComment: true
@@ -177,7 +183,7 @@ const AddTicketModal = ({ open, onClose, onSubmit }: AddTicketModalProps) => {
           customFields: JSON.stringify({ ...values.dynamicFields }),
           initialMessage: values.description,
           files: values.files || [],
-          participants: JSON.stringify((participants || []).filter(Boolean)),
+          participants: JSON.stringify((participants || [])),
           priority: 'MEDIUM',
           dueDate: new Date().toISOString(),
           estimatedHours: 8,
