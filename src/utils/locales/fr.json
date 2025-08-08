@@ -68,5 +68,8 @@
   "resolution-rate": "Taux de Résolution",
   "average-response-time": "Temps de Réponse Moyen",
   "customer-satisfaction": "Satisfaction Client",
-  "ticket-management": "Gestion des Tickets"
+  "ticket-management": "Gestion des Tickets",
+  "attach-files": "Joindre des fichiers",
+  "files": "Fichiers",
+  "copy-to-collaborator-label": "Copier au Collaborateur"
 }

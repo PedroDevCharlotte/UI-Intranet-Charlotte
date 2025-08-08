@@ -14,6 +14,76 @@ export interface CountryType {
   prefix: string;
 }
 
+export interface TicketType {
+  id: number;
+  name: string;
+  description: string;
+  code: string;
+  color: string;
+  priority: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DynamicFieldOption {
+  id: number;
+  listId: number;
+  code: string;
+  value: string;
+  displayText: string;
+  description: string;
+  color?: string;
+  icon?: string;
+  isDefault: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  parentOptionId?: number;
+  metadata?: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FieldDefinition {
+  id: number;
+  fieldName: string;
+  displayName: string;
+  fieldType: 'TEXT' | 'SELECT' | 'TEXTAREA' | 'NUMBER' | 'DATE';
+  isRequired: boolean;
+  helpText?: string;
+  sortOrder: number;
+}
+
+export interface FieldList {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  category: string;
+  options: DynamicFieldOption[];
+}
+
+export interface DynamicFieldResponse {
+  fieldDefinition: FieldDefinition;
+  list: FieldList;
+}
+
+export interface DynamicField {
+  id: number;
+  name: string;
+  label: string;
+  type: 'text' | 'select' | 'textarea' | 'number' | 'date';
+  required: boolean;
+  placeholder?: string;
+  description?: string;
+  options?: DynamicFieldOption[];
+  validation?: {
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+  };
+}
+
 export interface Items {
   id: string | number;
   name: string;

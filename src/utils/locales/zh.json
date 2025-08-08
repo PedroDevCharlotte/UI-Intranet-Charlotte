@@ -68,5 +68,8 @@
   "resolution-rate": "解決率",
   "average-response-time": "平均響應時間",
   "customer-satisfaction": "客戶滿意度",
-  "ticket-management": "工單管理"
+  "ticket-management": "工單管理",
+  "attach-files": "附加檔案",
+  "files": "檔案",
+  "copy-to-collaborator-label": "複製到協作者"
 }

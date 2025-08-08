@@ -60,7 +60,7 @@ export default function TablePagination({ getPageCount, setPageIndex, setPageSiz
         <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
           <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
             <Typography variant="caption" color="secondary">
-              Row per page
+              Registros por página
             </Typography>
             <FormControl sx={{ m: 1 }}>
               <Select
@@ -82,7 +82,7 @@ export default function TablePagination({ getPageCount, setPageIndex, setPageSiz
             </FormControl>
           </Stack>
           <Typography variant="caption" color="secondary">
-            Go to
+            Ir a página
           </Typography>
           <TextField
             size="small"

@@ -5,9 +5,10 @@ import useSWR, { mutate } from 'swr';
 
 // project-imports
 import { fetcher } from 'utils/axios';
+import axiosServices from 'utils/axios';
 
 // types
-import { CountryType, TicketList, TicketProps } from 'types/ticket';
+import { CountryType, TicketList, TicketProps, TicketType, DynamicField, DynamicFieldResponse } from 'types/ticket';
 
 const countries: CountryType[] = [
   { code: 'US', label: 'United States Dollar', currency: 'Dollar', prefix: '$' },
@@ -15,7 +16,6 @@ const countries: CountryType[] = [
   { code: 'IN', label: 'India Rupee', currency: 'Rupee', prefix: '₹' },
   { code: 'JP', label: 'Japan Yun', currency: 'Yun', prefix: '¥' }
 ];
-
 const initialState: TicketProps = {
   isOpen: false,
   isCustomerOpen: false,
@@ -30,10 +30,12 @@ const initialState: TicketProps = {
 const endpoints = {
   key: 'api/ticket',
   actions: 'actions',
-  list: '/list', // server URL
-  insert: '/insert', // server URL
-  update: '/update', // server URL
-  delete: '/delete' // server URL
+  list: '/list',
+  insert: '/tickets/complete', // endpoint real para crear ticket completo
+  update: '/update',
+  delete: '/delete',
+  getTicketTypes: '/ticket-types',
+  getDynamicFields: '/general-lists/by-entity/tickets'
 };
 
 export function useGetTicket() {
@@ -45,7 +47,7 @@ export function useGetTicket() {
 
   const memoizedValue = useMemo(
     () => ({
-      ticket: data?.ticket as TicketList[] || [],
+      ticket: (data?.ticket as TicketList[]) || [],
       ticketLoading: isLoading,
       ticketError: error,
       ticketValidating: isValidating,
@@ -57,26 +59,44 @@ export function useGetTicket() {
   return memoizedValue;
 }
 
-export async function insertTicket(newTicket: TicketList) {
-  // to update local state based on key
-  mutate(
-    endpoints.key + endpoints.list,
-    (currentTicket: any) => {
-      newTicket.id = currentTicket.ticket.length + 1;
-      const addedTicket: TicketList[] = [...currentTicket.ticket, newTicket];
+// Inserta un ticket usando el endpoint real y retorna la respuesta o lanza error
+export async function insertTicket(newTicket: any) {
+  try {
+    const formData = new FormData();
+    Object.entries(newTicket).forEach(([key, value]) => {
+      // Si el valor es un array, agregar cada elemento individualmente
+      if (Array.isArray(value)) {
+        if (key === 'files') {
+          value.forEach((item, idx) => {
+            formData.append(`${key}`, item);
+          });
+        } else {
+          value.forEach((item, idx) => {
+            formData.append(`${key}[${idx}]`, item);
+          });
+        }
+      } else {
+        // Ensure value is string or Blob
+        if (value instanceof Blob) {
+          formData.append(key, value);
+        } else {
+          formData.append(key, value != null ? String(value) : '');
+        }
+      }
+    });
 
-      return {
-        ...currentTicket,
-        ticket: addedTicket
-      };
-    },
-    false
-  );
-
-  // to hit server
-  // you may need to refetch latest data after server hit and based on your logic
-  //   const data = { newTicket };
-  //   await axios.post(endpoints.key + endpoints.insert, data);
+    const response = await axiosServices.post(endpoints.insert, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      throw error.response.data;
+    }
+    throw error;
+  }
 }
 
 export async function updateTicket(ticketId: number, updatedTicket: TicketList) {
@@ -194,4 +214,108 @@ export function handlerDelete(alertPopup: boolean) {
     },
     false
   );
+}
+
+export function useGetTicketTypes(includeInactive: boolean = false) {
+  const { data, isLoading, error, isValidating } = useSWR(endpoints.getTicketTypes + `?includeInactive=${includeInactive}`, fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    onError: (error) => {
+      console.error('Error fetching ticket types:', error);
+    }
+  });
+
+  // console.log('Ticket Types:', data);
+  const memoizedValue = useMemo(
+    () => ({
+      ticketTypes: (data as TicketType[]) || [],
+      ticketTypesLoading: isLoading,
+      ticketTypesError: error,
+      ticketTypesValidating: isValidating,
+      ticketTypesEmpty: !isLoading && !data.length
+    }),
+    [data, error, isLoading, isValidating]
+  );
+
+  return memoizedValue;
+}
+
+// ticketTypeId es el ID numérico del tipo de ticket
+export function useGetDynamicFields(ticketTypeCode: string | null) {
+  console.log('Fetching dynamic fields for ticket type code:', ticketTypeCode);
+  const url = ticketTypeCode ? `${endpoints.getDynamicFields}/${ticketTypeCode}?includeOptions=true` : null;
+  console.log('Dynamic fields URL:', url);
+  const { data, isLoading, error, isValidating } = useSWR(url, fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    onError: (error) => {
+      console.error('❌ Error fetching dynamic fields:', error);
+    }
+  });
+  console.log('Dynamic fields data:', data);
+  // Use the actual API response data
+  const responseData = data || [];
+
+  // Transform API response to expected format
+  const transformedFields = useMemo(() => {
+    if (!responseData || !Array.isArray(responseData)) return [];
+
+    return responseData
+      .map((item: any) => {
+        // Use any type to avoid strict typing issues
+        const { fieldDefinition, list } = item;
+
+        // Map field type from API format to component format
+        const getFieldType = (apiType: string): 'text' | 'select' | 'textarea' | 'number' | 'date' => {
+          switch (apiType.toUpperCase()) {
+            case 'SELECT':
+              return 'select';
+            case 'TEXTAREA':
+              return 'textarea';
+            case 'NUMBER':
+              return 'number';
+            case 'DATE':
+              return 'date';
+            case 'TEXT':
+            default:
+              return 'text';
+          }
+        };
+
+        // Transform to DynamicField format
+        const transformedField: DynamicField = {
+          id: fieldDefinition.id,
+          name: fieldDefinition.fieldName,
+          label: fieldDefinition.displayName,
+          type: getFieldType(fieldDefinition.fieldType),
+          required: fieldDefinition.isRequired,
+          description: fieldDefinition.helpText,
+          options: list?.options?.filter((option: any) => option.isActive) || [],
+          validation: {}
+        };
+
+        return transformedField;
+      })
+      .sort((a, b) => {
+        // Sort by field definition sortOrder if available
+        const aOrder = responseData.find((item: any) => item.fieldDefinition.id === a.id)?.fieldDefinition.sortOrder || 0;
+        const bOrder = responseData.find((item: any) => item.fieldDefinition.id === b.id)?.fieldDefinition.sortOrder || 0;
+        return aOrder - bOrder;
+      });
+  }, [responseData]);
+
+  const memoizedValue = useMemo(
+    () => ({
+      dynamicFields: transformedFields,
+      dynamicFieldsLoading: isLoading,
+      dynamicFieldsError: error,
+      dynamicFieldsValidating: isValidating,
+      dynamicFieldsEmpty: !isLoading && !transformedFields?.length
+    }),
+    [transformedFields, error, isLoading, isValidating]
+  );
+
+  return memoizedValue;
 }

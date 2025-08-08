@@ -68,5 +68,8 @@
   "resolution-rate": "Rata de Rezolvare",
   "average-response-time": "Timp Mediu de Răspuns",
   "customer-satisfaction": "Satisfacția Clientului",
-  "ticket-management": "Gestionarea Tichetelor"
+  "ticket-management": "Gestionarea Tichetelor",
+  "attach-files": "Atașați Fișiere",
+  "files": "Fișiere",
+  "copy-to-collaborator-label": "Copiați la Colaborator"
 }

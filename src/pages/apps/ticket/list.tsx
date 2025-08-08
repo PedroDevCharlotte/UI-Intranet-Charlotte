@@ -1,5 +1,6 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { FormattedMessage } from 'react-intl';
 
 // material-ui
 import { useTheme, PaletteColor } from '@mui/material/styles';
@@ -56,6 +57,7 @@ import {
 } from 'components/third-party/react-table';
 import EmptyReactTable from 'pages/tables/react-table/empty';
 import AlertTicketDelete from 'sections/apps/ticket/AlertTicketDelete';
+import AddTicketModal from 'sections/apps/ticket/AddTicketModal';
 
 import { handlerDelete, deleteTicket, useGetTicket, useGetTicketMaster } from 'api/ticket';
 import { openSnackbar } from 'api/snackbar';
@@ -67,7 +69,8 @@ import { TicketList } from 'types/ticket';
 import { SnackbarProps } from 'types/snackbar';
 
 // assets
-import { Edit, Eye, InfoCircle, ProfileTick, Trash } from 'iconsax-react';
+import { Add, Edit, Eye, InfoCircle, ProfileTick, Trash } from 'iconsax-react';
+import { Button } from '@mui/material';
 
 const fuzzyFilter: FilterFn<TicketList> = (row, columnId, value, addMeta) => {
   // rank the item
@@ -111,11 +114,12 @@ interface TicketWidgets {
 interface Props {
   data: TicketList[];
   columns: ColumnDef<TicketList>[];
+  onOpenAddModal: () => void;
 }
 
 // ==============================|| REACT TABLE - LIST ||============================== //
 
-function ReactTable({ data, columns }: Props) {
+function ReactTable({ data, columns, onOpenAddModal }: Props) {
   const groups = ['All', ...new Set(data.map((item: TicketList) => item.status))];
   const sortBy = { id: 'id', desc: false };
 
@@ -191,7 +195,7 @@ function ReactTable({ data, columns }: Props) {
               icon={
                 <Chip
                   label={
-                    status === 'All'
+                    status === 'Todos'
                       ? data.length
                       : status === 'Open'
                         ? counts.Open
@@ -223,6 +227,9 @@ function ReactTable({ data, columns }: Props) {
         />
         <Stack direction="row" sx={{ width: 1, gap: 2, alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
           <SelectColumnSorting sortBy={sortBy.id} {...{ getState: table.getState, getAllColumns: table.getAllColumns, setSorting }} />
+          <Button variant="contained" startIcon={<Add />} onClick={onOpenAddModal} size="large">
+            <FormattedMessage id="new-ticket" />
+          </Button>
           <CSVExport
             {...{ data: table.getSelectedRowModel().flatRows.map((row) => row.original), headers, filename: 'ticket-list.csv' }}
           />
@@ -303,6 +310,7 @@ export default function List() {
   const { ticketLoading, ticket: list } = useGetTicket();
   const { ticketMaster } = useGetTicketMaster();
   const [ticketId, setTicketId] = useState(0);
+  const [openAddModal, setOpenAddModal] = useState(false);
 
   const navigation = useNavigate();
   const handleClose = (status: boolean) => {
@@ -317,6 +325,13 @@ export default function List() {
       } as SnackbarProps);
     }
     handlerDelete(false);
+  };
+
+  const handleAddTicket = (ticketData: any) => {
+    // Here you would typically call an API to create the ticket
+    console.log('New ticket data:', ticketData);
+    // For now, we'll just close the modal
+    setOpenAddModal(false);
   };
 
 const columns = useMemo<ColumnDef<TicketList>[]>(
@@ -344,12 +359,12 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
             )
         },
         {
-            header: 'ID de Ticket',
+            header: 'Ticket ID',
             accessorKey: 'id',
             meta: { className: 'cell-center' }
         },
         {
-            header: 'Información del Cliente',
+            header: 'Customer Information',
             accessorKey: 'customer_name',
             cell: ({ row, getValue }) => (
                 <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center' }}>
@@ -366,11 +381,11 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
             )
         },
         {
-            header: 'Asunto',
+            header: 'Subject',
             accessorKey: 'subject'
         },
         {
-            header: 'Prioridad',
+            header: 'Priority',
             accessorKey: 'priority',
             cell: (cell) => {
                 switch (cell.getValue()) {
@@ -385,15 +400,15 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
             }
         },
         {
-            header: 'Categoría',
+            header: 'Category',
             accessorKey: 'category'
         },
         {
-            header: 'Fecha de Creación',
+            header: 'Creation Date',
             accessorKey: 'date'
         },
         {
-            header: 'Estado',
+            header: 'Status',
             accessorKey: 'status',
             filterFn: exactValueFilter,
             cell: (cell) => {
@@ -409,10 +424,10 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
                         return <Chip color="error" label="Abierto" size="small" variant="light" />;
                 }
             },
-            meta: { filterComponent: ExactValueFilter }
+            meta: { }
         },
         {
-            header: 'Acciones',
+            header: 'Actions',
             meta: { className: 'cell-center' },
             disableSortBy: true,
             cell: ({ row }) => {
@@ -559,11 +574,16 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
           </Box>
         </Grid>
         <Grid size={12}>
-          {ticketLoading ? <EmptyReactTable /> : <ReactTable {...{ data: list, columns }} />}
+          {ticketLoading ? <EmptyReactTable /> : <ReactTable {...{ data: list, columns, onOpenAddModal: () => setOpenAddModal(true) }} />}
           <AlertTicketDelete
             title={ticketId.toString()}
             open={ticketMaster ? ticketMaster.alertPopup : false}
             handleClose={handleClose}
+          />
+          <AddTicketModal
+            open={openAddModal}
+            onClose={() => setOpenAddModal(false)}
+            onSubmit={handleAddTicket}
           />
         </Grid>
       </Grid>
