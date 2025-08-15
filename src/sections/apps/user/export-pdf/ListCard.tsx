@@ -221,15 +221,7 @@ export default function ListCard({ user }: Props) {
               </View>
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Skill</Text>
-                <View style={styles.cardContent}>
-                  <View style={[styles.row, { gap: 1, flexWrap: 'wrap' }]}>
-                    {user.skills.map((skill: string, index: number) => (
-                      <View style={styles.chip} key={index}>
-                        <Text style={styles.chipTitle}>{skill}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
+                
               </View>
             </View>
             <View style={styles.rightColumn}>

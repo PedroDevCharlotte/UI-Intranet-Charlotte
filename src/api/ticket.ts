@@ -28,7 +28,7 @@ const initialState: TicketProps = {
 // ==============================|| API - TICKET ||============================== //
 
 const endpoints = {
-  key: 'api/ticket',
+  key: 'tickets',
   actions: 'actions',
   list: '/list',
   insert: '/tickets/complete', // endpoint real para crear ticket completo
@@ -39,7 +39,7 @@ const endpoints = {
 };
 
 export function useGetTicket() {
-  const { data, isLoading, error, isValidating } = useSWR(endpoints.key + endpoints.list, fetcher, {
+  const { data, isLoading, error, isValidating } = useSWR(endpoints.key , fetcher, {
     revalidateIfStale: false,
     revalidateOnFocus: false,
     revalidateOnReconnect: false
@@ -47,7 +47,7 @@ export function useGetTicket() {
 
   const memoizedValue = useMemo(
     () => ({
-      ticket: (data?.ticket as TicketList[]) || [],
+      ticket: (data?.tickets as TicketList[]) || [],
       ticketLoading: isLoading,
       ticketError: error,
       ticketValidating: isValidating,
@@ -57,6 +57,43 @@ export function useGetTicket() {
   );
 
   return memoizedValue;
+}
+
+export function useGetTicketById(ticketId: number | string | null) {
+  const url = ticketId ? `/tickets/${ticketId}` : null;
+  const { data, isLoading, error, isValidating } = useSWR(url, fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false
+  });
+  console.log('Ticket data by ID:', data);
+
+  const memoizedValue = useMemo(
+    () => ({
+      ticketDetail: data as TicketList | undefined,
+      ticketDetailLoading: isLoading,
+      ticketDetailError: error,
+      ticketDetailValidating: isValidating,
+      ticketDetailEmpty: !isLoading && !data
+    }),
+    [data, error, isLoading, isValidating]
+  );
+
+  return memoizedValue;
+}
+// Descarga un adjunto de ticket por ID
+export async function downloadTicketAttachment(attachmentId: string | number) {
+  try {
+    const response = await axiosServices.get(`/tickets/attachments/${attachmentId}/download`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      throw error.response.data;
+    }
+    throw error;
+  }
 }
 
 // Inserta un ticket usando el endpoint real y retorna la respuesta o lanza error

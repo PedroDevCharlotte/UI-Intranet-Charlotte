@@ -101,24 +101,124 @@ export interface TicketProps {
   alertPopup: boolean;
 }
 
+export interface User {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  roleId?: number;
+  departmentId?: number;
+}
+
+export interface Department {
+  id: number;
+  name: string;
+  description: string;
+  code: string;
+  managerId: number | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TicketParticipant {
+  id: number;
+  ticketId?: number;
+  user: User;
+  userId?: number;
+  role?: string;
+  canComment?: boolean;
+  canEdit: boolean;
+  canClose: boolean;
+  canAssign: boolean;
+  receiveNotifications: boolean;
+  joinedAt: string;
+  removedAt: string | null;
+  addedBy: number | null;
+}
+
 export interface TicketList {
   id: number;
-  ticket_id: number;
-  customer_name: string;
-  email: string;
-  avatar: number;
-  date: Date | string | number;
-  due_date: Date | string | number;
-  quantity: number;
+  ticketNumber: string;
+  title: string;
+  description: string;
   status: string;
   priority: string;
-  category: string;
-  ticket_detail: Items[];
-  assignedInfo: InfoType;
-  discount: number | null;
-  tax: number | null;
-  customerInfo: InfoType;
-  notes: string;
-  subject: string;
+  ticketTypeId: number;
+  createdBy: number;
+  assignedTo: number;
+  departmentId: number;
+  dueDate: string;
+  resolvedAt: string | null;
+  closedAt: string | null;
+  estimatedHours: number | null;
+  messages: TicketMessage[];
+  actualHours: number | null;
+  tags: string[] | null;
+  notificationsEnabled: boolean;
+  isUrgent: boolean;
+  isInternal: boolean;
+  customFields: any | null;
+  createdAt: string;
+  updatedAt: string;
+  ticketType: TicketType;
+  creator: User;
+  assignee: User;
+  department: Department;
+  participants: TicketParticipant[];
+  parentTicketId: number | null;
+  attachments?: TicketAttachment[];
+  history?: TicketHistory[];
+}
+
+export interface TicketMessage {
+  id: number;
+  ticketId: number;
+  sender: User;
+  senderId: number;
+  content: string;
+  type: string;
+  metadata: any;
+  isInternal: boolean;
+  isEdited: boolean;
+  replyTo: TicketMessage | null;
+  replyToId: number | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  editedBy: User | null;
+  editedAt: string | null;
+}
+
+export interface TicketAttachment {
+  id: number;
+  ticketId: number;
+  messageId: number;
+  uploadedBy: User;
+  uploadedById: number;
+  fileName: string;
+  originalFileName: string;
+  filePath: string;
+  mimeType: string;
+  fileSize: string;
+  fileHash: string | null;
+  isPublic: boolean;
   description: string;
+  uploadedAt: string;
+  deletedAt: string | null;
+}
+
+export interface TicketHistory {
+  id: number;
+  ticketId: number;
+  user: User;
+  userId: number;
+  action: string;
+  oldValues: any;
+  newValues: any;
+  description: string | null;
+  metadata: any;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt: string;
 }

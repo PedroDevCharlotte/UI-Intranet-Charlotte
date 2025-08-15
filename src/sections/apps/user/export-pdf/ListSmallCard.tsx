@@ -158,11 +158,7 @@ export default function ListSmallCard({ user }: Props) {
             </View>
           </View>
           <View style={[styles.row, { gap: 1, paddingTop: 18 }]}>
-            {user.skills.map((skill: string, index: number) => (
-              <View style={styles.chip} key={index}>
-                <Text style={styles.chipTitle}>{skill}</Text>
-              </View>
-            ))}
+            
           </View>
           <View style={styles.timer}>
             <Text style={styles.iconTitle}> Updated in {user.time}</Text>

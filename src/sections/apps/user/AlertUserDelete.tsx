@@ -23,7 +23,7 @@ import { SnackbarProps } from 'types/snackbar';
 
 interface Props {
   id: number;
-  title: string;
+  title: string | undefined;
   open: boolean;
   handleClose: () => void;
 }

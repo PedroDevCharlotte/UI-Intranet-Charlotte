@@ -15,15 +15,15 @@ import Box from '@mui/material/Box';
 // project-imports
 import EmptyUserCard from 'components/cards/skeleton/EmptyUserCard';
 import { DebouncedInput } from 'components/third-party/react-table';
-import CustomerCard from 'sections/apps/customer/CustomerCard';
-import CustomerModal from 'sections/apps/customer/CustomerModal';
+import UserCard from 'sections/apps/user/UserCard';
+import UserModal from 'sections/apps/user/UserModal';
 
-import { useGetCustomer } from 'api/customer';
+import { useGetUser } from 'api/user';
 import { GRID_COMMON_SPACING } from 'config';
 import usePagination from 'hooks/usePagination';
 
 // types
-import { CustomerList } from 'types/customer';
+import { UserList } from 'types/user';
 
 // assets
 import { Add, SearchNormal1 } from 'iconsax-react';
@@ -36,7 +36,7 @@ const allColumns = [
   },
   {
     id: 2,
-    header: 'Customer Name'
+    header: 'User Name'
   },
   {
     id: 3,
@@ -60,9 +60,9 @@ const allColumns = [
   }
 ];
 
-function dataSort(data: CustomerList[], sortBy: string) {
+function dataSort(data: UserList[], sortBy: string) {
   return data.sort(function (a: any, b: any) {
-    if (sortBy === 'Customer Name') return a.name.localeCompare(b.name);
+    if (sortBy === 'User Name') return a.name.localeCompare(b.name);
     if (sortBy === 'Email') return a.email.localeCompare(b.email);
     if (sortBy === 'Contact') return a.contact.localeCompare(b.contact);
     if (sortBy === 'Age') return b.age < a.age ? 1 : -1;
@@ -72,17 +72,17 @@ function dataSort(data: CustomerList[], sortBy: string) {
   });
 }
 
-// ==============================|| CUSTOMER - CARD ||============================== //
+// ==============================|| USER - CARD ||============================== //
 
-export default function CustomerCardPage() {
-  const { customers: lists } = useGetCustomer();
+export default function UserCardPage() {
+  const { users: lists } = useGetUser();
 
   const [sortBy, setSortBy] = useState('Default');
   const [globalFilter, setGlobalFilter] = useState('');
-  const [userCard, setUserCard] = useState<CustomerList[]>([]);
+  const [userCard, setUserCard] = useState<UserList[]>([]);
   const [page, setPage] = useState(1);
-  const [customerLoading, setCustomerLoading] = useState<boolean>(true);
-  const [customerModal, setCustomerModal] = useState<boolean>(false);
+  const [userLoading, setUserLoading] = useState<boolean>(true);
+  const [userModal, setUserModal] = useState<boolean>(false);
 
   const handleChange = (event: SelectChangeEvent) => {
     setSortBy(event.target.value as string);
@@ -90,7 +90,7 @@ export default function CustomerCardPage() {
 
   // search
   useEffect(() => {
-    setCustomerLoading(true);
+    setUserLoading(true);
     if (lists && lists.length > 0) {
       const newData = lists.filter((value: any) => {
         if (globalFilter) {
@@ -100,7 +100,7 @@ export default function CustomerCardPage() {
         }
       });
       setUserCard(dataSort(newData, sortBy).reverse());
-      setCustomerLoading(false);
+      setUserLoading(false);
     }
   }, [globalFilter, lists, sortBy]);
 
@@ -149,8 +149,8 @@ export default function CustomerCardPage() {
                   })}
                 </Select>
               </FormControl>
-              <Button variant="contained" onClick={() => setCustomerModal(true)} size="large" startIcon={<Add />}>
-                Add Customer
+              <Button variant="contained" onClick={() => setUserModal(true)} size="large" startIcon={<Add />}>
+                Add User
               </Button>
             </Stack>
           </Stack>
@@ -159,18 +159,18 @@ export default function CustomerCardPage() {
       <Grid
         container
         spacing={GRID_COMMON_SPACING}
-        sx={{ ...(!(!customerLoading && userCard.length > 0) && { justifyContent: 'center' }) }}
+        sx={{ ...(!(!userLoading && userCard.length > 0) && { justifyContent: 'center' }) }}
       >
-        {!customerLoading && userCard.length > 0 ? (
-          _DATA.currentData().map((user: CustomerList, index: number) => (
+        {!userLoading && userCard.length > 0 ? (
+          _DATA.currentData().map((user: UserList, index: number) => (
             <Slide key={index} direction="up" in={true} timeout={50}>
               <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-                <CustomerCard customer={user} />
+                <UserCard user={user} />
               </Grid>
             </Slide>
           ))
         ) : (
-          <EmptyUserCard title={customerLoading ? 'Loading...' : 'You have not created any customer yet.'} />
+          <EmptyUserCard title={userLoading ? 'Loading...' : 'You have not created any user yet.'} />
         )}
       </Grid>
       <Stack sx={{ gap: 2, alignItems: 'flex-end', p: 2.5 }}>
@@ -186,7 +186,7 @@ export default function CustomerCardPage() {
           onChange={handleChangePage}
         />
       </Stack>
-      <CustomerModal open={customerModal} modalToggler={setCustomerModal} />
+      <UserModal open={userModal} modalToggler={setUserModal} />
     </>
   );
 }

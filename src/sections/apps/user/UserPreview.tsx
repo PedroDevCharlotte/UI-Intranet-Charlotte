@@ -214,17 +214,7 @@ export default function UserPreview({ user, open, onClose, editUser }: Props) {
                         </List>
                       </MainCard>
                     </Grid>
-                    <Grid size={12}>
-                      <MainCard title="Skills">
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', listStyle: 'none', p: 0.5, m: 0 }} component="ul">
-                          {user.skills.map((skill: string, index: number) => (
-                            <ListItem disablePadding key={index} sx={{ width: 'auto', pr: 0.75, pb: 0.75 }}>
-                              <Chip color="secondary" variant="outlined" size="small" label={skill} />
-                            </ListItem>
-                          ))}
-                        </Box>
-                      </MainCard>
-                    </Grid>
+                    
                   </Grid>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4, xl: 3 }}>

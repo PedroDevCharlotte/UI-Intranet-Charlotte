@@ -71,6 +71,7 @@ import { SnackbarProps } from 'types/snackbar';
 // assets
 import { Add, Edit, Eye, InfoCircle, ProfileTick, Trash } from 'iconsax-react';
 import { Button } from '@mui/material';
+import { formatDate } from 'date-fns';
 
 const fuzzyFilter: FilterFn<TicketList> = (row, columnId, value, addMeta) => {
   // rank the item
@@ -336,141 +337,151 @@ export default function List() {
 
 const columns = useMemo<ColumnDef<TicketList>[]>(
     () => [
-        {
-            id: 'Row Selection',
-            header: ({ table }) => (
-                <IndeterminateCheckbox
-                    {...{
-                        checked: table.getIsAllRowsSelected(),
-                        indeterminate: table.getIsSomeRowsSelected(),
-                        onChange: table.getToggleAllRowsSelectedHandler()
-                    }}
-                />
-            ),
-            cell: ({ row }) => (
-                <IndeterminateCheckbox
-                    {...{
-                        checked: row.getIsSelected(),
-                        disabled: !row.getCanSelect(),
-                        indeterminate: row.getIsSomeSelected(),
-                        onChange: row.getToggleSelectedHandler()
-                    }}
-                />
-            )
-        },
-        {
-            header: 'Ticket ID',
-            accessorKey: 'id',
-            meta: { className: 'cell-center' }
-        },
-        {
-            header: 'Customer Information',
-            accessorKey: 'customer_name',
-            cell: ({ row, getValue }) => (
-                <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center' }}>
-                    <Avatar
-                        alt="Avatar"
-                        size="sm"
-                        src={getImageUrl(`avatar-${!row.original.avatar ? 1 : row.original.avatar}.png`, ImagePath.USERS)}
-                    />
-                    <Stack>
-                        <Typography variant="subtitle1">{getValue() as string}</Typography>
-                        <Typography sx={{ color: 'text.secondary' }}>{row.original.email as string}</Typography>
-                    </Stack>
-                </Stack>
-            )
-        },
-        {
-            header: 'Subject',
-            accessorKey: 'subject'
-        },
-        {
-            header: 'Priority',
-            accessorKey: 'priority',
-            cell: (cell) => {
-                switch (cell.getValue()) {
-                    case 'High':
-                        return <Chip color="error" label="Alta" size="small" variant="light" />;
-                    case 'Medium':
-                        return <Chip color="warning" label="Media" size="small" variant="light" />;
-                    case 'Low':
-                    default:
-                        return <Chip color="info" label="Baja" size="small" variant="light" />;
-                }
-            }
-        },
-        {
-            header: 'Category',
-            accessorKey: 'category'
-        },
-        {
-            header: 'Creation Date',
-            accessorKey: 'date'
-        },
-        {
-            header: 'Status',
-            accessorKey: 'status',
-            filterFn: exactValueFilter,
-            cell: (cell) => {
-                switch (cell.getValue()) {
-                    case 'Closed':
-                        return <Chip color="success" label="Cerrado" size="small" variant="light" />;
-                    case 'Resolved':
-                        return <Chip color="info" label="Resuelto" size="small" variant="light" />;
-                    case 'In Progress':
-                        return <Chip color="warning" label="En Proceso" size="small" variant="light" />;
-                    case 'Open':
-                    default:
-                        return <Chip color="error" label="Abierto" size="small" variant="light" />;
-                }
-            },
-            meta: { }
-        },
-        {
-            header: 'Actions',
-            meta: { className: 'cell-center' },
-            disableSortBy: true,
-            cell: ({ row }) => {
-                return (
-                    <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center' }}>
-                        <Tooltip title="Ver">
-                            <IconButton
-                                color="secondary"
-                                onClick={(e: any) => {
-                                    e.stopPropagation();
-                                    navigation(`/apps/ticket/details/${row?.original?.id}`);
-                                }}
-                            >
-                                <Eye />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Editar">
-                            <IconButton
-                                color="primary"
-                                onClick={(e: any) => {
-                                    e.stopPropagation();
-                                    navigation(`/apps/ticket/edit/${row?.original?.id}`);
-                                }}
-                            >
-                                <Edit />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Eliminar">
-                            <IconButton
-                                color="error"
-                                onClick={(e: any) => {
-                                    e.stopPropagation();
-                                    setTicketId(row?.original?.id);
-                                    handlerDelete(true);
-                                }}
-                            >
-                                <Trash />
-                            </IconButton>
-                        </Tooltip>
-                    </Stack>
-                );
-            }
+    {
+      id: 'Row Selection',
+      header: ({ table }) => (
+        <IndeterminateCheckbox
+          {...{
+            checked: table.getIsAllRowsSelected(),
+            indeterminate: table.getIsSomeRowsSelected(),
+            onChange: table.getToggleAllRowsSelectedHandler()
+          }}
+        />
+      ),
+      cell: ({ row }) => (
+        <IndeterminateCheckbox
+          {...{
+            checked: row.getIsSelected(),
+            disabled: !row.getCanSelect(),
+            indeterminate: row.getIsSomeSelected(),
+            onChange: row.getToggleSelectedHandler()
+          }}
+        />
+      )
+    },
+    {
+      header: 'ID Ticket',
+      accessorKey: 'ticketNumber',
+      meta: { className: 'cell-center' }
+    },
+    {
+      header: 'Información del Cliente',
+      accessorKey: 'customer_name',
+      cell: ({ row, getValue }) => {
+        let name = row.original || '';
+        // console.log('Row data:', row.original);
+        return (
+        <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center' }}>
+          <Stack>
+            <Typography variant="subtitle1">{(row.original?.creator?.firstName + ' ' + row.original?.creator?.lastName) as string}</Typography>
+            <Typography sx={{ color: 'text.secondary' }}>{row.original?.creator?.email as string}</Typography>
+          </Stack>
+        </Stack>
+      )}
+    },
+    {
+      header: 'Asunto',
+      accessorKey: 'title'
+    },
+    {
+      header: 'Prioridad',
+      accessorKey: 'priority',
+      cell: (cell) => {
+        switch (cell.getValue()) {
+          case 'High':
+            return <Chip color="error" label="Alta" size="small" variant="light" />;
+          case 'Medium':
+            return <Chip color="warning" label="Media" size="small" variant="light" />;
+          case 'Low':
+          default:
+            return <Chip color="info" label="Baja" size="small" variant="light" />;
         }
+      }
+        },
+    {
+      header: 'Categoría',
+      accessorKey: 'category'
+    },
+    {
+      header: 'Fecha de Creación',
+      accessorKey: 'createdAt',
+      cell: ({ getValue }) => {
+        const dateValue = getValue() as string | number | Date;
+        return <Typography variant="body2">{new Date(dateValue).toLocaleDateString()}</Typography>;
+      }
+
+    },
+    {
+      header: 'Estado',
+      accessorKey: 'status',
+      filterFn: exactValueFilter,
+      cell: (cell) => {
+        switch (cell.getValue()) {
+          case 'Abierto':
+            return <Chip color="error" label="Abierto" size="small" variant="light" />;
+          case 'En proceso':
+            return <Chip color="warning" label="En proceso" size="small" variant="light" />;
+          case 'En seguimiento':
+            return <Chip color="info" label="En seguimiento" size="small" variant="light" />;
+          case 'Finalizado':
+            return <Chip color="success" label="Finalizado" size="small" variant="light" />;
+          case 'Cerrado':
+            return <Chip color="default" label="Cerrado" size="small" variant="light" />;
+          case 'No conformidad':
+            return <Chip color="secondary" label="No conformidad" size="small" variant="light" />;
+          case 'Cancelado':
+            return <Chip color="default" label="Cancelado" size="small" variant="light" />;
+          default:
+            return <Chip color="default" label={String(cell.getValue())} size="small" variant="light" />;
+        }
+      },
+      meta: { }
+    },
+    {
+      header: 'Acciones',
+      meta: { className: 'cell-center' },
+      disableSortBy: true,
+      cell: ({ row }) => {
+        return (
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center' }}>
+            <Tooltip title="Ver ticket">
+              <IconButton
+                color="secondary"
+                onClick={(e: any) => {
+                  e.stopPropagation();
+                  navigation(`/apps/ticket/details/${row?.original?.id}`);
+                }}
+              >
+                <Eye />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Editar ticket">
+              <IconButton
+                color="primary"
+                onClick={(e: any) => {
+                  e.stopPropagation();
+                  navigation(`/apps/ticket/edit/${row?.original?.id}`);
+                }}
+              >
+                <Edit />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Eliminar ticket">
+              <IconButton
+                color="error"
+                onClick={(e: any) => {
+                  e.stopPropagation();
+                  setTicketId(row?.original?.id);
+                  handlerDelete(true);
+                }}
+              >
+                <Trash />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        );
+      }
+    }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -480,7 +491,7 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
 
   const widgetsData: TicketWidgets[] = [
     {
-      title: 'Open',
+      title: 'Abierto',
       count: '125',
       percentage: 35.2,
       isLoss: true,
@@ -489,7 +500,7 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
       chartData: [200, 600, 100, 400, 300, 400, 50]
     },
     {
-      title: 'In Progress',
+      title: 'En Proceso',
       count: '68',
       percentage: 18.7,
       isLoss: false,
@@ -498,7 +509,7 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
       chartData: [100, 550, 300, 350, 200, 100, 300]
     },
     {
-      title: 'Resolved',
+      title: 'Resuelto',
       count: '247',
       percentage: 46.1,
       isLoss: false,
@@ -546,24 +557,24 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
           >
             <Stack direction="row" sx={{ gap: 1, alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap' }}>
               <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
-                <Avatar alt="Tickets" variant="rounded" type="filled" sx={{ color: 'inherit' }}>
-                  <ProfileTick style={{ fontSize: '20px' }} />
-                </Avatar>
-                <Box>
-                  <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
-                    <Typography variant="body1">Total Tickets</Typography>
-                    <InfoCircle />
-                  </Stack>
-                  <Stack direction="row" sx={{ gap: 1 }}>
-                    <Typography variant="body2">This Month</Typography>
-                    <Typography variant="body1">440</Typography>
-                  </Stack>
-                </Box>
-              </Stack>
-              <Stack direction="row" sx={{ gap: 1 }}>
-                <Typography variant="body2">Closed</Typography>
-                <Typography variant="body1">247</Typography>
-              </Stack>
+                  <Avatar alt="Tickets" variant="rounded" type="filled" sx={{ color: 'inherit' }}>
+                    <ProfileTick style={{ fontSize: '20px' }} />
+                  </Avatar>
+                  <Box>
+                    <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
+                      <Typography variant="body1">Total de Tickets</Typography>
+                      <InfoCircle />
+                    </Stack>
+                    <Stack direction="row" sx={{ gap: 1 }}>
+                      <Typography variant="body2">Este Mes</Typography>
+                      <Typography variant="body1">440</Typography>
+                    </Stack>
+                  </Box>
+                </Stack>
+                <Stack direction="row" sx={{ gap: 1 }}>
+                  <Typography variant="body2">Cerrados</Typography>
+                  <Typography variant="body1">247</Typography>
+                </Stack>
             </Stack>
             <Typography variant="h4" sx={{ pt: 2, pb: 1, zIndex: 1 }}>
               440
