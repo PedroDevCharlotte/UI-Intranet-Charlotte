@@ -39,7 +39,7 @@ const endpoints = {
 };
 
 export function useGetTicket() {
-  const { data, isLoading, error, isValidating } = useSWR(endpoints.key , fetcher, {
+  const { data, isLoading, error, isValidating } = useSWR(endpoints.key, fetcher, {
     revalidateIfStale: false,
     revalidateOnFocus: false,
     revalidateOnReconnect: false
@@ -85,7 +85,7 @@ export function useGetTicketById(ticketId: number | string | null) {
 export async function downloadTicketAttachment(attachmentId: string | number) {
   try {
     const response = await axiosServices.get(`/tickets/attachments/${attachmentId}/download`, {
-      responseType: 'blob',
+      responseType: 'blob'
     });
     return response.data;
   } catch (error: any) {
@@ -127,6 +127,8 @@ export async function insertTicket(newTicket: any) {
         'Content-Type': 'multipart/form-data'
       }
     });
+    mutate(endpoints.key);
+
     return response.data;
   } catch (error: any) {
     if (error.response && error.response.data) {
@@ -355,4 +357,53 @@ export function useGetDynamicFields(ticketTypeCode: string | null) {
   );
 
   return memoizedValue;
+}
+
+export function useGetAttendantsByTicketType(ticketTypeCode: number | null) {
+  const url = ticketTypeCode ? `/tickets/available-by-type/${ticketTypeCode}` : null;
+  console.log('Fetching attendants by ticket type:', url);
+  const { data, isLoading, error, isValidating } = useSWR(url, fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false
+  });
+
+  // console.log('Attendants data:', data);
+  // Validar que la respuesta tenga la estructura esperada
+  const attendants = data && Array.isArray(data.users) ? data.users : [];
+
+  const memoizedValue = useMemo(
+    () => ({
+      attendants,
+      attendantsLoading: isLoading,
+      attendantsError: error,
+      attendantsValidating: isValidating,
+      attendantsEmpty: !isLoading && attendants.length === 0
+    }),
+    [attendants, error, isLoading, isValidating]
+  );
+
+  return memoizedValue;
+}
+
+// Reasigna el técnico de un ticket
+export async function reassignTechnician(ticketId: number | string, assigneeId: number | string) {
+  try {
+    const response = await axiosServices.patch(`/tickets/${ticketId}/assign`, {
+      assigneeId
+    });
+    console.log('Reassign technician response:', response.data);
+    // Opcional: refresca la lista de tickets
+    mutate(endpoints.key);
+    mutate(`/tickets/${ticketId}`);
+
+    
+
+    return response.data;
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      throw error.response.data;
+    }
+    throw error;
+  }
 }

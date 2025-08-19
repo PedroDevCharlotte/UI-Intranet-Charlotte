@@ -31,7 +31,7 @@ import Box from '@mui/material/Box';
 import AddMessageModal from 'sections/apps/ticket/AddMessageModal';
 import RichTextModal from 'sections/apps/ticket/RichTextModal';
 import ReassignModal from 'sections/apps/ticket/ReassignModal';
-import { useResolverUsers } from 'hooks/useResolverUsers';
+import { useResolverUsers, useResolveUsersAttentsTiketByType } from 'hooks/useResolverUsers';
 // project-imports
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
 import MainCard from 'components/MainCard';
@@ -81,7 +81,13 @@ export default function TicketDetails() {
     if (ticketData) setEditData({ ...ticketData });
   };
 
+  const {ticketTypeId, assignedTo} = ticketData || {};
+  console.log("ticketTypeId:", ticketTypeId, "assignedTo:", assignedTo);
+  const resolveUsersAttentsTiketByType = useResolveUsersAttentsTiketByType(ticketData?.ticketTypeId || 0, ticketData?.assignedTo || 0);
+    console.log("resolveUsersAttentsTiketByType en el modal:", resolveUsersAttentsTiketByType)
+
   const handleSave = async () => {
+
     try {
       // Aquí iría la llamada a la API para actualizar el ticket
       // await axios.put(`/tickets/${id}`, editData);
@@ -238,16 +244,33 @@ export default function TicketDetails() {
         submitText="Generar"
       />
       {/* Modal para reasignar ticket */}
-      <ReassignModal
-        open={openReassignModal}
-        onClose={() => setOpenReassignModal(false)}
-        userOptions={resolverUsers}
-        onSubmit={(user) => {
-          setSelectedReassignUser(user);
-          setOpenReassignModal(false);
-          // Aquí puedes llamar a la API para reasignar el ticket
-        }}
-      />
+      {Array.isArray(resolveUsersAttentsTiketByType) && resolveUsersAttentsTiketByType.length > 0 ? (
+        <ReassignModal
+          open={openReassignModal}
+          onClose={() => setOpenReassignModal(false)}
+          userOptions={resolveUsersAttentsTiketByType}
+          initialUser={ticketData.assignedTo}
+          ticketId={ticketData.id}
+          onSubmit={(user) => {
+            console.log("USer en el modal:", user)
+            setSelectedReassignUser(user);
+            setOpenReassignModal(false);
+            // Aquí puedes llamar a la API para reasignar el ticket
+          }}
+        />
+      ) : (
+        <Dialog open={openReassignModal} onClose={() => setOpenReassignModal(false)}>
+          <DialogTitle>No hay usuarios disponibles</DialogTitle>
+          <DialogContent>
+            <Typography>No hay usuarios disponibles para reasignar este ticket.</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenReassignModal(false)} color="primary">
+              Cerrar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
       <Grid container spacing={GRID_COMMON_SPACING}>
         <Grid size={12}>
           <MainCard

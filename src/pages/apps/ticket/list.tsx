@@ -20,6 +20,7 @@ import Tabs from '@mui/material/Tabs';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
 
 // third-party
 import { LabelKeyObject } from 'react-csv/lib/core';
@@ -88,6 +89,30 @@ const exactValueFilter: FilterFn<TicketList> = (row, columnId, filterValue) => {
   return String(row.getValue(columnId)) === String(filterValue);
 };
 
+const dateRangeFilter: FilterFn<TicketList> = (row, columnId, filterValue) => {
+  // filterValue expected to be an object: { from?: string | null, to?: string | null }
+  try {
+    const cell = row.getValue(columnId) as string | number | Date | undefined | null;
+    if (!filterValue || (!filterValue.from && !filterValue.to)) return true;
+    if (!cell) return false;
+
+    const cellTime = new Date(cell).getTime();
+
+    if (filterValue.from) {
+      const fromTime = new Date(filterValue.from).setHours(0, 0, 0, 0);
+      if (cellTime < fromTime) return false;
+    }
+    if (filterValue.to) {
+      const toTime = new Date(filterValue.to).setHours(23, 59, 59, 999);
+      if (cellTime > toTime) return false;
+    }
+
+    return true;
+  } catch (e) {
+    return true;
+  }
+};
+
 function ExactValueFilter({ column: { filterValue, setFilter } }: any) {
   return (
     <input value={filterValue || ''} onChange={(e) => setFilter(e.target.value || undefined)} placeholder="Filter by exact value..." />
@@ -138,6 +163,8 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState<string | null>(null);
+  const [dateTo, setDateTo] = useState<string | null>(null);
 
   const table = useReactTable({
     data,
@@ -158,7 +185,7 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
     getFilteredRowModel: getFilteredRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    globalFilterFn: fuzzyFilter,
+  globalFilterFn: fuzzyFilter,
     debugTable: true
   });
 
@@ -177,6 +204,16 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
   useEffect(() => {
     setColumnFilters(activeTab === 'All' ? [] : [{ id: 'status', value: activeTab }]);
   }, [activeTab]);
+
+  // update createdAt filter when date range changes
+  useEffect(() => {
+    const filters: any[] = activeTab === 'All' ? [] : [{ id: 'status', value: activeTab }];
+    if (dateFrom || dateTo) {
+      filters.push({ id: 'createdAt', value: { from: dateFrom, to: dateTo } });
+    }
+    setColumnFilters(filters as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateFrom, dateTo, activeTab]);
 
   return (
     <MainCard content={false}>
@@ -206,7 +243,17 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
                             ? counts.Resolved
                             : counts.Closed
                   }
-                  color={status === 'All' ? 'primary' : status === 'Open' ? 'error' : status === 'In Progress' ? 'warning' : status === 'Resolved' ? 'info' : 'success'}
+                  color={
+                    status === 'All'
+                      ? 'primary'
+                      : status === 'Open'
+                        ? 'error'
+                        : status === 'In Progress'
+                          ? 'warning'
+                          : status === 'Resolved'
+                            ? 'info'
+                            : 'success'
+                  }
                   variant="light"
                   size="small"
                 />
@@ -226,14 +273,30 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
           placeholder={`Search ${data.length} records...`}
           sx={{ width: { xs: '100%', sm: 'auto' } }}
         />
+        <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
+          <TextField
+            label="Desde"
+            type="date"
+            size="small"
+            InputLabelProps={{ shrink: true }}
+            value={dateFrom ?? ''}
+            onChange={(e) => setDateFrom(e.target.value || null)}
+          />
+          <TextField
+            label="Hasta"
+            type="date"
+            size="small"
+            InputLabelProps={{ shrink: true }}
+            value={dateTo ?? ''}
+            onChange={(e) => setDateTo(e.target.value || null)}
+          />
+        </Stack>
         <Stack direction="row" sx={{ width: 1, gap: 2, alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
-          <SelectColumnSorting sortBy={sortBy.id} {...{ getState: table.getState, getAllColumns: table.getAllColumns, setSorting }} />
+          {/* <SelectColumnSorting sortBy={sortBy.id} {...{ getState: table.getState, getAllColumns: table.getAllColumns, setSorting }} /> */}
           <Button variant="contained" startIcon={<Add />} onClick={onOpenAddModal} size="large">
             <FormattedMessage id="new-ticket" />
           </Button>
-          <CSVExport
-            {...{ data: table.getSelectedRowModel().flatRows.map((row) => row.original), headers, filename: 'ticket-list.csv' }}
-          />
+          {/* <CSVExport {...{ data: table.getSelectedRowModel().flatRows.map((row) => row.original), headers, filename: 'ticket-list.csv' }} /> */}
         </Stack>
       </Stack>
 
@@ -335,157 +398,160 @@ export default function List() {
     setOpenAddModal(false);
   };
 
-const columns = useMemo<ColumnDef<TicketList>[]>(
+  const columns = useMemo<ColumnDef<TicketList>[]>(
     () => [
-    {
-      id: 'Row Selection',
-      header: ({ table }) => (
-        <IndeterminateCheckbox
-          {...{
-            checked: table.getIsAllRowsSelected(),
-            indeterminate: table.getIsSomeRowsSelected(),
-            onChange: table.getToggleAllRowsSelectedHandler()
-          }}
-        />
-      ),
-      cell: ({ row }) => (
-        <IndeterminateCheckbox
-          {...{
-            checked: row.getIsSelected(),
-            disabled: !row.getCanSelect(),
-            indeterminate: row.getIsSomeSelected(),
-            onChange: row.getToggleSelectedHandler()
-          }}
-        />
-      )
-    },
-    {
-      header: 'ID Ticket',
-      accessorKey: 'ticketNumber',
-      meta: { className: 'cell-center' }
-    },
-    {
-      header: 'Información del Cliente',
-      accessorKey: 'customer_name',
-      cell: ({ row, getValue }) => {
-        let name = row.original || '';
-        // console.log('Row data:', row.original);
-        return (
-        <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center' }}>
-          <Stack>
-            <Typography variant="subtitle1">{(row.original?.creator?.firstName + ' ' + row.original?.creator?.lastName) as string}</Typography>
-            <Typography sx={{ color: 'text.secondary' }}>{row.original?.creator?.email as string}</Typography>
-          </Stack>
-        </Stack>
-      )}
-    },
-    {
-      header: 'Asunto',
-      accessorKey: 'title'
-    },
-    {
-      header: 'Prioridad',
-      accessorKey: 'priority',
-      cell: (cell) => {
-        switch (cell.getValue()) {
-          case 'High':
-            return <Chip color="error" label="Alta" size="small" variant="light" />;
-          case 'Medium':
-            return <Chip color="warning" label="Media" size="small" variant="light" />;
-          case 'Low':
-          default:
-            return <Chip color="info" label="Baja" size="small" variant="light" />;
-        }
-      }
-        },
-    {
-      header: 'Categoría',
-      accessorKey: 'category'
-    },
-    {
-      header: 'Fecha de Creación',
-      accessorKey: 'createdAt',
-      cell: ({ getValue }) => {
-        const dateValue = getValue() as string | number | Date;
-        return <Typography variant="body2">{new Date(dateValue).toLocaleDateString()}</Typography>;
-      }
-
-    },
-    {
-      header: 'Estado',
-      accessorKey: 'status',
-      filterFn: exactValueFilter,
-      cell: (cell) => {
-        switch (cell.getValue()) {
-          case 'Abierto':
-            return <Chip color="error" label="Abierto" size="small" variant="light" />;
-          case 'En proceso':
-            return <Chip color="warning" label="En proceso" size="small" variant="light" />;
-          case 'En seguimiento':
-            return <Chip color="info" label="En seguimiento" size="small" variant="light" />;
-          case 'Finalizado':
-            return <Chip color="success" label="Finalizado" size="small" variant="light" />;
-          case 'Cerrado':
-            return <Chip color="default" label="Cerrado" size="small" variant="light" />;
-          case 'No conformidad':
-            return <Chip color="secondary" label="No conformidad" size="small" variant="light" />;
-          case 'Cancelado':
-            return <Chip color="default" label="Cancelado" size="small" variant="light" />;
-          default:
-            return <Chip color="default" label={String(cell.getValue())} size="small" variant="light" />;
+      {
+        id: 'Row Selection',
+        header: ({ table }) => (
+          <IndeterminateCheckbox
+            {...{
+              checked: table.getIsAllRowsSelected(),
+              indeterminate: table.getIsSomeRowsSelected(),
+              onChange: table.getToggleAllRowsSelectedHandler()
+            }}
+          />
+        ),
+        cell: ({ row }) => (
+          <IndeterminateCheckbox
+            {...{
+              checked: row.getIsSelected(),
+              disabled: !row.getCanSelect(),
+              indeterminate: row.getIsSomeSelected(),
+              onChange: row.getToggleSelectedHandler()
+            }}
+          />
+        )
+      },
+      {
+        header: 'ID Ticket',
+        accessorKey: 'ticketNumber',
+        meta: { className: 'cell-center' }
+      },
+      {
+        header: 'Información del Cliente',
+        accessorKey: 'customer_name',
+        cell: ({ row, getValue }) => {
+          let name = row.original || '';
+          // console.log('Row data:', row.original);
+          return (
+            <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center' }}>
+              <Stack>
+                <Typography variant="subtitle1">
+                  {(row.original?.creator?.firstName + ' ' + row.original?.creator?.lastName) as string}
+                </Typography>
+                <Typography sx={{ color: 'text.secondary' }}>{row.original?.creator?.email as string}</Typography>
+              </Stack>
+            </Stack>
+          );
         }
       },
-      meta: { }
-    },
-    {
-      header: 'Acciones',
-      meta: { className: 'cell-center' },
-      disableSortBy: true,
-      cell: ({ row }) => {
-        return (
-          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center' }}>
-            <Tooltip title="Ver ticket">
-              <IconButton
-                color="secondary"
-                onClick={(e: any) => {
-                  e.stopPropagation();
-                  navigation(`/apps/ticket/details/${row?.original?.id}`);
-                }}
-              >
-                <Eye />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Editar ticket">
-              <IconButton
-                color="primary"
-                onClick={(e: any) => {
-                  e.stopPropagation();
-                  navigation(`/apps/ticket/edit/${row?.original?.id}`);
-                }}
-              >
-                <Edit />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Eliminar ticket">
-              <IconButton
-                color="error"
-                onClick={(e: any) => {
-                  e.stopPropagation();
-                  setTicketId(row?.original?.id);
-                  handlerDelete(true);
-                }}
-              >
-                <Trash />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-        );
+      {
+        header: 'Asunto',
+        accessorKey: 'title'
+      },
+      // {
+      //   header: 'Prioridad',
+      //   accessorKey: 'priority',
+      //   cell: (cell) => {
+      //     switch (cell.getValue()) {
+      //       case 'High':
+      //         return <Chip color="error" label="Alta" size="small" variant="light" />;
+      //       case 'Medium':
+      //         return <Chip color="warning" label="Media" size="small" variant="light" />;
+      //       case 'Low':
+      //       default:
+      //         return <Chip color="info" label="Baja" size="small" variant="light" />;
+      //     }
+      //   }
+      // },
+      {
+        header: 'Categoría',
+        accessorKey: 'ticketType.code'
+      },
+      {
+        header: 'Fecha de Creación',
+        accessorKey: 'createdAt',
+  filterFn: dateRangeFilter,
+  cell: ({ getValue }) => {
+          const dateValue = getValue() as string | number | Date;
+          return <Typography variant="body2">{new Date(dateValue).toLocaleDateString()}</Typography>;
+        }
+      },
+      {
+        header: 'Estado',
+        accessorKey: 'status',
+        filterFn: exactValueFilter,
+        cell: (cell) => {
+          switch (cell.getValue()) {
+            case 'Abierto':
+              return <Chip color="error" label="Abierto" size="small" variant="light" />;
+            case 'En proceso':
+              return <Chip color="warning" label="En proceso" size="small" variant="light" />;
+            case 'En seguimiento':
+              return <Chip color="info" label="En seguimiento" size="small" variant="light" />;
+            case 'Finalizado':
+              return <Chip color="success" label="Finalizado" size="small" variant="light" />;
+            case 'Cerrado':
+              return <Chip color="default" label="Cerrado" size="small" variant="light" />;
+            case 'No conformidad':
+              return <Chip color="secondary" label="No conformidad" size="small" variant="light" />;
+            case 'Cancelado':
+              return <Chip color="default" label="Cancelado" size="small" variant="light" />;
+            default:
+              return <Chip color="default" label={String(cell.getValue())} size="small" variant="light" />;
+          }
+        },
+        meta: {}
+      },
+      {
+        header: 'Acciones',
+        meta: { className: 'cell-center' },
+        disableSortBy: true,
+        cell: ({ row }) => {
+          return (
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Tooltip title="Ver ticket">
+                <IconButton
+                  color="secondary"
+                  onClick={(e: any) => {
+                    e.stopPropagation();
+                    navigation(`/apps/ticket/details/${row?.original?.id}`);
+                  }}
+                >
+                  <Eye />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Editar ticket">
+                <IconButton
+                  color="primary"
+                  onClick={(e: any) => {
+                    e.stopPropagation();
+                    navigation(`/apps/ticket/edit/${row?.original?.id}`);
+                  }}
+                >
+                  <Edit />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Eliminar ticket">
+                <IconButton
+                  color="error"
+                  onClick={(e: any) => {
+                    e.stopPropagation();
+                    setTicketId(row?.original?.id);
+                    handlerDelete(true);
+                  }}
+                >
+                  <Trash />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          );
+        }
       }
-    }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
-);
+  );
 
   const theme = useTheme();
 
@@ -519,7 +585,7 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
     }
   ];
 
-//   let breadcrumbLinks = [{ title: 'home', to: APP_DEFAULT_PATH }, { title: 'ticket', to: '/apps/ticket/dashboard' }, { title: 'list' }];
+  //   let breadcrumbLinks = [{ title: 'home', to: APP_DEFAULT_PATH }, { title: 'ticket', to: '/apps/ticket/dashboard' }, { title: 'list' }];
 
   return (
     <>
@@ -557,24 +623,24 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
           >
             <Stack direction="row" sx={{ gap: 1, alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap' }}>
               <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
-                  <Avatar alt="Tickets" variant="rounded" type="filled" sx={{ color: 'inherit' }}>
-                    <ProfileTick style={{ fontSize: '20px' }} />
-                  </Avatar>
-                  <Box>
-                    <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
-                      <Typography variant="body1">Total de Tickets</Typography>
-                      <InfoCircle />
-                    </Stack>
-                    <Stack direction="row" sx={{ gap: 1 }}>
-                      <Typography variant="body2">Este Mes</Typography>
-                      <Typography variant="body1">440</Typography>
-                    </Stack>
-                  </Box>
-                </Stack>
-                <Stack direction="row" sx={{ gap: 1 }}>
-                  <Typography variant="body2">Cerrados</Typography>
-                  <Typography variant="body1">247</Typography>
-                </Stack>
+                <Avatar alt="Tickets" variant="rounded" type="filled" sx={{ color: 'inherit' }}>
+                  <ProfileTick style={{ fontSize: '20px' }} />
+                </Avatar>
+                <Box>
+                  <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
+                    <Typography variant="body1">Total de Tickets</Typography>
+                    <InfoCircle />
+                  </Stack>
+                  <Stack direction="row" sx={{ gap: 1 }}>
+                    <Typography variant="body2">Este Mes</Typography>
+                    <Typography variant="body1">440</Typography>
+                  </Stack>
+                </Box>
+              </Stack>
+              <Stack direction="row" sx={{ gap: 1 }}>
+                <Typography variant="body2">Cerrados</Typography>
+                <Typography variant="body1">247</Typography>
+              </Stack>
             </Stack>
             <Typography variant="h4" sx={{ pt: 2, pb: 1, zIndex: 1 }}>
               440
@@ -586,16 +652,8 @@ const columns = useMemo<ColumnDef<TicketList>[]>(
         </Grid>
         <Grid size={12}>
           {ticketLoading ? <EmptyReactTable /> : <ReactTable {...{ data: list, columns, onOpenAddModal: () => setOpenAddModal(true) }} />}
-          <AlertTicketDelete
-            title={ticketId.toString()}
-            open={ticketMaster ? ticketMaster.alertPopup : false}
-            handleClose={handleClose}
-          />
-          <AddTicketModal
-            open={openAddModal}
-            onClose={() => setOpenAddModal(false)}
-            onSubmit={handleAddTicket}
-          />
+          <AlertTicketDelete title={ticketId.toString()} open={ticketMaster ? ticketMaster.alertPopup : false} handleClose={handleClose} />
+          <AddTicketModal open={openAddModal} onClose={() => setOpenAddModal(false)} onSubmit={handleAddTicket} />
         </Grid>
       </Grid>
     </>
