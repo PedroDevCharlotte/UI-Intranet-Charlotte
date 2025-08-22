@@ -46,6 +46,7 @@ import IconButton from 'components/@extended/IconButton';
 import TicketCard from 'components/cards/ticket/TicketCard';
 import TicketChart from 'components/cards/ticket/TicketChart';
 import MainCard from 'components/MainCard';
+import TicketsWidget from 'sections/dashboard/tickets/TicketsWidget';
 
 import {
   CSVExport,
@@ -59,8 +60,9 @@ import {
 import EmptyReactTable from 'pages/tables/react-table/empty';
 import AlertTicketDelete from 'sections/apps/ticket/AlertTicketDelete';
 import AddTicketModal from 'sections/apps/ticket/AddTicketModal';
+import RichTextModal from 'sections/apps/ticket/RichTextModal';
 
-import { handlerDelete, deleteTicket, useGetTicket, useGetTicketMaster } from 'api/ticket';
+import { handlerDelete, closeTicket, useGetTicket, useGetTicketMaster, updateTicketStatus } from 'api/ticket';
 import { openSnackbar } from 'api/snackbar';
 import { APP_DEFAULT_PATH, GRID_COMMON_SPACING } from 'config';
 import { ImagePath, getImageUrl } from 'utils/getImageUrl';
@@ -225,42 +227,62 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
           variant="scrollable"
           scrollButtons="auto"
         >
-          {groups.map((status: string, index: number) => (
+            {groups.map((status: string, index: number) => (
             <Tab
               key={index}
-              label={status}
+              label={
+              status === 'All'
+                ? 'Todos'
+                : status === 'OPEN'
+                ? 'Abierto'
+                : status === 'IN_PROGRESS'
+                ? 'En Proceso'
+                : status === 'FOLLOW_UP'
+                ? 'En Seguimiento'
+                : status === 'COMPLETED'
+                ? 'Finalizado'
+                : status === 'CLOSED'
+                ? 'Cerrado'
+                : status === 'NON_CONFORMITY'
+                ? 'No Conformidad'
+                : status === 'CANCELLED'
+                ? 'Cancelado'
+                : status
+              }
               value={status}
               icon={
-                <Chip
-                  label={
-                    status === 'Todos'
-                      ? data.length
-                      : status === 'Open'
-                        ? counts.Open
-                        : status === 'In Progress'
-                          ? counts['In Progress']
-                          : status === 'Resolved'
-                            ? counts.Resolved
-                            : counts.Closed
-                  }
-                  color={
-                    status === 'All'
-                      ? 'primary'
-                      : status === 'Open'
-                        ? 'error'
-                        : status === 'In Progress'
-                          ? 'warning'
-                          : status === 'Resolved'
-                            ? 'info'
-                            : 'success'
-                  }
-                  variant="light"
-                  size="small"
-                />
+              <Chip
+                label={
+                status === 'All'
+                  ? data.length
+                  : counts[status] || 0
+                }
+                color={
+                status === 'All'
+                  ? 'primary'
+                  : status === 'OPEN'
+                  ? 'error'
+                  : status === 'IN_PROGRESS'
+                  ? 'warning'
+                  : status === 'FOLLOW_UP'
+                  ? 'info'
+                  : status === 'COMPLETED'
+                  ? 'success'
+                  : status === 'CLOSED'
+                  ? 'default'
+                  : status === 'NON_CONFORMITY'
+                  ? 'secondary'
+                  : status === 'CANCELLED'
+                  ? 'default'
+                  : 'default'
+                }
+                variant="light"
+                size="small"
+              />
               }
               iconPosition="end"
             />
-          ))}
+            ))}
         </Tabs>
       </Box>
       <Stack
@@ -375,18 +397,14 @@ export default function List() {
   const { ticketMaster } = useGetTicketMaster();
   const [ticketId, setTicketId] = useState(0);
   const [openAddModal, setOpenAddModal] = useState(false);
+  const [openCloseModal, setOpenCloseModal] = useState(false);
+  const [closingTicketId, setClosingTicketId] = useState<number>(0);
+  const [closeComment, setCloseComment] = useState('');
 
   const navigation = useNavigate();
   const handleClose = (status: boolean) => {
     if (status) {
-      deleteTicket(ticketId);
-      openSnackbar({
-        open: true,
-        message: 'Ticket deleted successfully',
-        anchorOrigin: { vertical: 'top', horizontal: 'right' },
-        variant: 'alert',
-        alert: { color: 'success' }
-      } as SnackbarProps);
+      
     }
     handlerDelete(false);
   };
@@ -428,7 +446,7 @@ export default function List() {
         meta: { className: 'cell-center' }
       },
       {
-        header: 'Información del Cliente',
+        header: 'Información del Colaborador',
         accessorKey: 'customer_name',
         cell: ({ row, getValue }) => {
           let name = row.original || '';
@@ -449,6 +467,24 @@ export default function List() {
         header: 'Asunto',
         accessorKey: 'title'
       },
+      {
+        header: 'Asignado a',
+        accessorKey: 'employee_name',
+        cell: ({ row, getValue }) => {
+          let name = row.original || '';
+          // console.log('Row data:', row.original);
+          return (
+            <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center' }}>
+              <Stack>
+                <Typography variant="subtitle1">
+                  {(row.original?.assignee?.firstName + ' ' + row.original?.assignee?.lastName) as string}
+                </Typography>
+              </Stack>
+            </Stack>
+          );
+        }
+      },
+
       // {
       //   header: 'Prioridad',
       //   accessorKey: 'priority',
@@ -482,24 +518,24 @@ export default function List() {
         accessorKey: 'status',
         filterFn: exactValueFilter,
         cell: (cell) => {
-          switch (cell.getValue()) {
-            case 'Abierto':
+            switch (cell.getValue()) {
+            case 'OPEN':
               return <Chip color="error" label="Abierto" size="small" variant="light" />;
-            case 'En proceso':
+            case 'IN_PROGRESS':
               return <Chip color="warning" label="En proceso" size="small" variant="light" />;
-            case 'En seguimiento':
+            case 'FOLLOW_UP':
               return <Chip color="info" label="En seguimiento" size="small" variant="light" />;
-            case 'Finalizado':
+            case 'COMPLETED':
               return <Chip color="success" label="Finalizado" size="small" variant="light" />;
-            case 'Cerrado':
+            case 'CLOSED':
               return <Chip color="default" label="Cerrado" size="small" variant="light" />;
-            case 'No conformidad':
+            case 'NON_CONFORMITY':
               return <Chip color="secondary" label="No conformidad" size="small" variant="light" />;
-            case 'Cancelado':
+            case 'CANCELLED':
               return <Chip color="default" label="Cancelado" size="small" variant="light" />;
             default:
               return <Chip color="default" label={String(cell.getValue())} size="small" variant="light" />;
-          }
+            }
         },
         meta: {}
       },
@@ -521,7 +557,7 @@ export default function List() {
                   <Eye />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Editar ticket">
+              {/* <Tooltip title="Editar ticket">
                 <IconButton
                   color="primary"
                   onClick={(e: any) => {
@@ -531,8 +567,8 @@ export default function List() {
                 >
                   <Edit />
                 </IconButton>
-              </Tooltip>
-              <Tooltip title="Eliminar ticket">
+              </Tooltip> */}
+              {/* <Tooltip title="Eliminar ticket">
                 <IconButton
                   color="error"
                   onClick={(e: any) => {
@@ -542,6 +578,18 @@ export default function List() {
                   }}
                 >
                   <Trash />
+                </IconButton>
+              </Tooltip> */}
+              <Tooltip title="Cerrar ticket">
+                <IconButton
+                  color="success"
+                  onClick={(e: any) => {
+                    e.stopPropagation();
+                    setClosingTicketId(row?.original?.id);
+                    setOpenCloseModal(true);
+                  }}
+                >
+                  <ProfileTick />
                 </IconButton>
               </Tooltip>
             </Stack>
@@ -591,69 +639,36 @@ export default function List() {
     <>
       {/* <Breadcrumbs custom heading="ticket-list" links={breadcrumbLinks} /> */}
       <Grid container spacing={GRID_COMMON_SPACING} sx={{ pb: 2 }}>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Grid container direction="row" spacing={GRID_COMMON_SPACING}>
-            {widgetsData.map((widget: TicketWidgets, index: number) => (
-              <Grid key={index} size={{ xs: 12, sm: 4 }}>
-                <MainCard>
-                  <TicketCard
-                    title={widget.title}
-                    count={widget.count}
-                    percentage={widget.percentage}
-                    isLoss={widget.isLoss}
-                    ticket={widget.ticket}
-                    color={widget.color.main}
-                  >
-                    <TicketChart color={widget.color} data={widget.chartData} />
-                  </TicketCard>
-                </MainCard>
-              </Grid>
-            ))}
-          </Grid>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Box
-            sx={(theme) => ({
-              p: 1.75,
-              borderRadius: 1,
-              color: 'background.paper',
-              ...theme.applyStyles('dark', { color: 'text.primary' }),
-              background: `linear-gradient(to right, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`
-            })}
-          >
-            <Stack direction="row" sx={{ gap: 1, alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-              <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
-                <Avatar alt="Tickets" variant="rounded" type="filled" sx={{ color: 'inherit' }}>
-                  <ProfileTick style={{ fontSize: '20px' }} />
-                </Avatar>
-                <Box>
-                  <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
-                    <Typography variant="body1">Total de Tickets</Typography>
-                    <InfoCircle />
-                  </Stack>
-                  <Stack direction="row" sx={{ gap: 1 }}>
-                    <Typography variant="body2">Este Mes</Typography>
-                    <Typography variant="body1">440</Typography>
-                  </Stack>
-                </Box>
-              </Stack>
-              <Stack direction="row" sx={{ gap: 1 }}>
-                <Typography variant="body2">Cerrados</Typography>
-                <Typography variant="body1">247</Typography>
-              </Stack>
-            </Stack>
-            <Typography variant="h4" sx={{ pt: 2, pb: 1, zIndex: 1 }}>
-              440
-            </Typography>
-            <Box sx={{ maxWidth: '100%', '& .MuiTypography-root': { color: 'inherit' } }}>
-              <LinearWithLabel value={75} />
-            </Box>
-          </Box>
-        </Grid>
+        <TicketsWidget />
         <Grid size={12}>
           {ticketLoading ? <EmptyReactTable /> : <ReactTable {...{ data: list, columns, onOpenAddModal: () => setOpenAddModal(true) }} />}
           <AlertTicketDelete title={ticketId.toString()} open={ticketMaster ? ticketMaster.alertPopup : false} handleClose={handleClose} />
           <AddTicketModal open={openAddModal} onClose={() => setOpenAddModal(false)} onSubmit={handleAddTicket} />
+          <RichTextModal
+            open={openCloseModal}
+            onClose={() => {
+              setOpenCloseModal(false);
+              setClosingTicketId(0);
+            }}
+            onSubmit={async (content: string) => {
+              setCloseComment(content);
+              if (!closingTicketId) return;
+              try {
+                await closeTicket(closingTicketId, content);
+                openSnackbar({ open: true, message: 'Ticket cerrado correctamente', anchorOrigin: { vertical: 'top', horizontal: 'right' }, variant: 'alert', alert: { color: 'success' } } as SnackbarProps);
+              } catch (err) {
+                console.error('Error closing ticket', err);
+                openSnackbar({ open: true, message: 'Error al cerrar el ticket', anchorOrigin: { vertical: 'top', horizontal: 'right' }, variant: 'alert', alert: { color: 'error' } } as SnackbarProps);
+              } finally {
+                setOpenCloseModal(false);
+                setClosingTicketId(0);
+              }
+            }}
+            title="Cerrar ticket"
+            label="Motivo de cierre"
+            submitText="Cerrar"
+            idTicket={closingTicketId}
+          />
         </Grid>
       </Grid>
     </>

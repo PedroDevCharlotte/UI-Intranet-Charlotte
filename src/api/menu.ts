@@ -22,6 +22,15 @@ const staticMenuItem = {
   breadcrumbs: false
 };
 
+const rolesMenuItem = {
+  id: 'roles',
+  title: 'Roles',
+  type: 'item',
+  url: '/apps/role-types',
+  icon: 'ProfileTick',
+  breadcrumbs: false
+};
+
 // ==============================|| API - MENU ||============================== //
 
 const endpoints = {
@@ -47,7 +56,7 @@ export function useGetMenu() {
           if (Array.isArray(group.children)) {
             return {
               ...group,
-              children: [...group.children, staticMenuItem]
+              children: [...group.children, staticMenuItem, rolesMenuItem]
             };
           }
           return group;

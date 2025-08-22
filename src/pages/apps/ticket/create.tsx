@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Button, Step, StepLabel, Stepper, Typography, Paper } from '@mui/material';
+import AddTicketModal from 'sections/apps/ticket/AddTicketModal';
 
 const steps = [
   'Información Básica',
@@ -28,6 +29,7 @@ const StepContent = ({ step }: { step: number }) => {
 
 const TicketCreatePage: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
+  const [openModal, setOpenModal] = useState(true);
 
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);
@@ -46,44 +48,10 @@ const TicketCreatePage: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Crear Ticket
       </Typography>
-      <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-        {steps.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-      <Box>
-        {activeStep === steps.length ? (
-          <Box textAlign="center">
-            <Typography variant="h6" gutterBottom>
-              ¡Ticket creado exitosamente!
-            </Typography>
-            <Button onClick={handleReset} variant="contained">
-              Crear otro ticket
-            </Button>
-          </Box>
-        ) : (
-          <>
-            <StepContent step={activeStep} />
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
-              <Button
-                disabled={activeStep === 0}
-                onClick={handleBack}
-                sx={{ mr: 2 }}
-              >
-                Atrás
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleNext}
-              >
-                {activeStep === steps.length - 1 ? 'Finalizar' : 'Siguiente'}
-              </Button>
-            </Box>
-          </>
-        )}
-      </Box>
+      <AddTicketModal open={openModal} onClose={() => {
+        setOpenModal(false);
+        window.history.back();
+      }} />
     </Paper>
   );
 };

@@ -17,9 +17,10 @@ interface RichTextModalProps {
   label?: string;
   submitText?: string;
   initialContent?: string;
+  idTicket: number;
 }
 
-export default function RichTextModal({ open, onClose, onSubmit, title, label = 'Comentario', submitText = 'Confirmar', initialContent = '' }: RichTextModalProps) {
+export default function RichTextModal({ open, onClose, onSubmit, title, label = 'Comentario', submitText = 'Confirmar', initialContent = '', idTicket}: RichTextModalProps) {
   const formik = useFormik({
     initialValues: {
       content: initialContent || '',
@@ -28,6 +29,8 @@ export default function RichTextModal({ open, onClose, onSubmit, title, label = 
       content: Yup.string().required('Este campo es obligatorio'),
     }),
     onSubmit: (values, { resetForm }) => {
+      
+
       onSubmit(values.content);
       resetForm();
       onClose();

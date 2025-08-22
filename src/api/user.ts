@@ -9,6 +9,7 @@ import axios  from 'utils/axios';
 
 // types
 import { UserList, UserProps } from 'types/user';
+import { array } from 'yup';
 
 const initialState: UserProps = {
   modal: false
@@ -345,6 +346,30 @@ export function useGetUserMaster() {
   return memoizedValue;
 }
 
+// Asignar tipos de soporte a un usuario
+export async function assignSupportTypes(userId: number, supportTypeIds: number[]) {
+  try {
+    if (!userId || userId <= 0) {
+      throw new Error('ID de usuario inválido');
+    }
+
+    const response = await axios.put(`/user/${userId}/support-types`, { supportTypeIds }, getRequestConfig());
+
+    if ([200, 201, 204].indexOf(response.status) === -1) {
+      throw new Error(`Failed to assign support types. Status: ${response.status}`);
+    }
+
+    // Invalidar/actualizar cache de usuarios
+    mutate(endpoints.key + endpoints.list);
+    mutate(endpoints.key);
+
+    return { success: true, status: response.status, data: response.data };
+  } catch (error: any) {
+    console.error('Error assigning support types:', error);
+    return { success: false, status: error.response?.status || 500, error: error.message || 'Error desconocido' };
+  }
+}
+
 export function handlerUserDialog(modal: boolean) {
   // to update local state based on key
 
@@ -379,6 +404,36 @@ export function useGetRoles() {
   );
 
   // console.log('useGetRoles - memoizedValue:', memoizedValue);
+  return memoizedValue;
+}
+
+// Obtener tipos de soporte disponibles
+export function useGetSupportTypes() {
+  const { data, error, isLoading, mutate } = useSWR('/ticket-types', fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false
+  });
+  let supportTypes: any = [];
+  if (Array.isArray(data)) {
+    // Do something with the array
+    supportTypes = data.map(type => ({
+      id: type.id,
+      name: type.name,
+      description: type.description
+    }));
+  }
+
+  const memoizedValue = useMemo(
+    () => ({
+      supportTypes: Array.isArray(supportTypes) ? supportTypes : [],
+      supportTypesLoading: isLoading,
+      supportTypesError: error,
+      supportTypesMutate: mutate
+    }),
+    [data, error, isLoading, mutate]
+  );
+
   return memoizedValue;
 }
 

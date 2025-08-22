@@ -205,7 +205,7 @@ const AddTicketModal = ({ open, onClose, onSubmit }: AddTicketModalProps) => {
           variant: 'alert',
           alert: { color: 'success' }
         } as SnackbarProps);
-
+        
         resetForm();
         onClose();
         return response;

@@ -44,7 +44,7 @@ import IconButton from 'components/@extended/IconButton';
 import CircularWithPath from 'components/@extended/progress/CircularWithPath';
 import { strengthColor, strengthIndicator } from 'utils/password-strength';
 
-import { insertUser, updateUser, useGetRoles, useGetDepartments } from 'api/user';
+import { insertUser, updateUser, useGetRoles, useGetDepartments, useGetSupportTypes, assignSupportTypes } from 'api/user';
 import { openSnackbar } from 'api/snackbar';
 import { Gender } from 'config';
 import { ImagePath, getImageUrl } from 'utils/getImageUrl';
@@ -118,6 +118,9 @@ const getInitialValues = (user: UserList | null) => {
     daysToPasswordExpiration: 90
   };
 
+  // Añadir supportTypeIds por defecto
+  (newUser as any).supportTypeIds = [];
+
   if (user) {
     return merge({}, newUser, user);
   }
@@ -165,6 +168,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
   // API calls for roles and departments
   const { roles, rolesLoading } = useGetRoles();
   const { departments, departmentsLoading } = useGetDepartments();
+  const { supportTypes, supportTypesLoading } = useGetSupportTypes();
   
   // Debug logs
   
@@ -285,6 +289,10 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
               color: 'success'
             }
           } as SnackbarProps);
+          // Asignar tipos de soporte si se seleccionaron
+          if ((values as any).supportTypeIds && Array.isArray((values as any).supportTypeIds)) {
+            await assignSupportTypes(user.id!, (values as any).supportTypeIds as number[]);
+          }
           setSubmitting(false);
           closeModal();
         } else {
@@ -312,6 +320,11 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
               color: 'success'
             }
           } as SnackbarProps);
+          // Asignar tipos de soporte al usuario creado, si aplica
+          if ((values as any).supportTypeIds && Array.isArray((values as any).supportTypeIds)) {
+            const createdUserId = result.data?.id || (result.data && result.data.user && result.data.user.id);
+            if (createdUserId) await assignSupportTypes(createdUserId, (values as any).supportTypeIds as number[]);
+          }
           setSubmitting(false);
           closeModal();
         }
@@ -395,6 +408,32 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                           {...getFieldProps('email')}
                           error={Boolean(touched.email && errors.email)}
                           helperText={touched.email && errors.email}
+                        />
+                      </Stack>
+                    </Grid>
+
+                    <Grid size={12}>
+                      <Stack sx={{ gap: 1 }}>
+                        <InputLabel>Tipos de soporte</InputLabel>
+                        <Autocomplete
+                          multiple
+                          options={supportTypes || []}
+                          getOptionLabel={(option: any) => option.name || option.label || ''}
+                          defaultValue={
+                            (user && (user as any).supportTypes) ? (user as any).supportTypes : []
+                          }
+                          onChange={(_, value) => {
+                            const ids = value.map((v: any) => v.id);
+                            setFieldValue('supportTypeIds', ids);
+                          }}
+                          renderTags={(value: any[], getTagProps) =>
+                            value.map((option: any, index: number) => (
+                              <Chip label={option.name || option.label} {...getTagProps({ index })} key={option.id} />
+                            ))
+                          }
+                          renderInput={(params) => (
+                            <TextField {...params} placeholder="Selecciona tipos de soporte" />
+                          )}
                         />
                       </Stack>
                     </Grid>

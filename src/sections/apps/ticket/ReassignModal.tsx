@@ -81,7 +81,6 @@ export default function ReassignModal({ open, onClose, onSubmit, userOptions, in
             }
           } as SnackbarProps);
         });
-      onSubmit(values.user);
       resetForm();
       onClose();
     }

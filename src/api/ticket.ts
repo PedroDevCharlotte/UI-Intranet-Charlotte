@@ -8,20 +8,26 @@ import { fetcher } from 'utils/axios';
 import axiosServices from 'utils/axios';
 
 // types
-import { CountryType, TicketList, TicketProps, TicketType, DynamicField, DynamicFieldResponse } from 'types/ticket';
+import { TicketList, TicketProps, TicketType, DynamicField, DynamicFieldResponse } from 'types/ticket';
 
-const countries: CountryType[] = [
-  { code: 'US', label: 'United States Dollar', currency: 'Dollar', prefix: '$' },
-  { code: 'GB', label: 'United Kingdom Pound', currency: 'Pound', prefix: '£' },
-  { code: 'IN', label: 'India Rupee', currency: 'Rupee', prefix: '₹' },
-  { code: 'JP', label: 'Japan Yun', currency: 'Yun', prefix: '¥' }
-];
+
+/**
+ * Módulo: API - Tickets
+ * Descripción: Helpers y hooks para interactuar con el API de tickets.
+ * - Utiliza `useSWR` para lecturas (listas y detalles).
+ * - Exporta funciones para crear tickets, mensajes, descargar adjuntos,
+ *   reasignar técnicos y actualizar estados.
+ * - Todas las funciones que llaman al servidor usan `axiosServices` y
+ *   llaman a `mutate()` para invalidar/actualizar la cache SWR cuando procede.
+ *
+ * Nota: Los comentarios junto a cada función describen inputs, outputs y
+ * posibles errores esperados.
+ */
+
 const initialState: TicketProps = {
   isOpen: false,
   isCustomerOpen: false,
   open: false,
-  country: countries[2],
-  countries: countries,
   alertPopup: false
 };
 
@@ -34,8 +40,10 @@ const endpoints = {
   insert: '/tickets/complete', // endpoint real para crear ticket completo
   update: '/update',
   delete: '/delete',
+  newMessage: '/messages',
   getTicketTypes: '/ticket-types',
-  getDynamicFields: '/general-lists/by-entity/tickets'
+  getDynamicFields: '/general-lists/by-entity/tickets',
+  statistics: '/statistics'
 };
 
 export function useGetTicket() {
@@ -59,6 +67,12 @@ export function useGetTicket() {
   return memoizedValue;
 }
 
+/**
+ * useGetTicket
+ * Obtiene un ticket utilizando SWR.
+ * @returns { ticket, ticketLoading, ticketError, ticketValidating, ticketEmpty }
+ */
+
 export function useGetTicketById(ticketId: number | string | null) {
   const url = ticketId ? `/tickets/${ticketId}` : null;
   const { data, isLoading, error, isValidating } = useSWR(url, fetcher, {
@@ -80,6 +94,14 @@ export function useGetTicketById(ticketId: number | string | null) {
   );
 
   return memoizedValue;
+
+/**
+ * useGetTicketById
+ * Obtiene los detalles de un ticket por su ID. Devuelve un objeto memoizado
+ * con la respuesta del fetcher y estados de carga/errores para integrar en componentes.
+ * @param ticketId - ID del ticket (number | string | null)
+ * @returns { ticketDetail, ticketDetailLoading, ticketDetailError, ticketDetailValidating }
+ */
 }
 // Descarga un adjunto de ticket por ID
 export async function downloadTicketAttachment(attachmentId: string | number) {
@@ -93,6 +115,14 @@ export async function downloadTicketAttachment(attachmentId: string | number) {
       throw error.response.data;
     }
     throw error;
+
+/**
+ * downloadTicketAttachment
+ * Descarga un adjunto (blob) por su ID.
+ * @param attachmentId - ID del adjunto
+ * @returns Blob del archivo descargado
+ * @throws Error personalizado si la petición falla
+ */
   }
 }
 
@@ -133,53 +163,112 @@ export async function insertTicket(newTicket: any) {
   } catch (error: any) {
     if (error.response && error.response.data) {
       throw error.response.data;
+
+/**
+ * insertTicket
+ * Inserta/crea un ticket usando FormData (soporta archivos y arrays).
+ * Construye un FormData a partir del objeto `newTicket` y realiza POST al
+ * endpoint `/tickets/complete`.
+ * @param newTicket - Objeto con campos y archivos (arrays o valores simples)
+ * @returns Response.data del servidor
+ * @throws error si la petición falla
+ */
     }
     throw error;
   }
 }
 
-export async function updateTicket(ticketId: number, updatedTicket: TicketList) {
-  // to update local state based on key
-  mutate(
-    endpoints.key + endpoints.list,
-    (currentTicket: any) => {
-      const newTicket: TicketList[] = currentTicket.ticket.map((ticket: TicketList) =>
-        ticket.id === ticketId ? { ...ticket, ...updatedTicket } : ticket
-      );
+// Crea un mensaje asociado a tickets (o mensajes del sistema)
+export async function createMessage(formData: FormData, idTicket: number) {
+  try {
+    if (!idTicket) {
+      throw new Error('ID de ticket no válido');
+    }
+    const response = await axiosServices.post(endpoints.key + '/' + idTicket + endpoints.newMessage, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
 
-      return {
-        ...currentTicket,
-        ticket: newTicket
-      };
-    },
-    false
-  );
+    // opcional: podríamos invalidar cache relacionado si existe
+    mutate(`/tickets/${idTicket}`);
 
-  // to hit server
-  // you may need to refetch latest data after server hit and based on your logic
-  //   const data = { list: updatedTicket };
-  //   await axios.post(endpoints.key + endpoints.update, data);
+    return response.data;
+  } catch (error: any) {
+
+/**
+ * createMessage
+ * Crea un mensaje asociado a un ticket (multipart/form-data).
+ * Centraliza la llamada POST a `/tickets/{id}/messages`.
+ * @param formData - FormData con campos: content, files, isInternal, etc.
+ * @param idTicket - ID del ticket al que pertenece el mensaje
+ * @returns response.data del servidor
+ */
+    if (error.response && error.response.data) {
+      throw error.response.data;
+    }
+    throw error;
+  }
 }
 
-export async function deleteTicket(ticketId: number) {
-  // to update local state based on key
-  mutate(
-    endpoints.key + endpoints.list,
-    (currentTicket: any) => {
-      const nonDeletedTicket = currentTicket.ticket.filter((ticket: TicketList) => ticket.id !== ticketId);
+export async function updateTicket(ticketId: number, updatedTicket: Partial<TicketList>) {
+  // optimistic local update
+  try {
+    mutate(
+      endpoints.key + endpoints.list,
+      (currentTicket: any) => {
+        if (!currentTicket || !currentTicket.ticket) return currentTicket;
+        const newTicket: TicketList[] = currentTicket.ticket.map((ticket: TicketList) =>
+          ticket.id === ticketId ? { ...ticket, ...updatedTicket } : ticket
+        );
 
-      return {
-        ...currentTicket,
-        ticket: nonDeletedTicket
-      };
-    },
-    false
-  );
+        return {
+          ...currentTicket,
+          ticket: newTicket
+        };
+      },
+      false
+    );
 
-  // to hit server
-  // you may need to refetch latest data after server hit and based on your logic
-  //   const data = { ticketId };
-  //   await axios.post(endpoints.key + endpoints.delete, data);
+    // hit server
+    const response = await axiosServices.patch(`/tickets/${ticketId}`, updatedTicket);
+
+    // refresh related caches
+    mutate(endpoints.key);
+    mutate(`/tickets/${ticketId}`);
+
+    return response.data;
+  } catch (error: any) {
+    // rollback: refetch server state
+    mutate(endpoints.key);
+    mutate(`/tickets/${ticketId}`);
+    if (error && error.response && error.response.data) throw error.response.data;
+    throw error;
+  }
+}
+
+export async function closeTicket(ticketId: number, content: string) {
+  try {
+    const response = await axiosServices.patch(`/tickets/${ticketId}/close`, { content });
+    // refrescar caches relacionadas
+    mutate(endpoints.key);
+    mutate(`/tickets/${ticketId}`);
+
+/**
+ * closeTicket
+ * Cierra un ticket llamando al endpoint `/tickets/{id}/close` con un
+ * cuerpo que puede incluir `content` (comentario de cierre).
+ * @param ticketId - ID del ticket a cerrar
+ * @param content - Comentario opcional al cerrar
+ * @returns response.data del servidor
+ */
+    return response.data;
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      throw error.response.data;
+    }
+    throw error;
+  }
 }
 
 export function useGetTicketMaster() {
@@ -197,6 +286,13 @@ export function useGetTicketMaster() {
     [data, isLoading]
   );
 
+
+/**
+ * useGetTicketTypes
+ * Obtiene los tipos de tickets disponibles.
+ * @param includeInactive - Indica si se deben incluir tipos inactivos
+ * @returns { ticketTypes, ticketTypesLoading, ticketTypesError, ticketTypesValidating, ticketTypesEmpty }
+ */
   return memoizedValue;
 }
 
@@ -222,16 +318,7 @@ export function handlerCustomerFrom(open: boolean) {
   );
 }
 
-export function selectCountry(country: CountryType | null) {
-  // to update local state based on key
-  mutate(
-    endpoints.key + endpoints.actions,
-    (currentTicketmaster: any) => {
-      return { ...currentTicketmaster, country };
-    },
-    false
-  );
-}
+
 
 export function handlerPreview(isOpen: boolean) {
   // to update local state based on key
@@ -283,6 +370,15 @@ export function useGetTicketTypes(includeInactive: boolean = false) {
 // ticketTypeId es el ID numérico del tipo de ticket
 export function useGetDynamicFields(ticketTypeCode: string | null) {
   console.log('Fetching dynamic fields for ticket type code:', ticketTypeCode);
+
+/**
+ * useGetDynamicFields
+ * Obtiene y transforma campos dinámicos relacionados a un tipo de ticket.
+ * Esto permite renderizar formularios dinámicos basados en la configuración
+ * proveniente del API.
+ * @param ticketTypeCode - Código del tipo de ticket (ej: 'SUPPORT')
+ * @returns { dynamicFields, dynamicFieldsLoading, ... }
+ */
   const url = ticketTypeCode ? `${endpoints.getDynamicFields}/${ticketTypeCode}?includeOptions=true` : null;
   console.log('Dynamic fields URL:', url);
   const { data, isLoading, error, isValidating } = useSWR(url, fetcher, {
@@ -309,6 +405,13 @@ export function useGetDynamicFields(ticketTypeCode: string | null) {
         // Map field type from API format to component format
         const getFieldType = (apiType: string): 'text' | 'select' | 'textarea' | 'number' | 'date' => {
           switch (apiType.toUpperCase()) {
+
+/**
+ * useGetAttendantsByTicketType
+ * Obtiene usuarios disponibles para atender un tipo de ticket específico.
+ * @param ticketTypeCode - ID numérico del tipo de ticket
+ * @returns { attendants, attendantsLoading, ... }
+ */
             case 'SELECT':
               return 'select';
             case 'TEXTAREA':
@@ -327,6 +430,14 @@ export function useGetDynamicFields(ticketTypeCode: string | null) {
         const transformedField: DynamicField = {
           id: fieldDefinition.id,
           name: fieldDefinition.fieldName,
+
+/**
+ * reassignTechnician
+ * Reasigna (asigna) un ticket a otro técnico/usuario.
+ * Actualiza caches relacionadas tras la operación.
+ * @param ticketId - ID del ticket
+ * @param assigneeId - ID del usuario que será asignado
+ */
           label: fieldDefinition.displayName,
           type: getFieldType(fieldDefinition.fieldType),
           required: fieldDefinition.isRequired,
@@ -343,6 +454,15 @@ export function useGetDynamicFields(ticketTypeCode: string | null) {
         const bOrder = responseData.find((item: any) => item.fieldDefinition.id === b.id)?.fieldDefinition.sortOrder || 0;
         return aOrder - bOrder;
       });
+
+/**
+ * updateTicketStatus
+ * Actualiza el estado (status) de un ticket mediante PATCH a `/tickets/{id}`.
+ * Llama a `mutate()` para invalidar la caché de lista y detalle.
+ * @param ticketId - ID del ticket
+ * @param status - Nuevo estado (OPEN, IN_PROGRESS, CLOSED, ...)
+ * @returns response.data del servidor
+ */
   }, [responseData]);
 
   const memoizedValue = useMemo(
@@ -368,6 +488,12 @@ export function useGetAttendantsByTicketType(ticketTypeCode: number | null) {
     revalidateOnReconnect: false
   });
 
+
+/**
+ * getTicketStatistics
+ * Obtiene estadísticas de tickets.
+ * @returns { dataStatistics, dataStatisticsLoading }
+ */
   // console.log('Attendants data:', data);
   // Validar que la respuesta tenga la estructura esperada
   const attendants = data && Array.isArray(data.users) ? data.users : [];
@@ -400,6 +526,50 @@ export async function reassignTechnician(ticketId: number | string, assigneeId: 
     
 
     return response.data;
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      throw error.response.data;
+    }
+    throw error;
+  }
+}
+
+// Actualiza el estado de un ticket
+export async function updateTicketStatus(ticketId: number | string, status: string) {
+  try {
+  // According to backend contract the update is performed on /tickets/{id}
+  const response = await axiosServices.patch(`/tickets/${ticketId}`, { status });
+    // refrescar caches relacionadas
+    mutate(endpoints.key);
+    mutate(`/tickets/${ticketId}`);
+
+    return response.data;
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      throw error.response.data;
+    }
+    throw error;
+  }
+}
+
+export function getTicketStatistics() {
+  try {
+      const { data, isLoading } = useSWR(endpoints.key + endpoints.statistics, fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false
+  });
+
+  const memoizedValue = useMemo(
+    () => ({
+      dataStatistics: (data as any) || {},
+      dataStatisticsLoading: isLoading
+    }),
+    [data, isLoading]
+  );
+
+  return memoizedValue;
+
   } catch (error: any) {
     if (error.response && error.response.data) {
       throw error.response.data;

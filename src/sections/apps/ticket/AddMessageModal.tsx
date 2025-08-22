@@ -13,6 +13,10 @@ import { useState } from 'react';
 import { useFormik, Form, FormikProvider } from 'formik';
 import * as Yup from 'yup';
 import { useGetUser } from 'api/user';
+import { useIntl } from 'react-intl';
+import { openSnackbar } from 'api/snackbar';
+import { SnackbarProps } from 'types/snackbar';
+import { createMessage } from 'api/ticket';
 
 type ParticipantOption = { id: number; label: string };
 
@@ -21,11 +25,13 @@ interface AddMessageModalProps {
   onClose: () => void;
   onSend: (content: string, files: any[], participants: ParticipantOption[]) => void;
   participantes: ParticipantOption[];
+  idTicket: number;
 }
 
-export default function AddMessageModal({ open, onClose, onSend, participantes }: AddMessageModalProps) {
+export default function AddMessageModal({ open, onClose, onSend, participantes, idTicket }: AddMessageModalProps) {
   const { users } = useGetUser();
   const userOptions = users.map(user => ({ id: user.id || 0, label: `${user.firstName} ${user.lastName}` }));
+  const intl = useIntl();
 
     const initialValues = (participantes: ParticipantOption[]) => {
         let valueInitial = {
@@ -45,10 +51,42 @@ export default function AddMessageModal({ open, onClose, onSend, participantes }
       // files: Yup.array(),
       // participants: Yup.array(),
     }),
-    onSubmit: (values, { resetForm }) => {
-      onSend(values.content, values.files, values.participants);
-      resetForm();
-      onClose();
+    onSubmit: async (values, { resetForm }) => {
+      console.log('Submitting values:', values);
+      const formData = new FormData();
+      formData.append('content', values.content);
+      values.files.forEach((file: File, idx: number) => {
+        formData.append('files', file, file.name);
+      });
+      values.participants.forEach((participant: ParticipantOption) => {
+        formData.append('participants', JSON.stringify(participant));
+      });
+      try {
+        const resp = await createMessage(formData, idTicket);
+
+        openSnackbar({
+          open: true,
+          message: intl.formatMessage({ id: 'ticket-created-successfully' }),
+          anchorOrigin: { vertical: 'top', horizontal: 'right' },
+          variant: 'alert',
+          alert: { color: 'success' }
+        } as SnackbarProps);
+
+        // si se desea puede enviarse la respuesta al onSend
+        onSend(values.content, values.files, values.participants);
+        resetForm();
+        onClose();
+      } catch (error: any) {
+        console.error('Error submitting form:', error);
+        const message = (error && error.message) ? error.message : String(error ?? 'Error submitting message');
+        openSnackbar({
+          open: true,
+          message,
+          anchorOrigin: { vertical: 'top', horizontal: 'right' },
+          variant: 'alert',
+          alert: { color: 'error' }
+        } as SnackbarProps);
+      }
     },
   });
 

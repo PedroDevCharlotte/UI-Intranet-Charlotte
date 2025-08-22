@@ -96,8 +96,6 @@ export interface TicketProps {
   isOpen: boolean;
   isCustomerOpen: boolean;
   open: boolean;
-  country: CountryType | null;
-  countries: CountryType[];
   alertPopup: boolean;
 }
 
@@ -221,4 +219,22 @@ export interface TicketHistory {
   ipAddress: string | null;
   userAgent: string | null;
   createdAt: string;
+}
+
+export interface TicketStatsByStatus {
+  status: string;
+  count: number;
+}
+
+export interface TicketStatsByPriority {
+  priority: string;
+  count: number;
+}
+
+export interface TicketStats {
+  total: number;
+  assigned: number;
+  created: number;
+  byStatus: TicketStatsByStatus[];
+  byPriority: TicketStatsByPriority[];
 }

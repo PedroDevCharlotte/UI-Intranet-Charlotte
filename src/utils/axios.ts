@@ -1,5 +1,6 @@
 import { bo } from '@fullcalendar/core/internal-common';
 import axios, { AxiosRequestConfig } from 'axios';
+import { showApiLoader, hideApiLoader } from 'api/loader';
 
 const axiosServices = axios.create({ baseURL: 'http://localhost:3006/' });
 // const axiosServices = axios.create({ baseURL: import.meta.env.VITE_APP_API_URL || 'http://localhost:3010/' });
@@ -11,6 +12,11 @@ axiosServices.defaults.headers.common['Accept'] = 'application/json';
 
 axiosServices.interceptors.request.use(
   async (config) => {
+    try {
+      showApiLoader();
+    } catch (e) {
+      // ignore loader errors
+    }
     const accessToken = localStorage.getItem('serviceToken');
     if (accessToken) {
       config.headers['Authorization'] = `Bearer ${accessToken}`;
@@ -18,15 +24,31 @@ axiosServices.interceptors.request.use(
     return config;
   },
   (error) => {
+    try {
+      hideApiLoader();
+    } catch (e) {
+      // ignore
+    }
     return Promise.reject(error);
   }
 );
 
 axiosServices.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    try {
+      hideApiLoader();
+    } catch (e) {
+      // ignore
+    }
+    return response;
+  },
   (error) => {
-    if (error.response.status === 401 && !window.location.href.includes('/login')) {
-      // window.location.pathname = '/maintenance/500';
+    try {
+      hideApiLoader();
+    } catch (e) {
+      // ignore
+    }
+    if (error?.response?.status === 401 && !window.location.href.includes('/login')) {
       console.error('Unauthorized access - redirecting to login', error);
     }
     return Promise.reject((error.response && error.response.data) || 'Wrong Services');

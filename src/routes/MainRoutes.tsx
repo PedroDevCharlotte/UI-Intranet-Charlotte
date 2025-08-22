@@ -23,6 +23,9 @@ const MaintenanceComingSoon2 = Loadable(lazy(() => import('pages/maintenance/com
 const AppUserList = Loadable(lazy(() => import('pages/apps/user/list')));
 const AppUserCard = Loadable(lazy(() => import('pages/apps/user/card')));
 
+// pages roles
+const AppRoleTypesList = Loadable(lazy(() => import('pages/apps/role-types/list')));
+
 // pages tickets
 const AppTicketList = Loadable(lazy(() => import('pages/apps/ticket/list')));
 const AppTicketDashboard = Loadable(lazy(() => import('pages/apps/ticket/dashboard')));
@@ -114,6 +117,15 @@ const MainRoutes = {
                 {
                   path: 'edit/:id',
                   element: <AppTicketEdit />
+                }
+              ]
+            },
+            {
+              path: 'role-types',
+              children: [
+                {
+                  path: 'list',
+                  element: <AppRoleTypesList />
                 }
               ]
             },

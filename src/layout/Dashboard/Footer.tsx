@@ -11,7 +11,7 @@ export default function Footer() {
   return (
     <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', p: '24px 16px 0px', mt: 'auto' }}>
       <Typography variant="caption">
-        &copy; CharlotteCore crafted with ♥ by Our Team{' '}
+        &copy; ConectaCCI crafted with ♥ by Our Team{' '}
         
       </Typography>
       <Stack direction="row" sx={{ gap: 1.5, justifyContent: 'space-between', alignItems: 'center' }}>
