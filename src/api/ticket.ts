@@ -47,7 +47,7 @@ const endpoints = {
 };
 
 export function useGetTicket() {
-  const { data, isLoading, error, isValidating } = useSWR(endpoints.key, fetcher, {
+  const { data, isLoading, error, isValidating } = useSWR(endpoints.key + '?limit=1000', fetcher, {
     revalidateIfStale: false,
     revalidateOnFocus: false,
     revalidateOnReconnect: false
@@ -157,7 +157,8 @@ export async function insertTicket(newTicket: any) {
         'Content-Type': 'multipart/form-data'
       }
     });
-    mutate(endpoints.key);
+    mutate(endpoints.key + "?limit=1000");
+    mutate(endpoints.key + endpoints.statistics);
 
     return response.data;
   } catch (error: any) {

@@ -4,6 +4,7 @@ import pages from './pages';
 import samplePage from './sample-page';
 import support from './support';
 import roles from './roles';
+import banners from './banners';
 
 // types
 import { NavItemType } from 'types/menu';
@@ -13,7 +14,7 @@ import ticketsMenu from './tickets';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems: { items: NavItemType[] } = {
-  items: [loadingMenu, users, ticketsMenu, roles]
+  items: [loadingMenu, users, ticketsMenu, banners, roles]
 };
 
 export default menuItems;

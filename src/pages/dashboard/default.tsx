@@ -19,6 +19,8 @@ import AssignUsers from 'sections/widget/statistics/AssignUsers';
 
 // assets
 import { ArrowDown, ArrowUp, Book, Calendar, CloudChange, Wallet3 } from 'iconsax-react';
+import BannersSlider from 'sections/dashboard/banners/BannersSlider';
+import TicketsWidget from 'sections/dashboard/tickets/TicketsWidget';
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
@@ -27,7 +29,12 @@ export default function DashboardDefault() {
 
   return (
     <Grid container spacing={GRID_COMMON_SPACING}>
-      
+      <Grid size={{ xs: 12 }}>
+              <BannersSlider />
+            </Grid>
+      <Grid size={{ xs: 12 }}>
+              <TicketsWidget />
+            </Grid>
     </Grid>
   );
 }

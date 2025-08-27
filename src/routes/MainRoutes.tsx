@@ -23,6 +23,9 @@ const MaintenanceComingSoon2 = Loadable(lazy(() => import('pages/maintenance/com
 const AppUserList = Loadable(lazy(() => import('pages/apps/user/list')));
 const AppUserCard = Loadable(lazy(() => import('pages/apps/user/card')));
 
+// pages banners
+const AppBannersList = Loadable(lazy(() => import('pages/apps/banners/list')));
+
 // pages roles
 const AppRoleTypesList = Loadable(lazy(() => import('pages/apps/role-types/list')));
 
@@ -126,6 +129,15 @@ const MainRoutes = {
                 {
                   path: 'list',
                   element: <AppRoleTypesList />
+                }
+              ]
+            },
+            {
+              path: 'banners',
+              children: [
+                {
+                  path: 'list',
+                  element: <AppBannersList />
                 }
               ]
             },

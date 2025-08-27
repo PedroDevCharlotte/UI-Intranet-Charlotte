@@ -382,7 +382,7 @@ export default function TicketDetails() {
                 <Stack direction="row" spacing={1}>
                   {!isEditing ? (
                     <>
-                      {ticketData.status !== 'CLOSED' || 1==1 && ticketData.status !== 'COMPLETED' && (
+                      {ticketData.status !== 'CLOSED' && ticketData.status !== 'COMPLETED' && (
                         <>
                           <Button variant="contained" color="primary" sx={{ mb: 2 }} onClick={() => setOpenModal(true)}>
                             Nuevo Mensaje
