@@ -54,6 +54,7 @@ const AccountTabAccount = Loadable(lazy(() => import('sections/apps/profiles/acc
 const AccountTabPassword = Loadable(lazy(() => import('sections/apps/profiles/account/TabPassword')));
 const AccountTabRole = Loadable(lazy(() => import('sections/apps/profiles/account/TabRole')));
 const AccountTabSettings = Loadable(lazy(() => import('sections/apps/profiles/account/TabSettings')));
+const AccountTabEmoji = Loadable(lazy(() => import('sections/apps/profiles/account/TabEmoji')));
 
 
 const MainRoutes = {
@@ -168,6 +169,10 @@ const MainRoutes = {
                     {
                       path: 'role',
                       element: <AccountTabRole />
+                    },
+                    {
+                      path: 'emoji',
+                      element: <AccountTabEmoji />
                     },
                     {
                       path: 'settings',

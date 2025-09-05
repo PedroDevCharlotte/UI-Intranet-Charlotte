@@ -11,6 +11,9 @@ import Box from '@mui/material/Box';
 // project-imports
 import Localization from './Localization';
 import Profile from './Profile';
+import AddToFavoritesButton from 'components/AddToFavoritesButton';
+import navigation from 'menu-items';
+import { useLocation } from 'react-router-dom';
 import Search from './Search';
 import IconButton from 'components/@extended/IconButton';
 import Transitions from 'components/@extended/Transitions';
@@ -22,6 +25,22 @@ import { MoreSquare } from 'iconsax-react';
 
 export default function MobileSection() {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const [pageTitle, setPageTitle] = useState('');
+
+  useEffect(() => {
+    function findTitle(items: Array<{ url?: string; title?: string; children?: any[] }>, pathname: string): string {
+      for (const item of items) {
+        if (item.url === pathname) return item.title || '';
+        if (item.children) {
+          const found: string = findTitle(item.children, pathname);
+          if (found) return found;
+        }
+      }
+      return '';
+    }
+    setPageTitle(findTitle(navigation.items, location.pathname) || document.title || 'Favorito');
+  }, [location.pathname]);
   const anchorRef = useRef<any>(null);
 
   const handleToggle = () => {
@@ -86,6 +105,11 @@ export default function MobileSection() {
                     <Search />
                     <Localization />
                     <Profile />
+                    <AddToFavoritesButton
+                      title={pageTitle}
+                      url={typeof window !== 'undefined' ? window.location.href : ''}
+                      description={`Acceso directo a ${pageTitle}`}
+                    />
                   </Toolbar>
                 </AppBar>
               </ClickAwayListener>

@@ -30,14 +30,16 @@ import Box from '@mui/material/Box';
 import Fab from '@mui/material/Fab';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { Add, Edit, CloseCircle, ArrowSwapHorizontal, InfoCircle, ArrowLeft2 } from 'iconsax-react';
+import { Add, Edit, CloseCircle, ArrowSwapHorizontal, InfoCircle, ArrowLeft2, Trash } from 'iconsax-react';
 
 import AddMessageModal from 'sections/apps/ticket/AddMessageModal';
 import RichTextModal from 'sections/apps/ticket/RichTextModal';
 import ReassignModal from 'sections/apps/ticket/ReassignModal';
+import CancelTicketModal from 'components/CancelTicketModal';
 import { useResolverUsers, useResolveUsersAttentsTiketByType } from 'hooks/useResolverUsers';
 // project-imports
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
+import { cancelTicket } from 'api/ticket';
 import MainCard from 'components/MainCard';
 import { openSnackbar } from 'api/snackbar';
 import { APP_DEFAULT_PATH, GRID_COMMON_SPACING } from 'config';
@@ -52,6 +54,7 @@ import useAuth from 'hooks/useAuth';
 // ==============================|| TICKET - DETAILS ||============================== //
 
 export default function TicketDetails() {
+  const [openCancelModal, setOpenCancelModal] = useState(false);
   // Modal state
   const [openModal, setOpenModal] = useState(false);
   const [openCloseModal, setOpenCloseModal] = useState(false);
@@ -256,10 +259,18 @@ export default function TicketDetails() {
 
   // Participantes para el select (debe ir después de ticketData)
   const participantes: ParticipantOption[] =
-    ticketData.participants.map((p) => ({
-      id: p.userId || 0,
-      label: `${p.user.firstName} ${p.user.lastName}`
-    })) || [];
+    ticketData.participants && ticketData.participants.length > 0
+      ? ticketData.participants
+          .filter(
+            (p) =>
+              p.userId !== ticketData.creator?.id &&
+              p.userId !== ticketData.assignedTo
+          )
+          .map((p) => ({
+            id: p.userId || 0,
+            label: `${p.user.firstName} ${p.user.lastName}`
+          }))
+      : [];
 
   return (
     <>
@@ -382,7 +393,7 @@ export default function TicketDetails() {
                 <Stack direction="row" spacing={1}>
                   {!isEditing ? (
                     <>
-                      {ticketData.status !== 'CLOSED' && ticketData.status !== 'COMPLETED' && (
+                      {ticketData.status !== 'CLOSED' && ticketData.status !== 'CANCELLED' && ticketData.status !== 'COMPLETED' && (
                         <>
                           <Button variant="contained" color="primary" sx={{ mb: 2 }} onClick={() => setOpenModal(true)}>
                             Nuevo Mensaje
@@ -393,6 +404,11 @@ export default function TicketDetails() {
                           <Button variant="outlined" onClick={() => setOpenCloseModal(true)}>
                             Cerrar ticket
                           </Button>
+
+                          <Button variant="outlined" color="error" onClick={() => setOpenCancelModal(true)}>
+                            Cancelar ticket
+                          </Button>
+                          
                           {ticketData.ticketTypeId == 5 && (
                             <Button variant="outlined" onClick={() => setOpenNCModal(true)}>
                               Generar no conformidad
@@ -509,12 +525,14 @@ export default function TicketDetails() {
                         options={usersList}
                         getOptionLabel={(option) => option?.label || ''}
                         value={
-                          editData?.participants
-                            ?.map((p: any) => {
-                              const user = usersList.find((u) => u.value === (p.userId || p.value));
-                              return user ?? null;
-                            })
-                            .filter((u): u is { value: number; label: string; email: string } => !!u) || []
+                          editData?.participants && editData.participants.length > 0
+                            ? editData.participants
+                                .map((p: any) => {
+                                  const user = usersList.find((u) => u.value === (p.userId || p.value));
+                                  return user ?? null;
+                                })
+                                .filter((u): u is { value: number; label: string; email: string } => !!u)
+                            : []
                         }
                         onChange={(_, value) => {
                           setEditData((prev) => {
@@ -550,19 +568,26 @@ export default function TicketDetails() {
                         renderInput={(params) => <TextField {...params} label="Selecciona participantes" />}
                       />
                     ) : (
-                      ticketData.participants.map((participant) => (
-                        <Chip
-                          label={
-                            participant.user
-                              ? `${participant.user.firstName} ${participant.user.lastName} ( ${participant.user.email} )`
-                              : 'Usuario desconocido'
-                          }
-                          size="small"
-                          color={getPriorityColor(ticketData.priority) as any}
-                          variant="filled"
-                          sx={{ width: 'fit-content' }}
-                        />
-                      ))
+                      ticketData.participants && ticketData.participants.length > 0 ? (
+                        ticketData.participants.map((participant) => (
+                          <Chip
+                            key={participant.userId}
+                            label={
+                              participant.user
+                                ? `${participant.user.firstName} ${participant.user.lastName}`
+                                : 'Usuario desconocido'
+                            }
+                            size="small"
+                            color={getPriorityColor(ticketData.priority) as any}
+                            variant="filled"
+                            sx={{ width: 'fit-content' }}
+                          />
+                        ))
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          Sin participantes
+                        </Typography>
+                      )
                     )}
                   </Stack>
                 </Grid>
@@ -584,12 +609,12 @@ export default function TicketDetails() {
                           {ticketData.creator?.firstName} {ticketData.creator?.lastName}
                         </Typography>
                       </Grid>
-                      <Grid size={{ xs: 12, md: 6 }}>
+                      {/* <Grid size={{ xs: 12, md: 6 }}>
                         <Typography variant="body2" color="text.secondary">
                           Email
                         </Typography>
                         <Typography variant="body1">{ticketData.creator?.email}</Typography>
-                      </Grid>
+                      </Grid> */}
                     </Grid>
                   </Box>
                 </Grid>
@@ -702,6 +727,9 @@ export default function TicketDetails() {
                   <Fab size="medium" color="inherit" aria-label="cerrar" onClick={() => setOpenCloseModal(true)}>
                     <CloseCircle />
                   </Fab>
+                  <Fab size="medium" color="error" aria-label="cancelar-ticket" onClick={() => setOpenCancelModal(true)}>
+                    <Trash />
+                  </Fab>
                   {ticketData.ticketTypeId == 5 && (
                     <Fab size="medium" color="warning" aria-label="no-conformidad" onClick={() => setOpenNCModal(true)}>
                       <InfoCircle />
@@ -728,6 +756,49 @@ export default function TicketDetails() {
           )}
         </Box>
       )}
+
+      {/* Modal para cancelar ticket */}
+      <CancelTicketModal
+        open={openCancelModal}
+        onClose={() => setOpenCancelModal(false)}
+        onConfirm={async (justification) => {
+          if (!ticketData) return;
+          try {
+            // Llama al endpoint de cancelación con justificación
+            await import('api/ticket').then(({ cancelTicket }) => cancelTicket(ticketData.id, justification));
+            openSnackbar({
+              action: false,
+              open: true,
+              message: 'Ticket cancelado correctamente',
+              anchorOrigin: { vertical: 'top', horizontal: 'right' },
+              variant: 'alert',
+              alert: { color: 'success', variant: 'filled' },
+              transition: 'Fade',
+              close: false,
+              actionButton: false,
+              dense: false,
+              maxStack: 3,
+              iconVariant: 'usedefault',
+            });
+            setOpenCancelModal(false);
+          } catch (err) {
+            openSnackbar({
+              action: false,
+              open: true,
+              message: 'Error al cancelar el ticket',
+              anchorOrigin: { vertical: 'top', horizontal: 'right' },
+              variant: 'alert',
+              alert: { color: 'error', variant: 'filled' },
+              transition: 'Fade',
+              close: false,
+              actionButton: false,
+              dense: false,
+              maxStack: 3,
+              iconVariant: 'usedefault',
+            });
+          }
+        }}
+      />
     </>
   );
 }

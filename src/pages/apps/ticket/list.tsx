@@ -1,5 +1,13 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router-dom';
+// Hook para obtener los parámetros de la query string
+function useQueryFilters() {
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  const status = params.get('status');
+  const advisorId = params.get('advisorId');
+  return { status, advisorId };
+}
 import { FormattedMessage } from 'react-intl';
 
 // material-ui
@@ -21,6 +29,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 
 // third-party
 import { LabelKeyObject } from 'react-csv/lib/core';
@@ -63,6 +72,7 @@ import AddTicketModal from 'sections/apps/ticket/AddTicketModal';
 import RichTextModal from 'sections/apps/ticket/RichTextModal';
 
 import { handlerDelete, closeTicket, useGetTicket, useGetTicketMaster, updateTicketStatus } from 'api/ticket';
+import { useGetSupportUsers } from 'api/user';
 import { openSnackbar } from 'api/snackbar';
 import { APP_DEFAULT_PATH, GRID_COMMON_SPACING } from 'config';
 import { ImagePath, getImageUrl } from 'utils/getImageUrl';
@@ -161,12 +171,16 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
   );
 
   const [activeTab, setActiveTab] = useState(groups[0]);
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'customer_name', desc: false }]);
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'status', desc: true }]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState('');
+  const [visibleSearch, setVisibleSearch] = useState('');
   const [dateFrom, setDateFrom] = useState<string | null>(null);
   const [dateTo, setDateTo] = useState<string | null>(null);
+  const [assignedFilter, setAssignedFilter] = useState<number | string | null>(null);
+  const [initialized, setInitialized] = useState(false);
+  const { supportUsers, supportUsersLoading } = useGetSupportUsers();
 
   const table = useReactTable({
     data,
@@ -187,7 +201,7 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
     getFilteredRowModel: getFilteredRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-  globalFilterFn: fuzzyFilter,
+    globalFilterFn: fuzzyFilter,
     debugTable: true
   });
 
@@ -203,19 +217,51 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
       })
   );
 
+  // Sincroniza los filtros de la URL con los filtros de columna SOLO al cargar la página por primera vez
+  const { status: urlStatus, advisorId: urlAdvisorId } = useQueryFilters();
+
   useEffect(() => {
-    setColumnFilters(activeTab === 'All' ? [] : [{ id: 'status', value: activeTab }]);
-  }, [activeTab]);
+    if (!initialized) {
+      if (urlStatus && urlStatus !== 'ALL') {
+        setActiveTab(urlStatus);
+      }
+      if (urlAdvisorId) setAssignedFilter(urlAdvisorId);
+      setInitialized(true);
+    }
+  }, [initialized, urlStatus, urlAdvisorId]);
+
+  useEffect(() => {
+    let filters: any[] = activeTab === 'All' ? [] : [{ id: 'status', value: activeTab }];
+    if (assignedFilter !== null && assignedFilter !== undefined && assignedFilter !== '') {
+      filters.push({ id: 'assignedTo', value: assignedFilter });
+    }
+    setColumnFilters(filters as any);
+  }, [activeTab, assignedFilter]);
 
   // update createdAt filter when date range changes
   useEffect(() => {
-    const filters: any[] = activeTab === 'All' ? [] : [{ id: 'status', value: activeTab }];
+    let filters: any[] = activeTab === 'All' ? [] : [{ id: 'status', value: activeTab }];
+    // Only add date filter if at least one value is set
     if (dateFrom || dateTo) {
-      filters.push({ id: 'createdAt', value: { from: dateFrom, to: dateTo } });
+      let toValue = dateTo;
+      if (dateTo) {
+        let toDate = new Date(dateTo);
+        // if (dateFrom && dateTo === dateFrom) {
+        toDate.setDate(toDate.getDate() + 1);
+        // }
+        toValue = toDate.toISOString().slice(0, 10);
+      }
+      // Only push if at least one is not empty
+      if (dateFrom || toValue) {
+        filters.push({ id: 'createdAt', value: { from: dateFrom, to: toValue } });
+      }
     }
+    if (assignedFilter !== null && assignedFilter !== undefined && assignedFilter !== '') {
+      filters.push({ id: 'assigneeName', value: assignedFilter });
+    }
+    console.log('Applying filters:', filters);
     setColumnFilters(filters as any);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateFrom, dateTo, activeTab]);
+  }, [dateFrom, dateTo, activeTab, assignedFilter]);
 
   return (
     <MainCard content={false}>
@@ -227,62 +273,58 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
           variant="scrollable"
           scrollButtons="auto"
         >
-            {groups.map((status: string, index: number) => (
+          {groups.map((status: string, index: number) => (
             <Tab
               key={index}
               label={
-              status === 'All'
-                ? 'Todos'
-                : status === 'OPEN'
-                ? 'Abierto'
-                : status === 'IN_PROGRESS'
-                ? 'En Proceso'
-                : status === 'FOLLOW_UP'
-                ? 'En Seguimiento'
-                : status === 'COMPLETED'
-                ? 'Finalizado'
-                : status === 'CLOSED'
-                ? 'Cerrado'
-                : status === 'NON_CONFORMITY'
-                ? 'No Conformidad'
-                : status === 'CANCELLED'
-                ? 'Cancelado'
-                : status
+                status === 'All'
+                  ? 'Todos'
+                  : status === 'OPEN'
+                    ? 'Abierto'
+                    : status === 'IN_PROGRESS'
+                      ? 'En Proceso'
+                      : status === 'FOLLOW_UP'
+                        ? 'En Seguimiento'
+                        : status === 'COMPLETED'
+                          ? 'Finalizado'
+                          : status === 'CLOSED'
+                            ? 'Cerrado'
+                            : status === 'NON_CONFORMITY'
+                              ? 'No Conformidad'
+                              : status === 'CANCELLED'
+                                ? 'Cancelado'
+                                : status
               }
               value={status}
               icon={
-              <Chip
-                label={
-                status === 'All'
-                  ? data.length
-                  : counts[status] || 0
-                }
-                color={
-                status === 'All'
-                  ? 'primary'
-                  : status === 'OPEN'
-                  ? 'error'
-                  : status === 'IN_PROGRESS'
-                  ? 'warning'
-                  : status === 'FOLLOW_UP'
-                  ? 'info'
-                  : status === 'COMPLETED'
-                  ? 'success'
-                  : status === 'CLOSED'
-                  ? 'default'
-                  : status === 'NON_CONFORMITY'
-                  ? 'secondary'
-                  : status === 'CANCELLED'
-                  ? 'default'
-                  : 'default'
-                }
-                variant="light"
-                size="small"
-              />
+                <Chip
+                  label={status === 'All' ? data.length : counts[status] || 0}
+                  color={
+                    status === 'All'
+                      ? 'primary'
+                      : status === 'OPEN'
+                        ? 'error'
+                        : status === 'IN_PROGRESS'
+                          ? 'warning'
+                          : status === 'FOLLOW_UP'
+                            ? 'info'
+                            : status === 'COMPLETED'
+                              ? 'success'
+                              : status === 'CLOSED'
+                                ? 'default'
+                                : status === 'NON_CONFORMITY'
+                                  ? 'secondary'
+                                  : status === 'CANCELLED'
+                                    ? 'default'
+                                    : 'default'
+                  }
+                  variant="light"
+                  size="small"
+                />
               }
               iconPosition="end"
             />
-            ))}
+          ))}
         </Tabs>
       </Box>
       <Stack
@@ -290,9 +332,12 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
         sx={{ gap: 2, alignItems: 'center', justifyContent: 'space-between', padding: 2.5, width: 1 }}
       >
         <DebouncedInput
-          value={globalFilter ?? ''}
-          onFilterChange={(value) => setGlobalFilter(String(value))}
-          placeholder={`Search ${data.length} records...`}
+          value={visibleSearch ?? ''}
+          onFilterChange={(value) => {
+            setVisibleSearch(String(value));
+            setGlobalFilter(String(value)); // Corregido: ahora sí filtra la tabla
+          }}
+          placeholder={`Buscar ${data.length} registros en la página actual...`}
           sx={{ width: { xs: '100%', sm: 'auto' } }}
         />
         <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
@@ -312,6 +357,52 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
             value={dateTo ?? ''}
             onChange={(e) => setDateTo(e.target.value || null)}
           />
+          <TextField
+            select
+            size="small"
+            label="Asignado a"
+            value={assignedFilter ?? ''}
+            onChange={(e) => {
+              const v = e.target.value;
+              const val = v === '' ? null : v;
+              setAssignedFilter(val);
+              // console.log('Assigned filter changed to:', val);
+              // reset to first page when filter changes
+              try {
+                table.setPageIndex(0);
+              } catch (err) {
+                console.log('Table not ready', err);
+                // table may not be ready in some contexts
+              }
+            }}
+            sx={{ minWidth: 200 }}
+          >
+            <MenuItem value="">Todos</MenuItem>
+            {Array.isArray(supportUsers) &&
+              supportUsers.map((u: any) => (
+                <MenuItem key={u.fullName} value={u.fullName}>
+                  {u.fullName}
+                </MenuItem>
+              ))}
+          </TextField>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              setAssignedFilter(null);
+              setDateFrom(null);
+              setDateTo(null);
+              setGlobalFilter('');
+              setVisibleSearch('');
+              try {
+                table.setPageIndex(0);
+              } catch (err) {
+                // ignore
+              }
+            }}
+          >
+            Limpiar filtros
+          </Button>
         </Stack>
         <Stack direction="row" sx={{ width: 1, gap: 2, alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
           {/* <SelectColumnSorting sortBy={sortBy.id} {...{ getState: table.getState, getAllColumns: table.getAllColumns, setSorting }} /> */}
@@ -404,14 +495,13 @@ export default function List() {
   const navigation = useNavigate();
   const handleClose = (status: boolean) => {
     if (status) {
-      
     }
     handlerDelete(false);
   };
 
   const handleAddTicket = (ticketData: any) => {
     // Here you would typically call an API to create the ticket
-    console.log('New ticket data:', ticketData);
+    // console.log('New ticket data:', ticketData);
     // For now, we'll just close the modal
     setOpenAddModal(false);
   };
@@ -419,185 +509,61 @@ export default function List() {
   const columns = useMemo<ColumnDef<TicketList>[]>(
     () => [
       {
-        id: 'Row Selection',
-        header: ({ table }) => (
-          <IndeterminateCheckbox
-            {...{
-              checked: table.getIsAllRowsSelected(),
-              indeterminate: table.getIsSomeRowsSelected(),
-              onChange: table.getToggleAllRowsSelectedHandler()
-            }}
-          />
-        ),
-        cell: ({ row }) => (
-          <IndeterminateCheckbox
-            {...{
-              checked: row.getIsSelected(),
-              disabled: !row.getCanSelect(),
-              indeterminate: row.getIsSomeSelected(),
-              onChange: row.getToggleSelectedHandler()
-            }}
-          />
-        )
-      },
-      {
-        header: 'ID Ticket',
+        header: 'Folio',
         accessorKey: 'ticketNumber',
         meta: { className: 'cell-center' }
       },
       {
-        header: 'Información del Colaborador',
-        accessorKey: 'customer_name',
-        cell: ({ row, getValue }) => {
-          let name = row.original || '';
-          // console.log('Row data:', row.original);
-          return (
-            <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center' }}>
-              <Stack>
-                <Typography variant="subtitle1">
-                  {(row.original?.creator?.firstName + ' ' + row.original?.creator?.lastName) as string}
-                </Typography>
-                <Typography sx={{ color: 'text.secondary' }}>{row.original?.creator?.email as string}</Typography>
-              </Stack>
-            </Stack>
-          );
-        }
+        header: 'Título',
+        accessorKey: 'title',
       },
       {
-        header: 'Asunto',
-        accessorKey: 'title'
-      },
-      {
-        header: 'Asignado a',
-        accessorKey: 'employee_name',
-        cell: ({ row, getValue }) => {
-          let name = row.original || '';
-          // console.log('Row data:', row.original);
-          return (
-            <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center' }}>
-              <Stack>
-                <Typography variant="subtitle1">
-                  {(row.original?.assignee?.firstName + ' ' + row.original?.assignee?.lastName) as string}
-                </Typography>
-              </Stack>
-            </Stack>
-          );
-        }
-      },
-
-      // {
-      //   header: 'Prioridad',
-      //   accessorKey: 'priority',
-      //   cell: (cell) => {
-      //     switch (cell.getValue()) {
-      //       case 'High':
-      //         return <Chip color="error" label="Alta" size="small" variant="light" />;
-      //       case 'Medium':
-      //         return <Chip color="warning" label="Media" size="small" variant="light" />;
-      //       case 'Low':
-      //       default:
-      //         return <Chip color="info" label="Baja" size="small" variant="light" />;
-      //     }
-      //   }
-      // },
-      {
-        header: 'Categoría',
-        accessorKey: 'ticketType.code'
-      },
-      {
-        header: 'Fecha de Creación',
-        accessorKey: 'createdAt',
-  filterFn: dateRangeFilter,
-  cell: ({ getValue }) => {
-          const dateValue = getValue() as string | number | Date;
-          return <Typography variant="body2">{new Date(dateValue).toLocaleDateString()}</Typography>;
-        }
-      },
-      {
-        header: 'Estado',
+        header: 'Estatus',
         accessorKey: 'status',
-        filterFn: exactValueFilter,
-        cell: (cell) => {
-            switch (cell.getValue()) {
-            case 'OPEN':
-              return <Chip color="error" label="Abierto" size="small" variant="light" />;
-            case 'IN_PROGRESS':
-              return <Chip color="warning" label="En proceso" size="small" variant="light" />;
-            case 'FOLLOW_UP':
-              return <Chip color="info" label="En seguimiento" size="small" variant="light" />;
-            case 'COMPLETED':
-              return <Chip color="success" label="Finalizado" size="small" variant="light" />;
-            case 'CLOSED':
-              return <Chip color="default" label="Cerrado" size="small" variant="light" />;
-            case 'NON_CONFORMITY':
-              return <Chip color="secondary" label="No conformidad" size="small" variant="light" />;
-            case 'CANCELLED':
-              return <Chip color="default" label="Cancelado" size="small" variant="light" />;
-            default:
-              return <Chip color="default" label={String(cell.getValue())} size="small" variant="light" />;
-            }
-        },
-        meta: {}
       },
       {
-        header: 'Acciones',
-        meta: { className: 'cell-center' },
-        disableSortBy: true,
+        header: 'Tipo',
+        accessorKey: 'ticketTypeName',
+      },
+      {
+        header: 'Creador',
+        accessorKey: 'creatorName',
+      },
+      {
+        header: 'Asignado',
+        accessorKey: 'assigneeName',
+      },
+      {
+        header: 'Creado',
+        accessorKey: 'createdAt',
+        cell: info => {
+          const value = info.getValue();
+          if (!value) return '';
+          const date = new Date(value as string);
+          return date.toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        },
+        filterFn: dateRangeFilter,
+        meta: { className: 'cell-center' }
+      },
+      {
+        header: 'Ver detalle',
+        id: 'verDetalle',
         cell: ({ row }) => {
+          const navigate = useNavigate();
           return (
-            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Tooltip title="Ver ticket">
-                <IconButton
-                  color="secondary"
-                  onClick={(e: any) => {
-                    e.stopPropagation();
-                    navigation(`/apps/ticket/details/${row?.original?.id}`);
-                  }}
-                >
-                  <Eye />
-                </IconButton>
-              </Tooltip>
-              {/* <Tooltip title="Editar ticket">
-                <IconButton
-                  color="primary"
-                  onClick={(e: any) => {
-                    e.stopPropagation();
-                    navigation(`/apps/ticket/edit/${row?.original?.id}`);
-                  }}
-                >
-                  <Edit />
-                </IconButton>
-              </Tooltip> */}
-              {/* <Tooltip title="Eliminar ticket">
-                <IconButton
-                  color="error"
-                  onClick={(e: any) => {
-                    e.stopPropagation();
-                    setTicketId(row?.original?.id);
-                    handlerDelete(true);
-                  }}
-                >
-                  <Trash />
-                </IconButton>
-              </Tooltip> */}
-              <Tooltip title="Cerrar ticket">
-                <IconButton
-                  color="success"
-                  onClick={(e: any) => {
-                    e.stopPropagation();
-                    setClosingTicketId(row?.original?.id);
-                    setOpenCloseModal(true);
-                  }}
-                >
-                  <ProfileTick />
-                </IconButton>
-              </Tooltip>
-            </Stack>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => navigate(`/apps/ticket/details/${row.original.id}`)}
+              startIcon={<Eye size={18} />}
+            >
+              Ver
+            </Button>
           );
-        }
-      }
+        },
+        meta: { className: 'cell-center' }
+      },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -641,7 +607,13 @@ export default function List() {
       <Grid container spacing={GRID_COMMON_SPACING} sx={{ pb: 2 }}>
         <TicketsWidget />
         <Grid size={12}>
-          {ticketLoading ? <EmptyReactTable /> : <ReactTable {...{ data: list, columns, onOpenAddModal: () => setOpenAddModal(true) }} />}
+          {(() => {
+            return ticketLoading ? (
+              <EmptyReactTable />
+            ) : (
+              <ReactTable {...{ data: list, columns, onOpenAddModal: () => setOpenAddModal(true) }} />
+            );
+          })()}
           <AlertTicketDelete title={ticketId.toString()} open={ticketMaster ? ticketMaster.alertPopup : false} handleClose={handleClose} />
           <AddTicketModal open={openAddModal} onClose={() => setOpenAddModal(false)} onSubmit={handleAddTicket} />
           <RichTextModal
@@ -655,10 +627,22 @@ export default function List() {
               if (!closingTicketId) return;
               try {
                 await closeTicket(closingTicketId, content);
-                openSnackbar({ open: true, message: 'Ticket cerrado correctamente', anchorOrigin: { vertical: 'top', horizontal: 'right' }, variant: 'alert', alert: { color: 'success' } } as SnackbarProps);
+                openSnackbar({
+                  open: true,
+                  message: 'Ticket cerrado correctamente',
+                  anchorOrigin: { vertical: 'top', horizontal: 'right' },
+                  variant: 'alert',
+                  alert: { color: 'success' }
+                } as SnackbarProps);
               } catch (err) {
                 console.error('Error closing ticket', err);
-                openSnackbar({ open: true, message: 'Error al cerrar el ticket', anchorOrigin: { vertical: 'top', horizontal: 'right' }, variant: 'alert', alert: { color: 'error' } } as SnackbarProps);
+                openSnackbar({
+                  open: true,
+                  message: 'Error al cerrar el ticket',
+                  anchorOrigin: { vertical: 'top', horizontal: 'right' },
+                  variant: 'alert',
+                  alert: { color: 'error' }
+                } as SnackbarProps);
               } finally {
                 setOpenCloseModal(false);
                 setClosingTicketId(0);

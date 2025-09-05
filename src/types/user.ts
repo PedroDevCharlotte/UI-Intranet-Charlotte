@@ -18,7 +18,8 @@ export interface UserList {
   daysToPasswordExpiration?: number;
   isBlocked?: boolean;
   role: string;
-  avatar?: number;
+  // avatar can be a legacy numeric id referencing an asset, or a serialized string (dataURL/JSON) produced by the new avatar editor
+  avatar?: number | string;
   name?: string;
   fatherName?: string;
   age?: number;
@@ -34,4 +35,24 @@ export interface UserList {
   skills?: string[];
   time?: string[];
   CreatedAt?: Date | string | number;
+  emoji?: string;
+  /**
+   * Jefe directo del usuario (puede ser null o un objeto UserList reducido)
+   */
+  manager?: {
+    id: number;
+    name: string;
+    email: string;
+    role?: string;
+  } | null;
+
+  /**
+   * Subordinados directos del usuario (lista de objetos UserList reducidos)
+   */
+  subordinates?: Array<{
+    id: number;
+    name: string;
+    email: string;
+    role?: string;
+  }>;
 }

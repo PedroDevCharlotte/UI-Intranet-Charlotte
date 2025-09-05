@@ -1,266 +1,203 @@
-import React, { useMemo, useState } from 'react';
-
-// material-ui
+import React, { useMemo, useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid2';
-
-// project imports
 import MainCard from 'components/MainCard';
 import Avatar from 'components/@extended/Avatar';
-import {
-  CSVExport,
-  DebouncedInput,
-  HeaderSort,
-  IndeterminateCheckbox,
-  RowSelection,
-  SelectColumnSorting,
-  TablePagination
-} from 'components/third-party/react-table';
-
-// third-party
-import {
-  ColumnDef,
-  HeaderGroup,
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
-  getFilteredRowModel,
-  useReactTable,
-  SortingState,
-  ColumnFiltersState
-} from '@tanstack/react-table';
-import TableContainer from '@mui/material/TableContainer';
-
-import { useGetBanners, deleteBanner } from 'api/banners';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import DraggableTable from 'components/third-party/react-table/DraggableTable';
+import { useGetBanners, deleteBanner, reorderBanners } from 'api/banners';
 import BannerModal from 'sections/apps/banners/BannerModal';
 import { Trash, Edit, Add } from 'iconsax-react';
 
-import { APP_DEFAULT_PATH, GRID_COMMON_SPACING } from 'config';
-
 type BannerRow = {
-  id: number;
-  title: string;
-  description?: string;
-  link?: string;
-  imagePath?: string;
-  imageFileName?: string;
-  imageBase64?: string;
-  imagePreviewUrl?: string;
-  active?: boolean;
-  order?: number;
-  startDate?: string;
-  endDate?: string;
-  status?: string;
+	id: number;
+	title: string;
+	description?: string;
+	link?: string;
+	imagePath?: string;
+	imageFileName?: string;
+	imageBase64?: string;
+	imagePreviewUrl?: string;
+	active?: boolean;
+	order?: number;
+	startDate?: string;
+	endDate?: string;
+	status?: string;
+	isPermanent?: boolean;
 };
 
-function ReactTable({ data, columns, modalToggler }: { data: BannerRow[]; columns: ColumnDef<BannerRow>[]; modalToggler: () => void }) {
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'id', desc: false }]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [rowSelection, setRowSelection] = useState({});
-  const [globalFilter, setGlobalFilter] = useState('');
 
-  const table = useReactTable({
-    data,
-    columns,
-    state: { columnFilters, sorting, rowSelection, globalFilter },
-    enableRowSelection: true,
-    onSortingChange: setSorting,
-    onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    onColumnFiltersChange: setColumnFilters,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel()
-  });
+import { mutate } from 'swr';
+const BannersList = () => {
+const { banners, bannersLoading, bannersError } = useGetBanners();
+	const [openModal, setOpenModal] = useState(false);
+	const [editingId, setEditingId] = useState<number | null>(null);
+	const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
-  let headers: { label: string; key: string }[] = [];
-  columns.forEach((c) => {
-    const key = (c as any).accessorKey;
-    if (key) headers.push({ label: typeof c.header === 'string' ? c.header : '#', key: String(key) });
-  });
+	const handleEdit = (id: number) => {
+		setEditingId(id);
+		setOpenModal(true);
+	};
 
-  return (
-    <MainCard content={false}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2, p: 2.5,  justifyContent: 'space-between', pb: 0 }}>
-        <DebouncedInput
-          value={globalFilter ?? ''}
-          onFilterChange={(value) => setGlobalFilter(String(value))}
-          placeholder={`Buscar en ${data.length} registros...`}
-        />
-        <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 2, alignItems: 'center' }}>
-          <SelectColumnSorting
-            sortBy={{ id: 'id', desc: false }.id}
-            {...{ getState: table.getState, getAllColumns: table.getAllColumns, setSorting: setSorting }}
-          />
-          <Stack direction="row" sx={{ gap: 2, alignItems: 'center' }}>
-            <Button variant="contained" startIcon={<Add />} onClick={modalToggler} size="large">
-              Agregar banner
-            </Button>
-            <CSVExport
-              data={
-                table.getSelectedRowModel().flatRows.map((r) => r.original).length === 0
-                  ? data
-                  : table.getSelectedRowModel().flatRows.map((r) => r.original)
-              }
-              headers={headers}
-              filename="lista-banners.csv"
-            />
-          </Stack>
-        </Stack>
-      </Stack>
+	const handleDelete = async (id: number) => {
+	try {
+		await deleteBanner(id);
+		setSnackbar({ open: true, message: 'Banner eliminado correctamente', severity: 'success' });
+		mutate('/banners');
+	} catch (e) {
+		setSnackbar({ open: true, message: 'Error al eliminar el banner', severity: 'error' });
+	}
+	};
 
-      <RowSelection selected={Object.keys(rowSelection).length} />
-      <TableContainer>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            {table.getHeaderGroups().map((headerGroup: HeaderGroup<BannerRow>) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id} style={{ textAlign: 'left', padding: '12px' }}>
-                    {header.isPlaceholder ? null : (
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <div>{flexRender(header.column.columnDef.header, header.getContext())}</div>
-                        {header.column.getCanSort() && <HeaderSort column={header.column} />}
-                      </div>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} style={{ padding: '12px', verticalAlign: 'middle' }}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </TableContainer>
+	const handleReorder = async (newOrder: BannerRow[]) => {
+	try {
+		const res = await reorderBanners(newOrder.map((b, idx) => ({ id: b.id, order: idx + 1 })));
+		if (res && res.success) {
+			setSnackbar({ open: true, message: 'Orden actualizado', severity: 'success' });
+			mutate('/banners');
+		} else {
+			setSnackbar({ open: true, message: 'Error al reordenar', severity: 'error' });
+		}
+	} catch (e) {
+		setSnackbar({ open: true, message: 'Error al reordenar', severity: 'error' });
+	}
+	};
 
-      <TablePagination
-        setPageSize={table.setPageSize}
-        setPageIndex={table.setPageIndex}
-        getState={table.getState}
-        getPageCount={table.getPageCount}
-      />
-    </MainCard>
-  );
-}
+	const handleCloseModal = () => {
+		setOpenModal(false);
+		setEditingId(null);
+		mutate('/banners');
+	};
 
-export default function BannersList() {
-  const { banners, bannersLoading } = useGetBanners();
-  const [openModal, setOpenModal] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+	const handleCloseSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
 
-  const data = useMemo(
-    () =>
-      (banners || []).map((b: any) => ({
-        id: b.id,
-        title: b.title,
-        description: b.description || b.subtitle,
-        link: b.link,
-        order: b.order,
-        imagePath: b.imagePath || b.imageUrl,
-        imageFileName: b.imageFileName,
-        imageBase64: b.imageBase64,
-        imagePreviewUrl: b.imagePreviewUrl
-      })),
-    [banners]
-  );
+	const columns = useMemo(() => [
+		{
+			key: 'id',
+			header: '#',
+			render: (row: BannerRow) => row.id,
+		},
+		{
+			key: 'title',
+			header: 'Banner',
+			render: (row: BannerRow) => (
+				<Stack direction="row" alignItems="center" spacing={2}>
+					<Avatar src={row.imagePreviewUrl || ''} alt={String(row.title ?? '')} variant="rounded" />
+					<Stack>
+						<Typography>{row.title}</Typography>
+						<Typography variant="caption">{row.title ?? ''}</Typography>
+					</Stack>
+				</Stack>
+			),
+		},
+		{
+			key: 'order',
+			header: 'Orden',
+			render: (row: BannerRow) => <Typography>{row.order ?? ''}</Typography>,
+		},
+		{
+			key: 'startDate',
+			header: 'Fecha inicio',
+			render: (row: BannerRow) => (
+				<Typography>{row.startDate ? new Date(row.startDate).toLocaleDateString() : ''}</Typography>
+			),
+		},
+		{
+			key: 'endDate',
+			header: 'Fecha término',
+			render: (row: BannerRow) => (
+				<Typography>{row.endDate ? new Date(row.endDate).toLocaleDateString() : ''}</Typography>
+			),
+		},
+		{
+			key: 'status',
+			header: 'Estatus',
+			render: (row: BannerRow) => {
+				let color = 'text.secondary';
+				let label = row.status ?? '';
+				if (label.toLowerCase() === 'active') color = 'success.main';
+				else if (label.toLowerCase() === 'inactive') color = 'text.disabled';
+				else if (label) color = 'warning.main';
+				return (
+					<Typography sx={{ color, fontWeight: 600 }}>
+						{label === 'active' ? 'Activo' : label === 'inactive' ? 'Inactivo' : label}
+					</Typography>
+				);
+			},
+		},
+		{
+			key: 'link',
+			header: 'Link',
+			render: (row: BannerRow) => (
+				<Typography component="a" href={row.link} target="_blank" rel="noopener noreferrer" color="primary">
+					{row.link}
+				</Typography>
+			),
+		},
+		{
+			key: 'isPermanent',
+			header: 'Frecuencia',
+			render: (row: BannerRow) => {
+				const isPerm = row.isPermanent;
+				return (
+					<Typography sx={{ color: isPerm ? 'primary.main' : 'warning.main', fontWeight: 600 }}>
+						{isPerm ? 'Permanente' : 'Temporal'}
+					</Typography>
+				);
+			},
+		},
+		{
+			key: 'actions',
+			header: 'Acciones',
+			render: (row: BannerRow) => (
+				<Stack direction="row" spacing={1}>
+					<Button
+						size="small"
+						variant="outlined"
+						startIcon={<Edit />}
+						onClick={() => handleEdit(row.id)}
+					>
+						Editar
+					</Button>
+					<Button
+						size="small"
+						color="error"
+						variant="outlined"
+						startIcon={<Trash />}
+						onClick={async () => handleDelete(row.id)}
+					>
+						Eliminar
+					</Button>
+				</Stack>
+			),
+		},
+	], [banners]);
 
-  const columns = useMemo<ColumnDef<BannerRow>[]>(
-    () => [
-      { header: '#', accessorKey: 'id' },
-      {
-        header: 'Banner',
-        accessorKey: 'title',
-        cell: ({ row, getValue }) => {
-          // console.log("Datos",row.original);
-          return (
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Avatar src={ row.original.imagePreviewUrl} alt={String(getValue())} variant="rounded" />
-            <Stack>
-              <Typography>{getValue() as string}</Typography>
-              <Typography variant="caption">{row.original.imagePreviewUrl}</Typography>
-            </Stack>
-          </Stack>
-        )}
-      },
-      {
-        header: 'Orden',
-        accessorKey: 'order',
-        cell: ({ row, getValue }) =>{
-          console.log(row.original);
-          return <Typography>{row.original.order as number}</Typography>
-        }
-      },
-      {
-        header: 'Link',
-        accessorKey: 'link',
-        cell: ({ getValue }) => (
-          <Typography component="a" href={getValue() as string} target="_blank" rel="noopener noreferrer" color="primary">
-            {getValue() as string}
-          </Typography>
-        )
-      },
-      {
-        header: 'Acciones',
-        accessorKey: 'id',
-        cell: ({ getValue }) => (
-          <Stack direction="row" spacing={1}>
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<Edit />}
-              onClick={() => {
-                setEditingId(Number(getValue()));
-                setOpenModal(true);
-              }}
-            >
-              Editar
-            </Button>
-            <Button
-              size="small"
-              color="error"
-              variant="outlined"
-              startIcon={<Trash />}
-              onClick={async () => {
-                await deleteBanner(Number(getValue()));
-              }}
-            >
-              Eliminar
-            </Button>
-          </Stack>
-        )
-      }
-    ],
-    []
-  );
+	return (
+		<MainCard content={false}>
+			<Stack direction="row" sx={{ alignItems: 'center', gap: 1, p: 2.5, pb: 0 }}>
+				<Typography variant="h4" sx={{ flexGrow: 1 }}>
+					Lista de Banners
+				</Typography>
+				<Button variant="contained" startIcon={<Add />} onClick={() => { setEditingId(null); setOpenModal(true); }} size="large">
+					Agregar banner
+				</Button>
+			</Stack>
+					<DraggableTable
+						columns={columns}
+						rows={banners}
+						onReorder={handleReorder}
+					/>
+			<Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar}>
+				<Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+					{snackbar.message}
+				</Alert>
+			</Snackbar>
+			<BannerModal open={openModal} onClose={handleCloseModal} bannerId={editingId} />
+		</MainCard>
+	);
+};
 
-  return (
-    <>
-      <Grid container spacing={GRID_COMMON_SPACING} sx={{ pb: 2 }}>
-        <Grid size={12}>
-          <ReactTable
-            data={data}
-            columns={columns}
-            modalToggler={() => {
-              setEditingId(null);
-              setOpenModal(true);
-            }}
-          />
-          <BannerModal open={openModal} onClose={() => setOpenModal(false)} bannerId={editingId} onSaved={() => {}} />
-        </Grid>
-      </Grid>
-    </>
-  );
-}
+export default BannersList;

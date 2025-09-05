@@ -11,15 +11,18 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemText from '@mui/material/ListItemText';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Box from '@mui/material/Box';
 
 // project-imports
 import { useGetMenuMaster } from 'api/menu';
+import { useGetFavorites, removeFavorite } from 'api/favorites';
 import Avatar from 'components/@extended/Avatar';
 import useAuth from 'hooks/useAuth';
 
 // assets
-import { ArrowRight2 } from 'iconsax-react';
+import { ArrowRight2, Trash } from 'iconsax-react';
 import avatar1 from 'assets/images/users/avatar-6.png';
 
 interface ExpandMoreProps extends IconButtonProps {
@@ -63,6 +66,8 @@ export default function UserList() {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+
+  const { favorites, favoritesLoading, favoritesMutate } = useGetFavorites();
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -110,11 +115,43 @@ export default function UserList() {
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         transformOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
+        {/* Favorites loaded from API (preserve static menu items) */}
+        {!favoritesLoading && Array.isArray(favorites) && favorites.length > 0 && (
+          <>
+            {favorites.map((f: any) => (
+              <MenuItem key={`fav-${f.id}`} component={Link} to={f.url || '#'} onClick={() => handleClose()}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <Box component="span">{f.title || f.name || 'Favorite'}</Box>
+                  <Tooltip title="Eliminar acceso directo">
+                    <IconButton
+                      size="small"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        try {
+                          await removeFavorite(f.id);
+                          // refresh favorites list
+                          if (favoritesMutate) favoritesMutate();
+                        } catch (err) {
+                          console.error('Error removing favorite', err);
+                        }
+                      }}
+                    >
+                      <Trash style={{ fontSize: '1rem' }} />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </MenuItem>
+            ))}
+            <Divider />
+          </>
+        )}
+
         <MenuItem onClick={handleLogout}>Logout</MenuItem>
         <MenuItem component={Link} to="/apps/profiles/user/personal" onClick={handleClose}>
           Profile
         </MenuItem>
-        <MenuItem component={Link} to="/apps/profiles/account/my-account" onClick={handleClose}>
+  <MenuItem component={Link} to="/apps/profiles/account/my-account" onClick={handleClose}>
           My account
         </MenuItem>
       </Menu>

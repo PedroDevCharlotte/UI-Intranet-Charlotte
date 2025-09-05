@@ -17,6 +17,10 @@ import { createBanner, updateBanner, getBannerById } from 'api/banners';
 import { openSnackbar } from 'api/snackbar';
 import { SnackbarProps } from 'types/snackbar';
 import * as Yup from 'yup';
+import { set } from 'immutable';
+
+            
+
 
 type Props = {
   open: boolean;
@@ -27,10 +31,22 @@ type Props = {
 
 export default function BannerModal({ open, onClose, bannerId, onSaved }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
-
+  const urlApi =  'http://localhost:3006';
+  // const urlApi = import.meta.env.VITE_APP_API_URL || 'http://localhost:3006';
   useEffect(() => {
     if (bannerId) {
-      getBannerById(Number(bannerId)).then((data) => {
+      getBannerById(Number(bannerId)).then(async (data) => {
+        let imageFile: File | null = null;
+        let imageUrl = data.imagePath || null;
+        if (imageUrl) {
+          try {
+            // Descargar la imagen y convertirla a File
+            // Asigna a preview el link completo del API + data.imageUrl
+            imageUrl = `${urlApi}${data.imagePath}`;
+          } catch (e) {
+            imageFile = null;
+          }
+        }
         formik.setValues({
           title: data.title || '',
           description: data.description || data.subtitle || '',
@@ -39,9 +55,10 @@ export default function BannerModal({ open, onClose, bannerId, onSaved }: Props)
           endDate: data.endDate ? String(data.endDate) : '',
           status: data.status === undefined ? true : Boolean(data.status),
           order: data.order || 0,
-          image: null
+          image: imageFile
         });
-        setPreview(data.imageUrl || null);
+
+        setPreview(imageUrl);
       });
     } else {
       formik.resetForm();

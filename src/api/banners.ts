@@ -1,3 +1,9 @@
+// Reorder banners
+export async function reorderBanners(order: { id: number; order: number }[]) {
+  const res = await axiosServices.post('/banners/reorder', { order });
+  mutate(endpoints.list);
+  return res.data;
+}
 import useSWR, { mutate } from 'swr';
 import axiosServices, { fetcher } from 'utils/axios';
 
@@ -14,8 +20,19 @@ export function useGetBanners() {
     revalidateOnReconnect: false
   });
 
+  const bannersWithImageUrl =
+    Array.isArray(data) && data.length > 0
+      ? data.map((banner: any) => ({
+          ...banner,
+          imagePreviewUrl: banner.oneDriveFileId
+            ? `http://localhost:3006/onedrive/file/${banner.oneDriveFileId}/content`
+            : null,
+          isPermanent: !banner.endDate
+        }))
+      : [];
+
   return {
-    banners: data || [],
+    banners: bannersWithImageUrl || [],
     bannersLoading: isLoading,
     bannersError: error
   };

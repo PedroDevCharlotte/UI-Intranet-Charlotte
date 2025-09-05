@@ -1,4 +1,7 @@
 import { useEffect, useState, ChangeEvent } from 'react';
+import useAuth from 'hooks/useAuth';
+import { updateUser } from 'api/user';
+import { openSnackbar, showAlert } from 'api/snackbar';
 
 // material-ui
 import Button from '@mui/material/Button';
@@ -40,8 +43,34 @@ const MenuProps = {
 // ==============================|| ACCOUNT PROFILE - PERSONAL ||============================== //
 
 export default function TabPersonal() {
+  const auth = useAuth();
   const [selectedImage, setSelectedImage] = useState<File | undefined>(undefined);
   const [avatar, setAvatar] = useState<string | undefined>(defaultImages);
+
+  useEffect(() => {
+    // If auth user has avatar as dataURL/JSON string, use it
+    try {
+      const av = (auth?.user as any)?.avatar;
+      if (av && typeof av === 'string') {
+        // If it's JSON with baseImage, try parse
+        try {
+          const parsed = JSON.parse(av);
+          if (parsed && parsed.baseImage) {
+            setAvatar(parsed.baseImage as string);
+            return;
+          }
+        } catch (e) {
+          // not JSON, might be direct dataURL
+          if (av.startsWith('data:')) {
+            setAvatar(av);
+            return;
+          }
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
+  }, [auth?.user]);
 
   useEffect(() => {
     if (selectedImage) {
@@ -100,7 +129,28 @@ export default function TabPersonal() {
                   placeholder="Outlined"
                   variant="outlined"
                   sx={{ display: 'none' }}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setSelectedImage(e.target.files?.[0])}
+                  onChange={async (e: ChangeEvent<HTMLInputElement>) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    setSelectedImage(f);
+                    const fr = new FileReader();
+                    fr.onload = async () => {
+                      const dataUrl = String(fr.result);
+                      setAvatar(dataUrl);
+                      // persist avatar to server as simple payload { baseImage: dataUrl }
+                      try {
+                        const userId = Number((auth?.user as any)?.id);
+                        if (userId) {
+                          await updateUser(userId, { avatar: JSON.stringify({ baseImage: dataUrl }) } as any);
+                          showAlert('Avatar guardado', 'success');
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        showAlert('Error guardando avatar', 'error');
+                      }
+                    };
+                    fr.readAsDataURL(f);
+                  }}
                 />
               </Stack>
             </Grid>
@@ -112,8 +162,8 @@ export default function TabPersonal() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <Stack sx={{ gap: 1 }}>
-                <InputLabel htmlFor="personal-first-name">Last Name</InputLabel>
-                <TextField fullWidth defaultValue="Handgun" id="personal-first-name" placeholder="Last Name" />
+                <InputLabel htmlFor="personal-last-name">Last Name</InputLabel>
+                <TextField fullWidth defaultValue="Handgun" id="personal-last-name" placeholder="Last Name" />
               </Stack>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -267,7 +317,45 @@ export default function TabPersonal() {
           <Button variant="outlined" color="secondary">
             Cancel
           </Button>
-          <Button variant="contained">Update Profile</Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              try {
+                const userIdStr = auth?.user?.id;
+                const userId = userIdStr ? Number(userIdStr) : NaN;
+                if (!userId || Number.isNaN(userId) || userId <= 0) {
+                  showAlert('Usuario no autenticado', 'error');
+                  return;
+                }
+
+                // Gather some basic fields by id (these inputs use defaultValue and ids in the markup)
+                const firstNameInput = (document.getElementById('personal-first-name') as HTMLInputElement)?.value;
+                const lastNameInput = (document.getElementById('personal-last-name') as HTMLInputElement)?.value;
+                const emailInput = (document.getElementById('personal-email') as HTMLInputElement)?.value;
+                const locationInput = (document.getElementById('personal-location') as HTMLInputElement)?.value;
+
+                const payload: any = {
+                  // adapt field names to backend expected names if necessary
+                  firstName: firstNameInput,
+                  lastName: lastNameInput,
+                  email: emailInput,
+                  location: locationInput
+                };
+
+                const result = await updateUser(userId, payload as any);
+                if (result && result.success) {
+                  showAlert('Perfil actualizado correctamente', 'success');
+                } else {
+                  showAlert('Error al actualizar: ' + (result?.error || result?.message || 'Unknown'), 'error');
+                }
+              } catch (err: any) {
+                console.error(err);
+                showAlert('Error al actualizar el perfil', 'error');
+              }
+            }}
+          >
+            Update Profile
+          </Button>
         </Stack>
       </Grid>
     </Grid>

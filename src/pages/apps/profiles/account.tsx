@@ -95,6 +95,7 @@ export default function AccountProfile() {
               />
               <Tab label="Change Password" component={Link} to="/apps/profiles/account/password" icon={<Lock />} iconPosition="start" />
               <Tab label="Role" component={Link} to="/apps/profiles/account/role" icon={<Profile2User />} iconPosition="start" />
+              <Tab label="Emoji" component={Link} to="/apps/profiles/account/emoji" icon={<TableDocument />} iconPosition="start" />
               <Tab label="Settings" component={Link} to="/apps/profiles/account/settings" icon={<Setting3 />} iconPosition="start" />
             </Tabs>
           </Box>

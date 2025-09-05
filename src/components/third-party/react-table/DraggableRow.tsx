@@ -1,4 +1,4 @@
-import { ReactElement } from 'react';
+import React, { ReactElement } from 'react';
 
 // material-ui
 import TableCell from '@mui/material/TableCell';
@@ -15,20 +15,20 @@ import IconButton from 'components/@extended/IconButton';
 import { HambergerMenu } from 'iconsax-react';
 
 // types
-import { TableDataProps } from 'types/table';
+
 
 // ==============================|| DRAGGABLE ROW ||============================== //
 
-export default function DraggableRow({
-  row,
-  children
-}: {
-  row: Row<TableDataProps>;
+interface DraggableRowProps {
+  row: Row<any>;
   reorderRow: (draggedRowIndex: number, targetRowIndex: number) => void;
-  children: ReactElement;
-}) {
+  children: React.ReactNode;
+}
+
+export default function DraggableRow({ row, reorderRow, children }: DraggableRowProps) {
+  const rowId = row.id.toString();
   const { setNodeRef: setDropRef, isOver: isOverCurrent } = useDroppable({
-    id: `row-${row.id}`
+    id: rowId
   });
 
   const {
@@ -37,7 +37,7 @@ export default function DraggableRow({
     setNodeRef: setDragRef,
     isDragging
   } = useDraggable({
-    id: `row-${row.id}`
+    id: rowId
   });
 
   return (
@@ -50,7 +50,7 @@ export default function DraggableRow({
           size="small"
           sx={{ p: 0, width: 24, height: 24, fontSize: '1rem', mr: 0.75 }}
           color="secondary"
-          disabled={row.getIsGrouped()}
+          disabled={typeof row.getIsGrouped === 'function' ? row.getIsGrouped() : false}
         >
           <HambergerMenu size="32" variant="Outline" />
         </IconButton>

@@ -17,6 +17,7 @@ type Banner = {
   imagePath?: string;
   imageFileName?: string;
   imagePreviewUrl?: string;
+  oneDriveFileId?: string;
   imageBase64?: string;
   active?: boolean;
   order?: number;
@@ -86,8 +87,9 @@ const BannersSlider: FC<Props> = ({ banners = defaultBanners, height = 220 }) =>
             visibleBanners.filter(Boolean).forEach((b: Banner) => {
               // Determina si es una URL de OneDrive o una ruta local
               const isOneDriveImage = !!b.imagePreviewUrl;
-              const imageUrl = isOneDriveImage ? b.imagePreviewUrl : b.imagePath;
-
+              const apiBaseUrl = import.meta.env.VITE_APP_API_URL || '';
+              const oneDriveUrl = `http://localhost:3006/onedrive/file/${b.oneDriveFileId}/content`;
+              const imageUrl = isOneDriveImage ? oneDriveUrl : b.imagePath;
               slides.push(
                 <Box
                   key={b.id}

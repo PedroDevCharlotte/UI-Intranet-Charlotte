@@ -73,6 +73,17 @@ export function openSnackbar(snackbar: SnackbarProps) {
   );
 }
 
+// Convenience helper for common alert messages. Fills missing fields from initialState.
+export function showAlert(message: string, color: SnackbarProps['alert']['color'] = 'primary') {
+  openSnackbar({
+    ...initialState,
+    open: true,
+    variant: 'alert',
+    message,
+    alert: { color, variant: initialState.alert.variant }
+  });
+}
+
 export function closeSnackbar() {
   // to update local state based on key
   mutate(

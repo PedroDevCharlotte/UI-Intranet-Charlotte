@@ -44,7 +44,7 @@ import IconButton from 'components/@extended/IconButton';
 import CircularWithPath from 'components/@extended/progress/CircularWithPath';
 import { strengthColor, strengthIndicator } from 'utils/password-strength';
 
-import { insertUser, updateUser, useGetRoles, useGetDepartments, useGetSupportTypes, assignSupportTypes } from 'api/user';
+import { insertUser, updateUser, useGetRoles, useGetDepartments, useGetSupportTypes, assignSupportTypes, useGetUser } from 'api/user';
 import { openSnackbar } from 'api/snackbar';
 import { Gender } from 'config';
 import { ImagePath, getImageUrl } from 'utils/getImageUrl';
@@ -107,7 +107,7 @@ const skills = [
 
 // CONSTANT
 const getInitialValues = (user: UserList | null) => {
-  const newUser = {
+  const newUser: any = {
     firstName: '',
     lastName: '',
     email: '',
@@ -115,16 +115,17 @@ const getInitialValues = (user: UserList | null) => {
     roleId: 0,
     departmentId: 0,
     active: true,
-    daysToPasswordExpiration: 90
+    daysToPasswordExpiration: 90,
+    supportTypeIds: [],
+    manager: null,
+    subordinates: []
   };
-
-  // Añadir supportTypeIds por defecto
-  (newUser as any).supportTypeIds = [];
-
   if (user) {
-    return merge({}, newUser, user);
+    return merge({}, newUser, user, {
+      manager: user.manager || null,
+      subordinates: user.subordinates || []
+    });
   }
-
   return newUser;
 };
 
@@ -142,37 +143,40 @@ const generateSecurePassword = (length: number = 12): string => {
   const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const numbers = '0123456789';
   const specialChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-  
+
   // Asegurar que la contraseña tenga al menos un carácter de cada tipo
   let password = '';
   password += lowercase[Math.floor(Math.random() * lowercase.length)];
   password += uppercase[Math.floor(Math.random() * uppercase.length)];
   password += numbers[Math.floor(Math.random() * numbers.length)];
   password += specialChars[Math.floor(Math.random() * specialChars.length)];
-  
+
   // Completar el resto de la longitud con caracteres aleatorios
   const allChars = lowercase + uppercase + numbers + specialChars;
   for (let i = password.length; i < length; i++) {
     password += allChars[Math.floor(Math.random() * allChars.length)];
   }
-  
+
   // Mezclar los caracteres para que no tengan un patrón predecible
-  return password.split('').sort(() => Math.random() - 0.5).join('');
+  return password
+    .split('')
+    .sort(() => Math.random() - 0.5)
+    .join('');
 };
 
 export default function FormUserAdd({ user, closeModal }: { user: UserList | null; closeModal: () => void }) {
   const [loading, setLoading] = useState<boolean>(true);
   const [showPassword, setShowPassword] = useState(false);
   const [level, setLevel] = useState<StringColorProps>();
-  
+// Obtener usuarios para manager y subordinates
+const { users = [], usersLoading } = useGetUser();
   // API calls for roles and departments
   const { roles, rolesLoading } = useGetRoles();
   const { departments, departmentsLoading } = useGetDepartments();
   const { supportTypes, supportTypesLoading } = useGetSupportTypes();
-  
+
   // Debug logs
-  
-  
+
   const [selectedImage, setSelectedImage] = useState<File | undefined>(undefined);
   const [avatar, setAvatar] = useState<string | undefined>(
     getImageUrl(`avatar-${user && user !== null && user?.avatar ? user.avatar : 1}.png`, ImagePath.USERS)
@@ -200,42 +204,42 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
     departmentId: Yup.number().min(1, 'El departamento es obligatorio').required('El departamento es obligatorio'),
     roleId: Yup.number().min(1, 'El rol es obligatorio').required('El rol es obligatorio'),
     active: Yup.boolean().required('El estado es obligatorio'),
-    password: Yup.string()
-      .when('$isNewUser', {
-        is: true,
-        then: (schema) =>
-          schema
-            .required('La contraseña es obligatoria')
-            .min(8, 'La contraseña debe tener al menos 8 caracteres')
-            .matches(/[a-z]/, 'Debe contener al menos una minúscula')
-            .matches(/[A-Z]/, 'Debe contener al menos una mayúscula')
-            .matches(/[0-9]/, 'Debe contener al menos un número')
-            .matches(/[^a-zA-Z0-9]/, 'Debe contener al menos un carácter especial'),
-        otherwise: (schema) =>
-          schema
-            .min(8, 'La contraseña debe tener al menos 8 caracteres')
-            .matches(/[a-z]/, 'Debe contener al menos una minúscula')
-            .matches(/[A-Z]/, 'Debe contener al menos una mayúscula')
-            .matches(/[0-9]/, 'Debe contener al menos un número')
-            .matches(/[^a-zA-Z0-9]/, 'Debe contener al menos un carácter especial')
-      })
+    password: Yup.string().when('$isNewUser', {
+      is: true,
+      then: (schema) =>
+        schema
+          .required('La contraseña es obligatoria')
+          .min(8, 'La contraseña debe tener al menos 8 caracteres')
+          .matches(/[a-z]/, 'Debe contener al menos una minúscula')
+          .matches(/[A-Z]/, 'Debe contener al menos una mayúscula')
+          .matches(/[0-9]/, 'Debe contener al menos un número')
+          .matches(/[^a-zA-Z0-9]/, 'Debe contener al menos un carácter especial'),
+      otherwise: (schema) =>
+        schema
+          .min(8, 'La contraseña debe tener al menos 8 caracteres')
+          .matches(/[a-z]/, 'Debe contener al menos una minúscula')
+          .matches(/[A-Z]/, 'Debe contener al menos una mayúscula')
+          .matches(/[0-9]/, 'Debe contener al menos un número')
+          .matches(/[^a-zA-Z0-9]/, 'Debe contener al menos un carácter especial')
+    }),
+    manager: Yup.mixed().nullable(),
+    subordinates: Yup.array().of(Yup.mixed())
   });
 
   const [openAlert, setOpenAlert] = useState(false);
 
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
 
-   const handleClickShowPassword = () => {
-      setShowPassword(!showPassword);
-    };
-  
-    const handleMouseDownPassword = (event: SyntheticEvent) => {
-      event.preventDefault();
-    };
+  const handleMouseDownPassword = (event: SyntheticEvent) => {
+    event.preventDefault();
+  };
 
-    const changePassword = (value: string) => {
-      const temp = strengthIndicator(value);
-      setLevel(strengthColor(temp));
-    };
+  const changePassword = (value: string) => {
+    const temp = strengthIndicator(value);
+    setLevel(strengthColor(temp));
+  };
 
   const handleAlertClose = () => {
     setOpenAlert(!openAlert);
@@ -258,7 +262,9 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
           departmentId: values.departmentId,
           active: values.active,
           daysToPasswordExpiration: values.daysToPasswordExpiration,
-          role: roles?.find((r: any) => r.id === values.roleId)?.name || ''
+          role: roles?.find((r: any) => r.id === values.roleId)?.name || '',
+          managerId: values.manager ? values.manager.id : null,
+          subordinateIds: Array.isArray(values.subordinates) ? values.subordinates.map((s: any) => s.id) : []
         };
 
         console.log('Submitting user data:', userData);
@@ -267,7 +273,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
           // Para actualización, incluir el ID
           const updateData = { ...userData, id: user.id };
           const result = await updateUser(user.id!, updateData);
-          
+
           if (result.error || !result.success) {
             openSnackbar({
               open: true,
@@ -280,7 +286,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
             setSubmitting(false);
             return;
           }
-          
+
           openSnackbar({
             open: true,
             message: result.message || 'Usuario actualizado correctamente.',
@@ -298,7 +304,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
         } else {
           // Para inserción, enviar solo los datos necesarios
           const result = await insertUser(userData);
-          
+
           if (result.error || !result.success) {
             openSnackbar({
               open: true,
@@ -311,7 +317,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
             setSubmitting(false);
             return;
           }
-          
+
           openSnackbar({
             open: true,
             message: result.message || 'Usuario agregado correctamente.',
@@ -343,7 +349,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
     }
   });
 
-  const { errors, touched, handleSubmit, handleBlur, handleChange,  isSubmitting, getFieldProps, setFieldValue } = formik;
+  const { errors, touched, handleSubmit, handleBlur, handleChange, isSubmitting, getFieldProps, setFieldValue } = formik;
 
   // Función para generar y asignar contraseña segura
   const handleGeneratePassword = () => {
@@ -381,7 +387,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                           placeholder="Ingrese el nombre"
                           {...getFieldProps('firstName')}
                           error={Boolean(touched.firstName && errors.firstName)}
-                          helperText={touched.firstName && errors.firstName}
+                          helperText={touched.firstName && typeof errors.firstName === 'string' ? errors.firstName : undefined}
                         />
                       </Stack>
                     </Grid>
@@ -394,7 +400,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                           placeholder="Ingrese el apellido"
                           {...getFieldProps('lastName')}
                           error={Boolean(touched.lastName && errors.lastName)}
-                          helperText={touched.lastName && errors.lastName}
+                          helperText={touched.lastName && typeof errors.lastName === 'string' ? errors.lastName : undefined}
                         />
                       </Stack>
                     </Grid>
@@ -407,11 +413,45 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                           placeholder="Ingrese el correo electrónico"
                           {...getFieldProps('email')}
                           error={Boolean(touched.email && errors.email)}
-                          helperText={touched.email && errors.email}
+                          helperText={touched.email && typeof errors.email === 'string' ? errors.email : undefined}
                         />
                       </Stack>
                     </Grid>
 
+                    {/* Campo para seleccionar el jefe (manager) */}
+                    <Grid size={12}>
+                      <Stack sx={{ gap: 1 }}>
+                        <InputLabel htmlFor="user-manager">Jefe directo</InputLabel>
+                        <Autocomplete
+                          id="user-manager"
+                          options={users.filter((u: any) => !user || u.id !== user.id)}
+                          getOptionLabel={(option: any) => option.name || `${option.firstName} ${option.lastName}`}
+                          value={formik.values.manager || null}
+                          onChange={(_, value) => setFieldValue('manager', value)}
+                          isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                          loading={usersLoading}
+                          renderInput={(params) => <TextField {...params} placeholder="Selecciona un jefe" />}
+                        />
+                      </Stack>
+                    </Grid>
+                    {/* Campo para seleccionar subordinados */}
+                    <Grid size={12}>
+                      <Stack sx={{ gap: 1 }}>
+                        <InputLabel htmlFor="user-subordinates">Subordinados</InputLabel>
+                        <Autocomplete
+                          multiple
+                          id="user-subordinates"
+                          options={users.filter((u: any) => !user || u.id !== user.id)}
+                          getOptionLabel={(option: any) => option.name || `${option.firstName} ${option.lastName}`}
+                          value={formik.values.subordinates || []}
+                          onChange={(_, value) => setFieldValue('subordinates', value)}
+                          isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                          loading={usersLoading}
+                          renderInput={(params) => <TextField {...params} placeholder="Selecciona subordinados" />}
+                        />
+                      </Stack>
+                    </Grid>
+                    {/* Campo de tipos de soporte */}
                     <Grid size={12}>
                       <Stack sx={{ gap: 1 }}>
                         <InputLabel>Tipos de soporte</InputLabel>
@@ -419,9 +459,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                           multiple
                           options={supportTypes || []}
                           getOptionLabel={(option: any) => option.name || option.label || ''}
-                          defaultValue={
-                            (user && (user as any).supportTypes) ? (user as any).supportTypes : []
-                          }
+                          defaultValue={user && (user as any).supportTypes ? (user as any).supportTypes : []}
                           onChange={(_, value) => {
                             const ids = value.map((v: any) => v.id);
                             setFieldValue('supportTypeIds', ids);
@@ -431,9 +469,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                               <Chip label={option.name || option.label} {...getTagProps({ index })} key={option.id} />
                             ))
                           }
-                          renderInput={(params) => (
-                            <TextField {...params} placeholder="Selecciona tipos de soporte" />
-                          )}
+                          renderInput={(params) => <TextField {...params} placeholder="Selecciona tipos de soporte" />}
                         />
                       </Stack>
                     </Grid>
@@ -457,20 +493,21 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                           </MenuItem>
                           {(() => {
                             // console.log('Rendering departments:', departments, 'isArray:', Array.isArray(departments), 'length:', departments?.length);
-                            return Array.isArray(departments) && departments.map((dept: any) => {
-                              // console.log('Rendering department item:', dept);
-                              return (
-                                <MenuItem key={dept.id} value={dept.id}>
-                                  {dept.name}
-                                </MenuItem>
-                              );
-                            });
+                            return (
+                              Array.isArray(departments) &&
+                              departments.map((dept: any) => {
+                                // console.log('Rendering department item:', dept);
+                                return (
+                                  <MenuItem key={dept.id} value={dept.id}>
+                                    {dept.name}
+                                  </MenuItem>
+                                );
+                              })
+                            );
                           })()}
                         </Select>
-                        {touched.departmentId && errors.departmentId && (
-                          <FormHelperText error>
-                            {errors.departmentId}
-                          </FormHelperText>
+                        {touched.departmentId && typeof errors.departmentId === 'string' && (
+                          <FormHelperText error>{errors.departmentId}</FormHelperText>
                         )}
                       </Stack>
                     </Grid>
@@ -480,12 +517,7 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                           <InputLabel htmlFor="password">Contraseña</InputLabel>
                           <Tooltip title="Generar contraseña segura">
-                            <IconButton
-                              onClick={handleGeneratePassword}
-                              color="primary"
-                              size="small"
-                              sx={{ ml: 1 }}
-                            >
+                            <IconButton onClick={handleGeneratePassword} color="primary" size="small" sx={{ ml: 1 }}>
                               <Key size={16} />
                             </IconButton>
                           </Tooltip>
@@ -519,22 +551,22 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                           inputProps={{}}
                         />
                       </Stack>
-                      {touched.password && errors.password && (
+                      {touched.password && typeof errors.password === 'string' && (
                         <FormHelperText error id="helper-text-password">
                           {errors.password}
                         </FormHelperText>
                       )}
                       <FormControl fullWidth sx={{ mt: 2 }}>
                         <Grid container spacing={2} sx={{ alignItems: 'center', flexWrap: 'nowrap' }}>
-                          <Grid >
+                          <Grid>
                             <Box sx={{ bgcolor: level?.color, width: 85, height: 8, borderRadius: '7px' }} />
                           </Grid>
-                          <Grid >
+                          <Grid>
                             <Typography variant="subtitle1" sx={{ fontSize: '0.75rem' }}>
                               {level?.label}
                             </Typography>
                           </Grid>
-                          <Grid  sx={{ flexGrow: 1 }} />
+                          <Grid sx={{ flexGrow: 1 }} />
                         </Grid>
                       </FormControl>
                     </Grid>
@@ -557,21 +589,20 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                           </MenuItem>
                           {(() => {
                             // console.log('Rendering roles:', roles, 'isArray:', Array.isArray(roles), 'length:', roles?.length);
-                            return Array.isArray(roles) && roles.map((role: any) => {
-                              // console.log('Rendering role item:', role);
-                              return (
-                                <MenuItem key={role.id} value={role.id}>
-                                  {role.name}
-                                </MenuItem>
-                              );
-                            });
+                            return (
+                              Array.isArray(roles) &&
+                              roles.map((role: any) => {
+                                // console.log('Rendering role item:', role);
+                                return (
+                                  <MenuItem key={role.id} value={role.id}>
+                                    {role.name}
+                                  </MenuItem>
+                                );
+                              })
+                            );
                           })()}
                         </Select>
-                        {touched.roleId && errors.roleId && (
-                          <FormHelperText error>
-                            {errors.roleId}
-                          </FormHelperText>
-                        )}
+                        {touched.roleId && typeof errors.roleId === 'string' && <FormHelperText error>{errors.roleId}</FormHelperText>}
                       </Stack>
                     </Grid>
                     <Grid size={12}>
@@ -584,7 +615,11 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                           placeholder="Ingrese los días"
                           {...getFieldProps('daysToPasswordExpiration')}
                           error={Boolean(touched.daysToPasswordExpiration && errors.daysToPasswordExpiration)}
-                          helperText={touched.daysToPasswordExpiration && errors.daysToPasswordExpiration}
+                          helperText={
+                            touched.daysToPasswordExpiration && typeof errors.daysToPasswordExpiration === 'string'
+                              ? errors.daysToPasswordExpiration
+                              : undefined
+                          }
                           inputProps={{ min: 1 }}
                           onChange={(e) => {
                             const value = Math.max(1, Number(e.target.value));
@@ -609,21 +644,16 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                             />
                           }
                           label={getFieldProps('active').value ? 'Activo' : 'Inactivo'}
-                          sx={{ 
+                          sx={{
                             '& .MuiFormControlLabel-label': {
                               color: getFieldProps('active').value ? 'success.main' : 'error.main',
                               fontWeight: 'medium'
                             }
                           }}
                         />
-                        {touched.active && errors.active && (
-                          <FormHelperText error>
-                            {errors.active}
-                          </FormHelperText>
-                        )}
+                        {touched.active && typeof errors.active === 'string' && <FormHelperText error>{errors.active}</FormHelperText>}
                       </Stack>
                     </Grid>
-
                   </Grid>
                 </Grid>
               </Grid>
@@ -645,16 +675,13 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
                     <Button color="error" onClick={closeModal} disabled={isSubmitting}>
                       Cancelar
                     </Button>
-                    <Button 
-                      type="submit" 
-                      variant="contained" 
+                    <Button
+                      type="submit"
+                      variant="contained"
                       disabled={isSubmitting}
                       startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : undefined}
                     >
-                      {isSubmitting 
-                        ? (user ? 'Actualizando...' : 'Creando...')
-                        : (user ? 'Editar' : 'Agregar')
-                      }
+                      {isSubmitting ? (user ? 'Actualizando...' : 'Creando...') : user ? 'Editar' : 'Agregar'}
                     </Button>
                   </Stack>
                 </Grid>

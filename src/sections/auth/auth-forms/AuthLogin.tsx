@@ -86,15 +86,17 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
             if (scriptedRef.current) {
               setStatus({ success: true });
               setSubmitting(false);
-              
+              let redirectPath = '/dashboard';
               if (requires2FA) {
-                navigate('/verify-2fa');
+                redirectPath = '/verify-2fa';
               } else if (register2FA) {
-                navigate('/setup-2fa');
-              } else {
-                navigate('/dashboard');
+                redirectPath = '/setup-2fa';
               }
-
+              navigate(redirectPath);
+              // Forzar recarga después de la navegación
+              setTimeout(() => {
+                window.location.reload();
+              }, 100);
             }
           } catch (err: any) {
             console.error(err);

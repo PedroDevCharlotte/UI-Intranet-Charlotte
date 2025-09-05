@@ -10,7 +10,6 @@ import axiosServices from 'utils/axios';
 // types
 import { TicketList, TicketProps, TicketType, DynamicField, DynamicFieldResponse } from 'types/ticket';
 
-
 /**
  * Módulo: API - Tickets
  * Descripción: Helpers y hooks para interactuar con el API de tickets.
@@ -66,7 +65,23 @@ export function useGetTicket() {
 
   return memoizedValue;
 }
-
+// Hook para semáforo de respuesta de tickets de soporte
+export function useSupportTicketsResponseStats(params?: { dateFrom?: string; dateTo?: string }) {
+  let url = '/tickets/support-response-stats';
+  if (params?.dateFrom || params?.dateTo) {
+    const search = new URLSearchParams();
+    if (params.dateFrom) search.append('dateFrom', params.dateFrom);
+    if (params.dateTo) search.append('dateTo', params.dateTo);
+    url += `?${search.toString()}`;
+  }
+  const { data, error, isLoading, isValidating } = useSWR(url, fetcher);
+  return {
+    stats: data,
+    statsLoading: isLoading,
+    statsError: error,
+    statsValidating: isValidating
+  };
+}
 /**
  * useGetTicket
  * Obtiene un ticket utilizando SWR.
@@ -80,7 +95,7 @@ export function useGetTicketById(ticketId: number | string | null) {
     revalidateOnFocus: false,
     revalidateOnReconnect: false
   });
-  console.log('Ticket data by ID:', data);
+  // console.log('Ticket data by ID:', data);
 
   const memoizedValue = useMemo(
     () => ({
@@ -95,13 +110,13 @@ export function useGetTicketById(ticketId: number | string | null) {
 
   return memoizedValue;
 
-/**
- * useGetTicketById
- * Obtiene los detalles de un ticket por su ID. Devuelve un objeto memoizado
- * con la respuesta del fetcher y estados de carga/errores para integrar en componentes.
- * @param ticketId - ID del ticket (number | string | null)
- * @returns { ticketDetail, ticketDetailLoading, ticketDetailError, ticketDetailValidating }
- */
+  /**
+   * useGetTicketById
+   * Obtiene los detalles de un ticket por su ID. Devuelve un objeto memoizado
+   * con la respuesta del fetcher y estados de carga/errores para integrar en componentes.
+   * @param ticketId - ID del ticket (number | string | null)
+   * @returns { ticketDetail, ticketDetailLoading, ticketDetailError, ticketDetailValidating }
+   */
 }
 // Descarga un adjunto de ticket por ID
 export async function downloadTicketAttachment(attachmentId: string | number) {
@@ -116,16 +131,24 @@ export async function downloadTicketAttachment(attachmentId: string | number) {
     }
     throw error;
 
-/**
- * downloadTicketAttachment
- * Descarga un adjunto (blob) por su ID.
- * @param attachmentId - ID del adjunto
- * @returns Blob del archivo descargado
- * @throws Error personalizado si la petición falla
- */
+    /**
+     * downloadTicketAttachment
+     * Descarga un adjunto (blob) por su ID.
+     * @param attachmentId - ID del adjunto
+     * @returns Blob del archivo descargado
+     * @throws Error personalizado si la petición falla
+     */
   }
 }
-
+/**
+ * insertTicket
+ * Inserta/crea un ticket usando FormData (soporta archivos y arrays).
+ * Construye un FormData a partir del objeto `newTicket` y realiza POST al
+ * endpoint `/tickets/complete`.
+ * @param newTicket - Objeto con campos y archivos (arrays o valores simples)
+ * @returns Response.data del servidor
+ * @throws error si la petición falla
+ */
 // Inserta un ticket usando el endpoint real y retorna la respuesta o lanza error
 export async function insertTicket(newTicket: any) {
   try {
@@ -157,23 +180,27 @@ export async function insertTicket(newTicket: any) {
         'Content-Type': 'multipart/form-data'
       }
     });
-    mutate(endpoints.key + "?limit=1000");
+    mutate(endpoints.key + '?limit=1000');
     mutate(endpoints.key + endpoints.statistics);
 
     return response.data;
   } catch (error: any) {
     if (error.response && error.response.data) {
       throw error.response.data;
-
-/**
- * insertTicket
- * Inserta/crea un ticket usando FormData (soporta archivos y arrays).
- * Construye un FormData a partir del objeto `newTicket` y realiza POST al
- * endpoint `/tickets/complete`.
- * @param newTicket - Objeto con campos y archivos (arrays o valores simples)
- * @returns Response.data del servidor
- * @throws error si la petición falla
- */
+    }
+    throw error;
+  }
+}
+// Cancela un ticket llamando al endpoint /tickets/{id}/cancel
+export async function cancelTicket(ticketId: number, justification: string) {
+  try {
+    const response = await axiosServices.patch(`/tickets/${ticketId}/cancel`, { justification });
+    mutate(endpoints.key);
+    mutate(`/tickets/${ticketId}`);
+    return response.data;
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      throw error.response.data;
     }
     throw error;
   }
@@ -196,15 +223,14 @@ export async function createMessage(formData: FormData, idTicket: number) {
 
     return response.data;
   } catch (error: any) {
-
-/**
- * createMessage
- * Crea un mensaje asociado a un ticket (multipart/form-data).
- * Centraliza la llamada POST a `/tickets/{id}/messages`.
- * @param formData - FormData con campos: content, files, isInternal, etc.
- * @param idTicket - ID del ticket al que pertenece el mensaje
- * @returns response.data del servidor
- */
+    /**
+     * createMessage
+     * Crea un mensaje asociado a un ticket (multipart/form-data).
+     * Centraliza la llamada POST a `/tickets/{id}/messages`.
+     * @param formData - FormData con campos: content, files, isInternal, etc.
+     * @param idTicket - ID del ticket al que pertenece el mensaje
+     * @returns response.data del servidor
+     */
     if (error.response && error.response.data) {
       throw error.response.data;
     }
@@ -255,14 +281,14 @@ export async function closeTicket(ticketId: number, content: string) {
     mutate(endpoints.key);
     mutate(`/tickets/${ticketId}`);
 
-/**
- * closeTicket
- * Cierra un ticket llamando al endpoint `/tickets/{id}/close` con un
- * cuerpo que puede incluir `content` (comentario de cierre).
- * @param ticketId - ID del ticket a cerrar
- * @param content - Comentario opcional al cerrar
- * @returns response.data del servidor
- */
+    /**
+     * closeTicket
+     * Cierra un ticket llamando al endpoint `/tickets/{id}/close` con un
+     * cuerpo que puede incluir `content` (comentario de cierre).
+     * @param ticketId - ID del ticket a cerrar
+     * @param content - Comentario opcional al cerrar
+     * @returns response.data del servidor
+     */
     return response.data;
   } catch (error: any) {
     if (error.response && error.response.data) {
@@ -287,13 +313,12 @@ export function useGetTicketMaster() {
     [data, isLoading]
   );
 
-
-/**
- * useGetTicketTypes
- * Obtiene los tipos de tickets disponibles.
- * @param includeInactive - Indica si se deben incluir tipos inactivos
- * @returns { ticketTypes, ticketTypesLoading, ticketTypesError, ticketTypesValidating, ticketTypesEmpty }
- */
+  /**
+   * useGetTicketTypes
+   * Obtiene los tipos de tickets disponibles.
+   * @param includeInactive - Indica si se deben incluir tipos inactivos
+   * @returns { ticketTypes, ticketTypesLoading, ticketTypesError, ticketTypesValidating, ticketTypesEmpty }
+   */
   return memoizedValue;
 }
 
@@ -318,8 +343,6 @@ export function handlerCustomerFrom(open: boolean) {
     false
   );
 }
-
-
 
 export function handlerPreview(isOpen: boolean) {
   // to update local state based on key
@@ -360,7 +383,7 @@ export function useGetTicketTypes(includeInactive: boolean = false) {
       ticketTypesLoading: isLoading,
       ticketTypesError: error,
       ticketTypesValidating: isValidating,
-      ticketTypesEmpty: !isLoading && !data.length
+      ticketTypesEmpty: !isLoading && (!data || !Array.isArray(data) || data.length === 0)
     }),
     [data, error, isLoading, isValidating]
   );
@@ -370,18 +393,18 @@ export function useGetTicketTypes(includeInactive: boolean = false) {
 
 // ticketTypeId es el ID numérico del tipo de ticket
 export function useGetDynamicFields(ticketTypeCode: string | null) {
-  console.log('Fetching dynamic fields for ticket type code:', ticketTypeCode);
+  // console.log('Fetching dynamic fields for ticket type code:', ticketTypeCode);
 
-/**
- * useGetDynamicFields
- * Obtiene y transforma campos dinámicos relacionados a un tipo de ticket.
- * Esto permite renderizar formularios dinámicos basados en la configuración
- * proveniente del API.
- * @param ticketTypeCode - Código del tipo de ticket (ej: 'SUPPORT')
- * @returns { dynamicFields, dynamicFieldsLoading, ... }
- */
+  /**
+   * useGetDynamicFields
+   * Obtiene y transforma campos dinámicos relacionados a un tipo de ticket.
+   * Esto permite renderizar formularios dinámicos basados en la configuración
+   * proveniente del API.
+   * @param ticketTypeCode - Código del tipo de ticket (ej: 'SUPPORT')
+   * @returns { dynamicFields, dynamicFieldsLoading, ... }
+   */
   const url = ticketTypeCode ? `${endpoints.getDynamicFields}/${ticketTypeCode}?includeOptions=true` : null;
-  console.log('Dynamic fields URL:', url);
+  // console.log('Dynamic fields URL:', url);
   const { data, isLoading, error, isValidating } = useSWR(url, fetcher, {
     revalidateIfStale: false,
     revalidateOnFocus: false,
@@ -390,7 +413,7 @@ export function useGetDynamicFields(ticketTypeCode: string | null) {
       console.error('❌ Error fetching dynamic fields:', error);
     }
   });
-  console.log('Dynamic fields data:', data);
+  // console.log('Dynamic fields data:', data);
   // Use the actual API response data
   const responseData = data || [];
 
@@ -406,13 +429,12 @@ export function useGetDynamicFields(ticketTypeCode: string | null) {
         // Map field type from API format to component format
         const getFieldType = (apiType: string): 'text' | 'select' | 'textarea' | 'number' | 'date' => {
           switch (apiType.toUpperCase()) {
-
-/**
- * useGetAttendantsByTicketType
- * Obtiene usuarios disponibles para atender un tipo de ticket específico.
- * @param ticketTypeCode - ID numérico del tipo de ticket
- * @returns { attendants, attendantsLoading, ... }
- */
+            /**
+             * useGetAttendantsByTicketType
+             * Obtiene usuarios disponibles para atender un tipo de ticket específico.
+             * @param ticketTypeCode - ID numérico del tipo de ticket
+             * @returns { attendants, attendantsLoading, ... }
+             */
             case 'SELECT':
               return 'select';
             case 'TEXTAREA':
@@ -432,13 +454,13 @@ export function useGetDynamicFields(ticketTypeCode: string | null) {
           id: fieldDefinition.id,
           name: fieldDefinition.fieldName,
 
-/**
- * reassignTechnician
- * Reasigna (asigna) un ticket a otro técnico/usuario.
- * Actualiza caches relacionadas tras la operación.
- * @param ticketId - ID del ticket
- * @param assigneeId - ID del usuario que será asignado
- */
+          /**
+           * reassignTechnician
+           * Reasigna (asigna) un ticket a otro técnico/usuario.
+           * Actualiza caches relacionadas tras la operación.
+           * @param ticketId - ID del ticket
+           * @param assigneeId - ID del usuario que será asignado
+           */
           label: fieldDefinition.displayName,
           type: getFieldType(fieldDefinition.fieldType),
           required: fieldDefinition.isRequired,
@@ -456,14 +478,14 @@ export function useGetDynamicFields(ticketTypeCode: string | null) {
         return aOrder - bOrder;
       });
 
-/**
- * updateTicketStatus
- * Actualiza el estado (status) de un ticket mediante PATCH a `/tickets/{id}`.
- * Llama a `mutate()` para invalidar la caché de lista y detalle.
- * @param ticketId - ID del ticket
- * @param status - Nuevo estado (OPEN, IN_PROGRESS, CLOSED, ...)
- * @returns response.data del servidor
- */
+    /**
+     * updateTicketStatus
+     * Actualiza el estado (status) de un ticket mediante PATCH a `/tickets/{id}`.
+     * Llama a `mutate()` para invalidar la caché de lista y detalle.
+     * @param ticketId - ID del ticket
+     * @param status - Nuevo estado (OPEN, IN_PROGRESS, CLOSED, ...)
+     * @returns response.data del servidor
+     */
   }, [responseData]);
 
   const memoizedValue = useMemo(
@@ -482,19 +504,18 @@ export function useGetDynamicFields(ticketTypeCode: string | null) {
 
 export function useGetAttendantsByTicketType(ticketTypeCode: number | null) {
   const url = ticketTypeCode ? `/tickets/available-by-type/${ticketTypeCode}` : null;
-  console.log('Fetching attendants by ticket type:', url);
+  // console.log('Fetching attendants by ticket type:', url);
   const { data, isLoading, error, isValidating } = useSWR(url, fetcher, {
     revalidateIfStale: false,
     revalidateOnFocus: false,
     revalidateOnReconnect: false
   });
 
-
-/**
- * getTicketStatistics
- * Obtiene estadísticas de tickets.
- * @returns { dataStatistics, dataStatisticsLoading }
- */
+  /**
+   * getTicketStatistics
+   * Obtiene estadísticas de tickets.
+   * @returns { dataStatistics, dataStatisticsLoading }
+   */
   // console.log('Attendants data:', data);
   // Validar que la respuesta tenga la estructura esperada
   const attendants = data && Array.isArray(data.users) ? data.users : [];
@@ -519,12 +540,10 @@ export async function reassignTechnician(ticketId: number | string, assigneeId: 
     const response = await axiosServices.patch(`/tickets/${ticketId}/assign`, {
       assigneeId
     });
-    console.log('Reassign technician response:', response.data);
+    // console.log('Reassign technician response:', response.data);
     // Opcional: refresca la lista de tickets
     mutate(endpoints.key);
     mutate(`/tickets/${ticketId}`);
-
-    
 
     return response.data;
   } catch (error: any) {
@@ -538,8 +557,8 @@ export async function reassignTechnician(ticketId: number | string, assigneeId: 
 // Actualiza el estado de un ticket
 export async function updateTicketStatus(ticketId: number | string, status: string) {
   try {
-  // According to backend contract the update is performed on /tickets/{id}
-  const response = await axiosServices.patch(`/tickets/${ticketId}`, { status });
+    // According to backend contract the update is performed on /tickets/{id}
+    const response = await axiosServices.patch(`/tickets/${ticketId}`, { status });
     // refrescar caches relacionadas
     mutate(endpoints.key);
     mutate(`/tickets/${ticketId}`);
@@ -555,22 +574,21 @@ export async function updateTicketStatus(ticketId: number | string, status: stri
 
 export function getTicketStatistics() {
   try {
-      const { data, isLoading } = useSWR(endpoints.key + endpoints.statistics, fetcher, {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false
-  });
+    const { data, isLoading } = useSWR(endpoints.key + endpoints.statistics, fetcher, {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false
+    });
 
-  const memoizedValue = useMemo(
-    () => ({
-      dataStatistics: (data as any) || {},
-      dataStatisticsLoading: isLoading
-    }),
-    [data, isLoading]
-  );
+    const memoizedValue = useMemo(
+      () => ({
+        dataStatistics: (data as any) || {},
+        dataStatisticsLoading: isLoading
+      }),
+      [data, isLoading]
+    );
 
-  return memoizedValue;
-
+    return memoizedValue;
   } catch (error: any) {
     if (error.response && error.response.data) {
       throw error.response.data;

@@ -57,6 +57,7 @@
   "custom": "Personalizado",
   "customer": "Cliente",
   "dashboard": "Panel",
+  "Banners": "Banners",
   "data": "Datos",
   "data-display": "Visualización de Datos",
   "datatable": "Tabla de Datos",
@@ -270,5 +271,6 @@
   "no-additional-fields-required": "No se requieren campos adicionales para este tipo de ticket",
   "attach-files": "Adjuntar Archivos",
   "files": "Archivos",
-  "copy-to-collaborator-label": "Copiar a Colaborador"
+  "copy-to-collaborator-label": "Copiar a Colaborador",
+  "role-list": "Lista de roles"
 }
