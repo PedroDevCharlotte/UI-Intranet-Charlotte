@@ -51,14 +51,10 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
   return (
     <>
       <Formik
-        // initialValues={{
-        //   email: 'info@phoenixcoded.co',
-        //   password: '123456',
-        //   submit: null
-        // }}
+      
         initialValues={{
-          email: 'administrador@charlotte.com.mx',
-          password: '1234567',
+          email: '',
+          password: '',
           submit: null
         }}
         validationSchema={Yup.object().shape({

@@ -90,7 +90,7 @@ export default function SetupTwoFactorAuth() {
         <Grid size={12}>
           <Stack spacing={2}>
             <Typography variant="body1">
-              Escanea el siguiente código QR con tu aplicación de autenticación (Google Authenticator, Authy, etc.) y luego ingresa el código generado para completar la configuración.
+              Escanea el siguiente código QR con tu aplicación de autenticación (Microsoft Authenticator, Google Authenticator, Authy, etc.) y luego ingresa el código generado para completar la configuración.
             </Typography>
             {/* Aquí deberías renderizar el código QR generado por el backend */}
             <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>

@@ -34,15 +34,6 @@ export default function Login() {
         <Grid size={12}>
           <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', mb: { xs: -0.5, sm: 0.5 } }}>
             <Typography variant="h3">Iniciar sesión</Typography>
-            {/* <Typography
-              component={Link}
-              to={isLoggedIn ? '/auth/register' : '/register'}
-              variant="body1"
-              sx={{ textDecoration: 'none' }}
-              color="primary"
-            >
-              ¿No tienes una cuenta?
-            </Typography> */}
           </Stack>
         </Grid>
         <Grid size={12}>
