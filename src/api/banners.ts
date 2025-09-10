@@ -19,13 +19,14 @@ export function useGetBanners() {
     revalidateOnFocus: false,
     revalidateOnReconnect: false
   });
+  const urlApi = import.meta.env.VITE_APP_API_URL || '';
 
   const bannersWithImageUrl =
     Array.isArray(data) && data.length > 0
       ? data.map((banner: any) => ({
           ...banner,
           imagePreviewUrl: banner.oneDriveFileId
-            ? `http://localhost:3006/onedrive/file/${banner.oneDriveFileId}/content`
+            ? `${urlApi}/onedrive/file/${banner.oneDriveFileId}/content`
             : null,
           isPermanent: !banner.endDate
         }))

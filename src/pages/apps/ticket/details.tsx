@@ -398,9 +398,9 @@ export default function TicketDetails() {
                           <Button variant="contained" color="primary" sx={{ mb: 2 }} onClick={() => setOpenModal(true)}>
                             Nuevo Mensaje
                           </Button>
-                          <Button variant="outlined" onClick={handleEdit}>
+                          {/* <Button variant="outlined" onClick={handleEdit}>
                             Editar
-                          </Button>
+                          </Button> */}
                           <Button variant="outlined" onClick={() => setOpenCloseModal(true)}>
                             Cerrar ticket
                           </Button>

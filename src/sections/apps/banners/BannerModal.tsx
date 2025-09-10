@@ -31,8 +31,11 @@ type Props = {
 
 export default function BannerModal({ open, onClose, bannerId, onSaved }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
-  const urlApi =  'http://localhost:3006';
+  const urlApi = import.meta.env.VITE_APP_API_URL || '';
+  // const urlApi =  'http://localhost:3006';
   // const urlApi = import.meta.env.VITE_APP_API_URL || 'http://localhost:3006';
+              // const oneDriveUrl = `http://localhost:3006/onedrive/file/${b.oneDriveFileId}/content`;
+              
   useEffect(() => {
     if (bannerId) {
       getBannerById(Number(bannerId)).then(async (data) => {
