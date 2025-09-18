@@ -1,60 +1,65 @@
 import { lazy } from 'react';
 
 // project-imports
-import Loadable from 'components/Loadable';
-import { SimpleLayoutType } from 'config';
-import DashboardLayout from 'layout/Dashboard';
-import PagesLayout from 'layout/Pages';
-import SimpleLayout from 'layout/Simple';
-import DashboardDefault from 'pages/dashboard/default';
-import DashboardAnalytics from 'pages/dashboard/analytics';
-import DashboardFinance from 'pages/dashboard/finance';
+import Loadable from '../components/Loadable';
+import { SimpleLayoutType } from '../config';
+import DashboardLayout from '../layout/Dashboard';
+import PagesLayout from '../layout/Pages';
+import SimpleLayout from '../layout/Simple';
+import DashboardDefault from '../pages/dashboard/default';
+import DashboardAnalytics from '../pages/dashboard/analytics';
+import DashboardFinance from '../pages/dashboard/finance';
 
 // pages routing
-const MaintenanceError = Loadable(lazy(() => import('pages/maintenance/error/404')));
-const MaintenanceError500 = Loadable(lazy(() => import('pages/maintenance/error/500')));
-const MaintenanceUnderConstruction = Loadable(lazy(() => import('pages/maintenance/under-construction/under-construction')));
-const MaintenanceUnderConstruction2 = Loadable(lazy(() => import('pages/maintenance/under-construction/under-construction2')));
-const MaintenanceComingSoon = Loadable(lazy(() => import('pages/maintenance/coming-soon/coming-soon')));
-const MaintenanceComingSoon2 = Loadable(lazy(() => import('pages/maintenance/coming-soon/coming-soon2')));
+const MaintenanceError = Loadable(lazy(() => import('../pages/maintenance/error/404')));
+const MaintenanceError500 = Loadable(lazy(() => import('../pages/maintenance/error/500')));
+const MaintenanceUnderConstruction = Loadable(lazy(() => import('../pages/maintenance/under-construction/under-construction')));
+const MaintenanceUnderConstruction2 = Loadable(lazy(() => import('../pages/maintenance/under-construction/under-construction2')));
+const MaintenanceComingSoon = Loadable(lazy(() => import('../pages/maintenance/coming-soon/coming-soon')));
+const MaintenanceComingSoon2 = Loadable(lazy(() => import('../pages/maintenance/coming-soon/coming-soon2')));
 
 
 // pages users
-const AppUserList = Loadable(lazy(() => import('pages/apps/user/list')));
-const AppUserCard = Loadable(lazy(() => import('pages/apps/user/card')));
+const AppUserList = Loadable(lazy(() => import('../pages/apps/user/list')));
+const AppUserCard = Loadable(lazy(() => import('../pages/apps/user/card')));
 
 // pages banners
-const AppBannersList = Loadable(lazy(() => import('pages/apps/banners/list')));
+const AppBannersList = Loadable(lazy(() => import('../pages/apps/banners/list')));
+
+// pages non-conformities
+const AppNonConformities = Loadable(lazy(() => import('../pages/apps/non-conformities')));
 
 // pages roles
-const AppRoleTypesList = Loadable(lazy(() => import('pages/apps/role-types/list')));
+const AppRoleTypesList = Loadable(lazy(() => import('../pages/apps/role-types/list')));
+const AppRolePermissionsDemo = Loadable(lazy(() => import('../pages/apps/role-types/permissions-demo')));
 
 // pages tickets
-const AppTicketList = Loadable(lazy(() => import('pages/apps/ticket/list')));
-const AppTicketDashboard = Loadable(lazy(() => import('pages/apps/ticket/dashboard')));
-const AppTicketCreate = Loadable(lazy(() => import('pages/apps/ticket/create')));
-const AppTicketDetails = Loadable(lazy(() => import('pages/apps/ticket/details')));
-const AppTicketEdit = Loadable(lazy(() => import('pages/apps/ticket/edit')));
+const AppTicketList = Loadable(lazy(() => import('../pages/apps/ticket/list')));
+const AppTicketDashboard = Loadable(lazy(() => import('../pages/apps/ticket/dashboard')));
+const AppTicketCreate = Loadable(lazy(() => import('../pages/apps/ticket/create')));
+const AppTicketDetails = Loadable(lazy(() => import('../pages/apps/ticket/details')));
+const AppTicketEdit = Loadable(lazy(() => import('../pages/apps/ticket/edit')));
+const AppTicketFeedback = Loadable(lazy(() => import('../pages/apps/ticket/feedback')));
 
 // render - sample page
-const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
-const ContactUS = Loadable(lazy(() => import('pages/contact-us')));
+const SamplePage = Loadable(lazy(() => import('../pages/extra-pages/sample-page')));
+const ContactUS = Loadable(lazy(() => import('../pages/contact-us')));
 
 // ==============================|| MAIN ROUTES ||============================== //
-const UserProfile = Loadable(lazy(() => import('pages/apps/profiles/user')));
+const UserProfile = Loadable(lazy(() => import('../pages/apps/profiles/user')));
 // const UserTabPersonal = Loadable(lazy(() => import('sections/apps/profiles/user/TabPersonal')));
 // const UserTabPayment = Loadable(lazy(() => import('sections/apps/profiles/user/TabPayment')));
 // const UserTabPassword = Loadable(lazy(() => import('sections/apps/profiles/user/TabPassword')));
 // const UserTabSettings = Loadable(lazy(() => import('sections/apps/profiles/user/TabSettings')));
 
-const AccountProfile = Loadable(lazy(() => import('pages/apps/profiles/account')));
-const AccountTabProfile = Loadable(lazy(() => import('sections/apps/profiles/account/TabProfile')));
-const AccountTabPersonal = Loadable(lazy(() => import('sections/apps/profiles/account/TabPersonal')));
-const AccountTabAccount = Loadable(lazy(() => import('sections/apps/profiles/account/TabAccount')));
-const AccountTabPassword = Loadable(lazy(() => import('sections/apps/profiles/account/TabPassword')));
-const AccountTabRole = Loadable(lazy(() => import('sections/apps/profiles/account/TabRole')));
-const AccountTabSettings = Loadable(lazy(() => import('sections/apps/profiles/account/TabSettings')));
-const AccountTabEmoji = Loadable(lazy(() => import('sections/apps/profiles/account/TabEmoji')));
+const AccountProfile = Loadable(lazy(() => import('../pages/apps/profiles/account')));
+const AccountTabProfile = Loadable(lazy(() => import('../sections/apps/profiles/account/TabProfile')));
+const AccountTabPersonal = Loadable(lazy(() => import('../sections/apps/profiles/account/TabPersonal')));
+const AccountTabAccount = Loadable(lazy(() => import('../sections/apps/profiles/account/TabAccount')));
+const AccountTabPassword = Loadable(lazy(() => import('../sections/apps/profiles/account/TabPassword')));
+const AccountTabRole = Loadable(lazy(() => import('../sections/apps/profiles/account/TabRole')));
+const AccountTabSettings = Loadable(lazy(() => import('../sections/apps/profiles/account/TabSettings')));
+const AccountTabEmoji = Loadable(lazy(() => import('../sections/apps/profiles/account/TabEmoji')));
 
 
 const MainRoutes = {
@@ -119,6 +124,10 @@ const MainRoutes = {
                   element: <AppTicketDetails />
                 },
                 {
+                  path: 'feedback/:id',
+                  element: <AppTicketFeedback />
+                },
+                {
                   path: 'edit/:id',
                   element: <AppTicketEdit />
                 }
@@ -131,6 +140,11 @@ const MainRoutes = {
                   path: 'list',
                   element: <AppRoleTypesList />
                 }
+                ,
+                {
+                  path: 'permissions-demo',
+                  element: <AppRolePermissionsDemo />
+                }
               ]
             },
             {
@@ -139,6 +153,15 @@ const MainRoutes = {
                 {
                   path: 'list',
                   element: <AppBannersList />
+                }
+              ]
+            },
+            {
+              path: 'non-conformities',
+              children: [
+                {
+                  path: '',
+                  element: <AppNonConformities />
                 }
               ]
             },

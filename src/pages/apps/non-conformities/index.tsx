@@ -3,15 +3,19 @@ import useSWR from 'swr';
 import { fetcher } from 'utils/axios';
 import NonConformitiesTable from '../../../components/nonConformities/NonConformitiesTable';
 import NonConformityForm from '../../../components/nonConformities/NonConformityForm';
-import { createNonConformity, deleteNonConformity, updateNonConformity } from '../../../api/nonConformities';
+import { createNonConformity, deleteNonConformity, updateNonConformity, useGetNonConformities } from '../../../api/nonConformities';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import CircularProgress from '@mui/material/CircularProgress';
 
 export default function NonConformitiesPage() {
-  const { data, error, mutate } = useSWR('/non-conformities', fetcher);
+  const { items: data, loading, error, mutate } = useGetNonConformities();
   const [editing, setEditing] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
 
   if (error) return <div>Error loading</div>;
-  if (!data) return <div>Loading...</div>;
+  if (loading) return <div style={{ padding: 24 }}><CircularProgress /></div>;
 
   const handleCreate = async (payload: any) => {
     await createNonConformity(payload);
@@ -26,6 +30,8 @@ export default function NonConformitiesPage() {
   };
 
   const handleDelete = async (id: number) => {
+    const ok = window.confirm('¿Seguro que desea eliminar este registro?');
+    if (!ok) return;
     await deleteNonConformity(id);
     mutate();
   };
@@ -42,17 +48,23 @@ export default function NonConformitiesPage() {
         onDelete={id => handleDelete(id)}
       />
 
-      {creating && (
-        <div style={{ marginTop: 16 }}>
+      <Dialog open={creating} onClose={() => setCreating(false)} fullWidth maxWidth="md">
+        <DialogTitle>New Non Conformity</DialogTitle>
+        <DialogContent>
           <NonConformityForm onSave={handleCreate} onCancel={() => setCreating(false)} />
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
-      {editing && (
-        <div style={{ marginTop: 16 }}>
-          <NonConformityForm initial={editing} onSave={(payload) => handleUpdate(editing.id, payload)} onCancel={() => setEditing(null)} />
-        </div>
-      )}
+      <Dialog open={Boolean(editing)} onClose={() => setEditing(null)} fullWidth maxWidth="md">
+        <DialogTitle>Edit Non Conformity</DialogTitle>
+        <DialogContent>
+          {editing ? (
+            <NonConformityForm initial={editing} onSave={(payload) => handleUpdate(editing.id, payload)} onCancel={() => setEditing(null)} />
+          ) : (
+            <div style={{ padding: 24 }}><CircularProgress /></div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

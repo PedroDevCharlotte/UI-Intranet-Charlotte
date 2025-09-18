@@ -16,7 +16,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
 // third-party
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 // project-imports
 import NavItem from './NavItem';
@@ -101,6 +101,8 @@ export default function NavGroup({
   const [currentItem, setCurrentItem] = useState(item);
 
   const openMini = Boolean(anchorEl);
+  const intl = useIntl();
+  const hasMessage = (key?: string) => !!key && !!((intl && (intl as any).messages && (intl as any).messages[key]));
 
   useEffect(() => {
     if (lastItem) {
@@ -271,7 +273,7 @@ export default function NavGroup({
                 drawerOpen &&
                 menuCaption && (
                   <Box sx={{ pl: 3, mb: 1.5 }}>
-                    <Typography
+                      <Typography
                       variant="h5"
                       sx={(theme) => ({
                         textTransform: 'uppercase',
@@ -280,11 +282,11 @@ export default function NavGroup({
                         ...theme.applyStyles('dark', { color: 'text.secondary' })
                       })}
                     >
-                      <FormattedMessage id={item.title} />
+                      {hasMessage(item.title) ? <FormattedMessage id={item.title} /> : String(item.title)}
                     </Typography>
                     {item.caption && (
                       <Typography variant="caption" color="secondary">
-                        <FormattedMessage id={item.caption} />
+                        {hasMessage(item.caption) ? <FormattedMessage id={item.caption} /> : String(item.caption)}
                       </Typography>
                     )}
                   </Box>

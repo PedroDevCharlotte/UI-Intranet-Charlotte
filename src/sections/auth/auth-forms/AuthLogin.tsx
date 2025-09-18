@@ -78,7 +78,6 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
             
             const { requires2FA, register2FA } = await login(trimmedEmail, values.password);
 
-            console.log('Login successful', scriptedRef);
             if (scriptedRef.current) {
               setStatus({ success: true });
               setSubmitting(false);

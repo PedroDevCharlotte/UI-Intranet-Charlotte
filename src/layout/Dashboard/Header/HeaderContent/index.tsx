@@ -48,7 +48,6 @@ export default function HeaderContent() {
     }
     setPageTitle(findTitle(navigation.items, location.pathname) || document.title || 'Favorito');
   }, [location.pathname]);
-  console.log("Page title", pageTitle);
   return (
     <>
       {menuOrientation === MenuOrientation.HORIZONTAL && !downLG && <DrawerHeader open={true} />}

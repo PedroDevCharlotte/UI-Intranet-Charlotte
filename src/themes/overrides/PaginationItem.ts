@@ -3,7 +3,7 @@ import { Theme } from '@mui/material/styles';
 import { PaginationProps } from '@mui/material/Pagination';
 
 // project-imports
-import getColors from 'utils/getColors';
+import getColors from '../../utils/getColors';
 
 // types
 import { ExtendedStyleProps } from 'types/extended';

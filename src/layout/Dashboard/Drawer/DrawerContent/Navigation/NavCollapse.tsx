@@ -29,7 +29,7 @@ import useConfig from 'hooks/useConfig';
 import useMenuCollapse from 'hooks/useMenuCollapse';
 
 // third-party
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 // assets
 import { ArrowDown2, ArrowUp2, ArrowRight2, Copy } from 'iconsax-react';
@@ -209,6 +209,9 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
   const lightTextColor = selectedTextColor || 'secondary.main';
   const darkTextColor = selectedTextColor || 'secondary.400';
 
+  const intl = useIntl();
+  const hasMessage = (key?: string) => !!key && !!((intl && (intl as any).messages && (intl as any).messages[key]));
+
   const arrowStyle = { size: 12, style: { marginLeft: 1 } };
 
   return (
@@ -290,13 +293,13 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
                       ...theme.applyStyles('dark', { color: darkTextColor })
                     })}
                   >
-                    <FormattedMessage id={menu.title} />
+                    {hasMessage(menu.title) ? <FormattedMessage id={menu.title} /> : String(menu.title)}
                   </Typography>
                 }
                 secondary={
                   menu.caption && (
                     <Typography variant="caption" color="secondary">
-                      <FormattedMessage id={menu.caption} />
+                      {hasMessage(menu.caption) ? <FormattedMessage id={menu.caption} /> : String(menu.caption)}
                     </Typography>
                   )
                 }
@@ -352,9 +355,11 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
                       })}
                     >
                       <ClickAwayListener onClickAway={handleClose}>
-                        <SimpleBar sx={{ overflowX: 'hidden', overflowY: 'auto', maxHeight: 'calc(100vh - 170px)' }}>
-                          {navCollapse}
-                        </SimpleBar>
+                        <div>
+                          <SimpleBar sx={{ overflowX: 'hidden', overflowY: 'auto', maxHeight: 'calc(100vh - 170px)' }}>
+                            {navCollapse}
+                          </SimpleBar>
+                        </div>
                       </ClickAwayListener>
                     </Paper>
                   </Transitions>
@@ -454,7 +459,9 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
                     })}
                   >
                     <ClickAwayListener onClickAway={handleClose}>
-                      <SimpleBar sx={{ overflowX: 'hidden', overflowY: 'auto', maxHeight: 'calc(100vh - 170px)' }}>{navCollapse}</SimpleBar>
+                      <div>
+                        <SimpleBar sx={{ overflowX: 'hidden', overflowY: 'auto', maxHeight: 'calc(100vh - 170px)' }}>{navCollapse}</SimpleBar>
+                      </div>
                     </ClickAwayListener>
                   </Paper>
                 </Transitions>

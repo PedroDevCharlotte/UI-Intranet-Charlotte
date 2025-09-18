@@ -4,8 +4,8 @@ import { useMemo } from 'react';
 import useSWR, { mutate } from 'swr';
 
 // project-imports
-import { fetcher  }  from 'utils/axios';
-import axios  from 'utils/axios';
+import { fetcher  }  from '../utils/axios';
+import axios  from '../utils/axios';
 
 // types
 import { UserList, UserProps } from 'types/user';
@@ -632,12 +632,7 @@ export async function getUserSessions(userId: number, limit: number = 20) {
 
 export async function getActiveSessions() {
   try {
-    console.log('Obteniendo sesiones activas');
-    
-    const response = await axios.get(endpoints.activeSessions, getRequestConfig());
-    
-    console.log(`Respuesta del servidor (getActiveSessions):`, response.status, response.data);
-    
+    const response = await axios.get(endpoints.activeSessions, getRequestConfig());    
     if ([200, 201].indexOf(response.status) === -1) {
       throw new Error(`Error al obtener sesiones activas. Status: ${response.status}`);
     }

@@ -9,7 +9,7 @@ const endpoints = {
 };
 
 export function useGetNonConformities() {
-  const { data, error, isLoading } = useSWR(endpoints.key + '?limit=1000', fetcher, {
+  const { data, error, isLoading, mutate } = useSWR(endpoints.key , fetcher, {
     revalidateIfStale: false,
     revalidateOnFocus: false,
     revalidateOnReconnect: false
@@ -18,14 +18,15 @@ export function useGetNonConformities() {
   return {
     items: (data ?? []) as any[],
     loading: isLoading,
-    error
+    error,
+    mutate
   };
 }
 
 export async function createNonConformity(payload: any) {
   try {
     const response = await axiosServices.post(endpoints.base, payload);
-    mutate(endpoints.key + '?limit=1000');
+    mutate(endpoints.key );
     return response.data;
   } catch (err: any) {
     if (err.response?.data) throw err.response.data;
@@ -36,7 +37,7 @@ export async function createNonConformity(payload: any) {
 export async function updateNonConformity(id: number, payload: any) {
   try {
     const response = await axiosServices.put(`${endpoints.base}/${id}`, payload);
-    mutate(endpoints.key + '?limit=1000');
+    mutate(endpoints.key );
     mutate(`${endpoints.base}/${id}`);
     return response.data;
   } catch (err: any) {

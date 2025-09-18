@@ -100,18 +100,20 @@ export default function MobileSection() {
           <Transitions type="fade" in={open} {...TransitionProps}>
             <Paper sx={(theme) => ({ boxShadow: theme.customShadows.z1 })}>
               <ClickAwayListener onClickAway={handleClose}>
-                <AppBar color="inherit">
-                  <Toolbar>
-                    <Search />
-                    <Localization />
-                    <Profile />
-                    <AddToFavoritesButton
-                      title={pageTitle}
-                      url={typeof window !== 'undefined' ? window.location.href : ''}
-                      description={`Acceso directo a ${pageTitle}`}
-                    />
-                  </Toolbar>
-                </AppBar>
+                <div>
+                  <AppBar color="inherit">
+                    <Toolbar>
+                      <Search />
+                      <Localization />
+                      <Profile />
+                      <AddToFavoritesButton
+                        title={pageTitle}
+                        url={typeof window !== 'undefined' ? window.location.href : ''}
+                        description={`Acceso directo a ${pageTitle}`}
+                      />
+                    </Toolbar>
+                  </AppBar>
+                </div>
               </ClickAwayListener>
             </Paper>
           </Transitions>

@@ -92,7 +92,8 @@ export default function MegaMenuSection() {
               })}
             >
               <ClickAwayListener onClickAway={handleClose}>
-                <MainCard elevation={0} border={false} content={false}>
+                <div>
+                  <MainCard elevation={0} border={false} content={false}>
                   <Grid container>
                     <Grid
                       size={4}
@@ -284,7 +285,8 @@ export default function MegaMenuSection() {
                       </Box>
                     </Grid>
                   </Grid>
-                </MainCard>
+                  </MainCard>
+                </div>
               </ClickAwayListener>
             </Paper>
           </Transitions>

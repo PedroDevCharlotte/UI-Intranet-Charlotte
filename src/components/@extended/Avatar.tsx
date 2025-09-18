@@ -5,7 +5,7 @@ import { alpha, styled } from '@mui/material/styles';
 import MuiAvatar, { AvatarProps } from '@mui/material/Avatar';
 
 // project-imports
-import getColors from 'utils/getColors';
+import getColors from '../../utils/getColors';
 
 // types
 import { AvatarTypeProps, ColorProps, ExtendedStyleProps, SizeProps } from 'types/extended';

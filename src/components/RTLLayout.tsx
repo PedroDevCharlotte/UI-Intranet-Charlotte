@@ -8,8 +8,8 @@ import createCache, { StylisPlugin } from '@emotion/cache';
 import rtlPlugin from 'stylis-plugin-rtl';
 
 // project-imports
-import { ThemeDirection } from 'config';
-import useConfig from 'hooks/useConfig';
+import { ThemeDirection } from '../config';
+import useConfig from '../hooks/useConfig';
 
 interface Props {
   children: ReactNode;

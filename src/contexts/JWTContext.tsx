@@ -5,17 +5,18 @@ import { Chance } from 'chance';
 import { jwtDecode } from 'jwt-decode';
 
 // reducer - state management
-import { LOGIN, LOGOUT } from 'contexts/auth-reducer/actions';
-import authReducer from 'contexts/auth-reducer/auth';
+// project-imports
+import { LOGIN, LOGOUT } from '../contexts/auth-reducer/actions';
+import authReducer from '../contexts/auth-reducer/auth';
 
 // project-imports
-import Loader from 'components/Loader';
-import axios from 'utils/axios';
-import { logoutUser } from 'api/user';
+import Loader from '../components/Loader';
+import axios from '../utils/axios';
+import { logoutUser } from '../api/user';
 
 // types
-import { AuthProps, JWTContextType } from 'types/auth';
-import { KeyedObject } from 'types/root';
+import { AuthProps, JWTContextType } from '../types/auth';
+import { KeyedObject } from '../types/root';
 import { r } from 'react-router/dist/development/fog-of-war-DLtn2OLr';
 
 const chance = new Chance();
@@ -177,7 +178,6 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
   const verify2FA = async (code: string) => {
     const response = await axios.post('/auth/2fa/verify', { userId: state?.user?.id, token: code });
     const { access_token, user, register2FA, requires2FA } = response.data;
-    console.log('2FA verification response serviceToken:', access_token);
     setSession(access_token);
     dispatch({
       type: LOGIN,
@@ -217,15 +217,12 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
 
   const enable2FA = async (token: string) => {
     const tokenAutorization = axios.defaults.headers.common.Authorization;
-    console.log('Enabling 2FA with code:', token, tokenAutorization);
-    console.log('Axios', axios.defaults);
-    console.log('estate', state);
+
     let response;
     try {
       response = await axios.post('/auth/2fa/enable', { token, userId: state.user?.id });
       response = response.data;
       if (!response.isError) {
-        console.log('2FA enabled successfully:', response);
         const { access_token, user, register2FA, requires2FA, isFirstLogin } = response;
         setSession(access_token);
         dispatch({
@@ -292,7 +289,6 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
         newPassword
       });
       const { access_token, user, register2FA, requires2FA } = response.data;
-      console.log('Change first password response serviceToken:', access_token);
       if (!access_token) {
         throw new Error('No se recibió el token de acceso');
       }

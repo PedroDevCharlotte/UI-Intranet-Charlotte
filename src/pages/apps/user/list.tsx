@@ -1,4 +1,4 @@
-import { useMemo, useState, Fragment, MouseEvent } from 'react';
+import { useMemo, useState, Fragment, MouseEvent, useContext } from 'react';
 
 // material-ui
 import { alpha } from '@mui/material/styles';
@@ -66,23 +66,24 @@ import { UserList } from 'types/user';
 
 // assets
 import { Add, Edit, Eye, Global, Lock1, SecuritySafe, Ticket, Trash, Shield, People, Monitor } from 'iconsax-react';
+import usePermissions from 'hooks/usePermissions';
 
 interface Props {
   columns: ColumnDef<UserList>[];
   data: UserList[];
   modalToggler: () => void;
+  hasPerm: (p: string) => boolean;
 }
 
 // ==============================|| REACT TABLE - LIST ||============================== //
 
-function ReactTable({ data, columns, modalToggler }: Props) {
+function ReactTable({ data, columns, modalToggler, hasPerm }: Props) {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: false }]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState('');
   const sortBy = { id: 'id', desc: false };
   const [statusFilter, setStatusFilter] = useState<string | number>('');
-  console.log('data in list', data);
   const filteredData = useMemo(() => {
     if (statusFilter === '') return data;
     if (statusFilter === 1) return data.filter((user) => user.active == true);
@@ -154,21 +155,25 @@ function ReactTable({ data, columns, modalToggler }: Props) {
             <MenuItem value={0}>Inactivo</MenuItem>
           </Select>
           {/* <SelectColumnSorting sortBy={sortBy.id} {...{ getState: table.getState, getAllColumns: table.getAllColumns, setSorting }} /> */}
-          <Stack direction="row" sx={{ gap: 2, alignItems: 'center' }}>
-            <Button variant="contained" startIcon={<Add />} onClick={modalToggler} size="large">
-              Agregar usuario
-            </Button>
-            <CSVExport
-              {...{
-                data:
-                  table.getSelectedRowModel().flatRows.map((row) => row.original).length === 0
-                    ? data
-                    : table.getSelectedRowModel().flatRows.map((row) => row.original),
-                headers,
-                filename: 'lista-usuarios.csv'
-              }}
-            />
-          </Stack>
+            <Stack direction="row" sx={{ gap: 2, alignItems: 'center' }}>
+              {hasPerm('user.create') && (
+                <Button variant="contained" startIcon={<Add />} onClick={modalToggler} size="large">
+                  Agregar usuario
+                </Button>
+              )}
+              {hasPerm('user.exportList') && (
+                <CSVExport
+                  {...{
+                    data:
+                      table.getSelectedRowModel().flatRows.map((row) => row.original).length === 0
+                        ? data
+                        : table.getSelectedRowModel().flatRows.map((row) => row.original),
+                    headers,
+                    filename: 'lista-usuarios.csv'
+                  }}
+                />
+              )}
+            </Stack>
         </Stack>
       </Stack>
       <Stack>
@@ -256,6 +261,7 @@ function ReactTable({ data, columns, modalToggler }: Props) {
 
 export default function UserListPage() {
   const { usersLoading: loading, users: lists } = useGetUser();
+  const { hasPerm } = usePermissions();
 
   const [open, setOpen] = useState<boolean>(false);
   const { roles, rolesLoading } = useGetRoles();
@@ -411,93 +417,105 @@ export default function UserListPage() {
             );
           return (
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Tooltip title="Editar">
-                <IconButton
-                  color="primary"
-                  sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
-                  onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                    e.stopPropagation();
-                    setSelectedUser(row.original);
-                    setUserModal(true);
-                  }}
-                >
-                  <Edit />
-                </IconButton>
-              </Tooltip>
-              
-              <Tooltip title="Eliminar">
-                <IconButton
-                  sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
-                  color="error"
-                  onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                    e.stopPropagation();
-                    setUserDeleteId(Number(row.original.id));
-                    handleClose();
-                  }}
-                >
-                  <Trash />
-                </IconButton>
-              </Tooltip>
+              {hasPerm('user.update') && (
+                <Tooltip title="Editar">
+                  <IconButton
+                    color="primary"
+                    sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
+                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                      e.stopPropagation();
+                      setSelectedUser(row.original);
+                      setUserModal(true);
+                    }}
+                  >
+                    <Edit />
+                  </IconButton>
+                </Tooltip>
+              )}
 
-              <Tooltip title="Deshabilitar 2FA">
-                <IconButton
-                  sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
-                  color="warning"
-                  onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                    e.stopPropagation();
-                    setSelectedUserId(Number(row.original.id));
-                    setSelectedUserName(row.original.name || row.original.email || 'Usuario');
-                    handleDisable2FAClose();
-                  }}
-                >
-                  <Shield />
-                </IconButton>
-              </Tooltip>
-              
-              <Tooltip title="Asignar Equipo de Trabajo">
-                <IconButton
-                  sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
-                  color="secondary"
-                  onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                    e.stopPropagation();
-                    setSelectedUserId(Number(row.original.id));
-                    setSelectedUserName(row.original.name || row.original.email || 'Usuario');
-                    handleAssignTeamClose();
-                  }}
-                >
-                  <People />
-                </IconButton>
-              </Tooltip>
-              
-              <Tooltip title="Historial de Cambios">
-                <IconButton
-                  sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
-                  color="primary"
-                  onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                    e.stopPropagation();
-                    setSelectedUserId(Number(row.original.id));
-                    setSelectedUserName(row.original.name || row.original.email || 'Usuario');
-                    handleHistoryModalClose();
-                  }}
-                >
-                  <Global />
-                </IconButton>
-              </Tooltip>
+              {hasPerm('user.delete') && (
+                <Tooltip title="Eliminar">
+                  <IconButton
+                    sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
+                    color="error"
+                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                      e.stopPropagation();
+                      setUserDeleteId(Number(row.original.id));
+                      handleClose();
+                    }}
+                  >
+                    <Trash />
+                  </IconButton>
+                </Tooltip>
+              )}
 
-              <Tooltip title="Historial de Sesiones">
-                <IconButton
-                  sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
-                  color="info"
-                  onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                    e.stopPropagation();
-                    setSelectedUserId(Number(row.original.id));
-                    setSelectedUserName(row.original.name || row.original.email || 'Usuario');
-                    handleSessionsModalClose();
-                  }}
-                >
-                  <Monitor />
-                </IconButton>
-              </Tooltip>
+              {hasPerm('user.disable2FA') && (
+                <Tooltip title="Deshabilitar 2FA">
+                  <IconButton
+                    sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
+                    color="warning"
+                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                      e.stopPropagation();
+                      setSelectedUserId(Number(row.original.id));
+                      setSelectedUserName(row.original.name || row.original.email || 'Usuario');
+                      handleDisable2FAClose();
+                    }}
+                  >
+                    <Shield />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              {hasPerm('user.assignWorkTeam') && (
+                <Tooltip title="Asignar Equipo de Trabajo">
+                  <IconButton
+                    sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
+                    color="secondary"
+                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                      e.stopPropagation();
+                      setSelectedUserId(Number(row.original.id));
+                      setSelectedUserName(row.original.name || row.original.email || 'Usuario');
+                      handleAssignTeamClose();
+                    }}
+                  >
+                    <People />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              {hasPerm('user.viewHistoryChanges') && (
+                <Tooltip title="Historial de Cambios">
+                  <IconButton
+                    sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
+                    color="primary"
+                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                      e.stopPropagation();
+                      setSelectedUserId(Number(row.original.id));
+                      setSelectedUserName(row.original.name || row.original.email || 'Usuario');
+                      handleHistoryModalClose();
+                    }}
+                  >
+                    <Global />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              {hasPerm('user.viewSessionHistory') && (
+                <Tooltip title="Historial de Sesiones">
+                  <IconButton
+                    sx={(theme) => ({ ':hover': { ...theme.applyStyles('dark', { color: 'text.primary' }) } })}
+                    color="info"
+                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                      e.stopPropagation();
+                      setSelectedUserId(Number(row.original.id));
+                      setSelectedUserName(row.original.name || row.original.email || 'Usuario');
+                      handleSessionsModalClose();
+                    }}
+                  >
+                    <Monitor />
+                  </IconButton>
+                </Tooltip>
+              )}
             </Stack>
           );
         }
@@ -518,7 +536,8 @@ export default function UserListPage() {
           modalToggler: () => {
             setUserModal(true);
             setSelectedUser(null);
-          }
+          },
+          hasPerm
         }}
       />
       <AlertUserDelete id={Number(userDeleteId)} title={userDeleteId} open={open} handleClose={handleClose} />

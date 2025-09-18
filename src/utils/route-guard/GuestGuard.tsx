@@ -21,7 +21,6 @@ export default function GuestGuard({ children }: GuardProps) {
 
     if (isLoggedIn && !requires2FA && !register2FA && !isFirstLogin) {
 
-      console.log('User is logged in, redirecting to default path', APP_DEFAULT_PATH, location?.state?.from);
       navigate(location?.state?.from ? location?.state?.from : APP_DEFAULT_PATH, {
         state: { from: '' },
         replace: true

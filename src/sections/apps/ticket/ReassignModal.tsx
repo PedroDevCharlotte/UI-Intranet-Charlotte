@@ -37,7 +37,6 @@ export default function ReassignModal({ open, onClose, onSubmit, userOptions, in
       user: Yup.number().required('Selecciona un usuario')
     }),
     onSubmit: (values, { resetForm }) => {
-      console.log('Reassigning ticket to user:', values.user);
       if (!values.user) {
         return;
       }

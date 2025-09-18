@@ -67,7 +67,6 @@ const AddTicketModal = ({ open, onClose, onSubmit }: AddTicketModalProps) => {
   const { ticketTypes, ticketTypesLoading, ticketTypesError } = useGetTicketTypes(true);
   const { users } = useGetUser();
   const { user: currentUser } = useAuth();
-  console.log('User from context:', currentUser);
   // State for selected ticket type ID
   const [selectedTicketTypeCode, setSelectedTicketTypeCode] = useState<string | null>(null);
 

@@ -14,10 +14,7 @@ export default function AuthGuard({ children }: GuardProps) {
   const { isLoggedIn, requires2FA, register2FA, isFirstLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  console.log('AuthGuard isLoggedIn:', isLoggedIn);
-  console.log('AuthGuard requires2FA:', requires2FA);
-  console.log('AuthGuard register2FA:', register2FA);
-  console.log('AuthGuard isFirstLogin:', isFirstLogin);
+  
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/login', { state: { from: location.pathname }, replace: true });

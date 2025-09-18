@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
-import { ArrowRight } from 'iconsax-react';
+import { ArrowRight, Cards } from 'iconsax-react';
 import Grid from '@mui/material/Grid2';
 import MainCard from 'components/MainCard';
 import TicketCard from 'components/cards/ticket/TicketCard';
@@ -132,7 +132,8 @@ export default function TicketsWidget() {
                     isLoss={false}
                     ticket={''}
                     color={theme.palette.primary.main}
-                  > 
+                    status={''}
+                  >
                     <Stack direction="column" sx={{ gap: 1 }}>
                       <Typography variant="body2" color="error">Abiertos: {advisor.counts.OPEN || 0}</Typography>
                       <Typography variant="body2" color="warning.main">En Proceso: {advisor.counts.IN_PROGRESS || 0}</Typography>
@@ -167,7 +168,7 @@ export default function TicketsWidget() {
     <Grid size={{ xs: 12, md: 12 }}>
       <Grid container direction="row" spacing={2}>
         {widgetsData.map((widget: TicketWidgets, index: number) => (
-          <Grid key={index} size={{ xs: 12, sm: 3 }}>
+          <Grid key={index} size={{ xs: 12, sm: 2 }}>
             <MainCard>
               <TicketCard
                 title={widget.title}
@@ -175,14 +176,16 @@ export default function TicketsWidget() {
                 percentage={widget.percentage}
                 isLoss={widget.isLoss}
                 ticket=""
-                color={widget.color.main}
+                color={widget.color}
+                
+                status={widget.status || ''}
               >
                 {/* <TicketChart color={widget.color} data={widget.chartData} /> */}
                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                   {!window.location.pathname.includes('/apps/ticket/list') && (
                     <Button
                       variant="contained"
-                      color="primary"
+                      color="info"
                       size="small"
                       endIcon={<ArrowRight size={18} style={{ marginLeft: 4 }} />}
                       sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none', boxShadow: 1 }}
@@ -196,7 +199,7 @@ export default function TicketsWidget() {
             </MainCard>
           </Grid>
         ))}
-        <Grid size={{ xs: 12, md: 3 }} sx={{ mt: 2 }}>
+        <Grid size={{ xs: 12, md: 2 }} sx={{ mt: 2 }}>
           <Box
             sx={(themeParam) => ({
               p: 1.75,
@@ -209,7 +212,7 @@ export default function TicketsWidget() {
             <Stack direction="row" sx={{ gap: 1, alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap' }}>
               <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
                 <Avatar alt="Tickets" variant="rounded" type="filled" sx={{ color: 'inherit' }}>
-                  <ProfileTick style={{ fontSize: '20px' }} />
+                  <Cards style={{ fontSize: '20px' }} />
                 </Avatar>
                 <Box>
                   <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
@@ -221,10 +224,10 @@ export default function TicketsWidget() {
                   </Stack>
                 </Box>
               </Stack>
-              <Stack direction="row" sx={{ gap: 1 }}>
+              {/* <Stack direction="row" sx={{ gap: 1 }}>
                 <Typography variant="body2">Cerrados</Typography>
                 <Typography variant="body1">{totalClosed || 0}</Typography>
-              </Stack>
+              </Stack> */}
             </Stack>
             {/* <Box sx={{ maxWidth: '100%', '& .MuiTypography-root': { color: 'inherit' } }}>
               <LinearWithLabel value={((totalClosed / dataStatistics.total) * 100) || 0} />

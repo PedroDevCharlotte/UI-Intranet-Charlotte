@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { IntlProvider, MessageFormatElement } from 'react-intl';
 
 // project-imports
-import useConfig from 'hooks/useConfig';
+import useConfig from '../hooks/useConfig';
 
 // types
 import { I18n } from 'types/config';
@@ -13,16 +13,16 @@ import { I18n } from 'types/config';
 const loadLocaleData = (locale: I18n) => {
   switch (locale) {
     case 'fr':
-      return import('utils/locales/fr.json');
+      return import('../utils/locales/fr.json');
     case 'ro':
-      return import('utils/locales/ro.json');
+      return import('../utils/locales/ro.json');
     case 'zh':
-      return import('utils/locales/zh.json');
+      return import('../utils/locales/zh.json');
     case 'es':
-      return import('utils/locales/es.json');
+      return import('../utils/locales/es.json');
     case 'en':
     default:
-      return import('utils/locales/en.json');
+      return import('../utils/locales/en.json');
   }
 };
 

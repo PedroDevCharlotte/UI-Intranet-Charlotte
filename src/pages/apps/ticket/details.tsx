@@ -49,6 +49,7 @@ import { SnackbarProps } from 'types/snackbar';
 import { TicketList, User, TicketType, Department, TicketMessage, TicketAttachment } from 'types/ticket';
 import { useGetTicketById, useGetTicketMaster, downloadTicketAttachment, updateTicketStatus, closeTicket, updateTicket } from 'api/ticket';
 import { useGetUser } from 'api/user';
+import usePermissions from 'hooks/usePermissions';
 import useAuth from 'hooks/useAuth';
 
 // ==============================|| TICKET - DETAILS ||============================== //
@@ -82,13 +83,12 @@ export default function TicketDetails() {
   };
 
   const { ticketTypeId, assignedTo } = ticketData || {};
-  console.log('ticketTypeId:', ticketTypeId, 'assignedTo:', assignedTo);
   const resolveUsersAttentsTiketByType = useResolveUsersAttentsTiketByType(ticketData?.ticketTypeId || 0, ticketData?.assignedTo || 0);
-  console.log('resolveUsersAttentsTiketByType en el modal:', resolveUsersAttentsTiketByType);
 
-  // Obtener usuario actual
+  // Permisos de usuario
+  const { hasPerm } = usePermissions();
+  // Usuario actual (necesario para lógica de cambio de estado)
   const { user: currentUser } = useAuth();
-
   // Evitar ejecutar la actualización varias veces
   const updatedRef = useRef(false);
 
@@ -395,28 +395,36 @@ export default function TicketDetails() {
                     <>
                       {ticketData.status !== 'CLOSED' && ticketData.status !== 'CANCELLED' && ticketData.status !== 'COMPLETED' && (
                         <>
-                          <Button variant="contained" color="primary" sx={{ mb: 2 }} onClick={() => setOpenModal(true)}>
-                            Nuevo Mensaje
-                          </Button>
+                          {hasPerm('tickets.sendMessage') && (
+                            <Button variant="contained" color="primary" sx={{ mb: 2 }} onClick={() => setOpenModal(true)}>
+                              Nuevo Mensaje
+                            </Button>
+                          )}
                           {/* <Button variant="outlined" onClick={handleEdit}>
                             Editar
                           </Button> */}
-                          <Button variant="outlined" onClick={() => setOpenCloseModal(true)}>
-                            Cerrar ticket
-                          </Button>
+                          {hasPerm('tickets.closeTicket') && (
+                            <Button variant="outlined" onClick={() => setOpenCloseModal(true)}>
+                              Cerrar ticket
+                            </Button>
+                          )}
 
-                          <Button variant="outlined" color="error" onClick={() => setOpenCancelModal(true)}>
-                            Cancelar ticket
-                          </Button>
+                          {hasPerm('tickets.cancel') && (
+                            <Button variant="outlined" color="error" onClick={() => setOpenCancelModal(true)}>
+                              Cancelar ticket
+                            </Button>
+                          )}
                           
-                          {ticketData.ticketTypeId == 5 && (
+                          {hasPerm('tickets.createNoConformity') && ticketData.ticketTypeId == 5 && (
                             <Button variant="outlined" onClick={() => setOpenNCModal(true)}>
                               Generar no conformidad
                             </Button>
                           )}
-                          <Button variant="outlined" color="secondary" onClick={() => setOpenReassignModal(true)}>
-                            Reasignar
-                          </Button>
+                          {hasPerm('tickets.reassign') && (
+                            <Button variant="outlined" color="secondary" onClick={() => setOpenReassignModal(true)}>
+                              Reasignar
+                            </Button>
+                          )}
                         </>
                       )}
 
@@ -716,30 +724,40 @@ export default function TicketDetails() {
         <Box sx={{ position: 'fixed', right: 16, bottom: 16, zIndex: (theme) => theme.zIndex.tooltip + 10, display: 'flex', flexDirection: 'column', gap: 1 }}>
           {!isEditing ? (
             <>
-              {ticketData.status !== 'CLOSED' && ticketData.status !== 'COMPLETED' && (
-                <>
-                  <Fab size="medium" color="primary" aria-label="nuevo-mensaje" onClick={() => setOpenModal(true)}>
-                    <Add />
-                  </Fab>
-                  <Fab size="medium" color="default" aria-label="editar" onClick={handleEdit}>
-                    <Edit />
-                  </Fab>
-                  <Fab size="medium" color="inherit" aria-label="cerrar" onClick={() => setOpenCloseModal(true)}>
-                    <CloseCircle />
-                  </Fab>
-                  <Fab size="medium" color="error" aria-label="cancelar-ticket" onClick={() => setOpenCancelModal(true)}>
-                    <Trash />
-                  </Fab>
-                  {ticketData.ticketTypeId == 5 && (
-                    <Fab size="medium" color="warning" aria-label="no-conformidad" onClick={() => setOpenNCModal(true)}>
-                      <InfoCircle />
-                    </Fab>
+                  {ticketData.status !== 'CLOSED' && ticketData.status !== 'COMPLETED' && (
+                    <>
+                      {hasPerm('tickets.sendMessage') && (
+                        <Fab size="medium" color="primary" aria-label="nuevo-mensaje" onClick={() => setOpenModal(true)}>
+                          <Add />
+                        </Fab>
+                      )}
+                        {hasPerm('tickets.update') && (
+                        <Fab size="medium" color="default" aria-label="editar" onClick={handleEdit}>
+                          <Edit />
+                        </Fab>
+                        )}
+                      {hasPerm('tickets.close') && (
+                        <Fab size="medium" color="inherit" aria-label="cerrar" onClick={() => setOpenCloseModal(true)}>
+                          <CloseCircle />
+                        </Fab>
+                      )}
+                        {hasPerm('tickets.cancel') && (
+                        <Fab size="medium" color="error" aria-label="cancelar-ticket" onClick={() => setOpenCancelModal(true)}>
+                          <Trash />
+                        </Fab>
+                        )}
+                      {hasPerm('tickets.noConformity') && ticketData.ticketTypeId == 5 && (
+                        <Fab size="medium" color="warning" aria-label="no-conformidad" onClick={() => setOpenNCModal(true)}>
+                          <InfoCircle />
+                        </Fab>
+                      )}
+                      {hasPerm('tickets.reassign') && (
+                        <Fab size="medium" color="secondary" aria-label="reasignar" onClick={() => setOpenReassignModal(true)}>
+                          <ArrowSwapHorizontal />
+                        </Fab>
+                      )}
+                    </>
                   )}
-                  <Fab size="medium" color="secondary" aria-label="reasignar" onClick={() => setOpenReassignModal(true)}>
-                    <ArrowSwapHorizontal />
-                  </Fab>
-                </>
-              )}
               <Fab size="medium" color="success" aria-label="volver" onClick={() => navigate('/apps/ticket/list')}>
                 <ArrowLeft2 />
               </Fab>

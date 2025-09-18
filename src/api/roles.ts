@@ -44,7 +44,8 @@ export async function getRoleById(id: number) {
 export async function createRole(payload: any) {
   try {
     const response = await axiosServices.post(endpoints.base, payload);
-    mutate(`${endpoints.base}`);
+    // refresh cache after create
+    await refreshRolesCache();
     return { success: true, status: response.status, data: response.data, message: 'Rol creado correctamente' };
   } catch (error: any) {
     console.error('createRole error', error);
@@ -55,8 +56,8 @@ export async function createRole(payload: any) {
 export async function updateRole(roleId: number, payload: any) {
   try {
     const response = await axiosServices.patch(`${endpoints.base}/${roleId}`, payload);
-    mutate(`${endpoints.base}`);
-    mutate(`${endpoints.base}/${roleId}`);
+    // refresh cache for list and specific role
+    await refreshRolesCache(roleId);
     return { success: true, status: response.status, data: response.data, message: 'Rol actualizado correctamente' };
   } catch (error: any) {
     console.error('updateRole error', error);
@@ -67,7 +68,7 @@ export async function updateRole(roleId: number, payload: any) {
 export async function deleteRole(roleId: number) {
   try {
     const response = await axiosServices.delete(`${endpoints.base}/${roleId}`);
-    mutate(`${endpoints.base}`);
+    await refreshRolesCache();
     return { success: true, status: response.status, data: response.data, message: 'Rol eliminado correctamente' };
   } catch (error: any) {
     console.error('deleteRole error', error);
@@ -78,8 +79,7 @@ export async function deleteRole(roleId: number) {
 export async function updateRolePermissions(roleId: number, permissions: string[]) {
   try {
     const response = await axiosServices.patch(`${endpoints.base}/${roleId}/permissions`, { permissions });
-    mutate(`${endpoints.base}`);
-    mutate(`${endpoints.base}/${roleId}`);
+    await refreshRolesCache(roleId);
     return { success: true, status: response.status, data: response.data };
   } catch (error: any) {
     console.error('updateRolePermissions error', error);
@@ -90,8 +90,7 @@ export async function updateRolePermissions(roleId: number, permissions: string[
 export async function activateRole(roleId: number) {
   try {
     const response = await axiosServices.patch(`${endpoints.base}/${roleId}/activate`);
-    mutate(`${endpoints.base}`);
-    mutate(`${endpoints.base}/${roleId}`);
+    await refreshRolesCache(roleId);
     return { success: true, status: response.status, data: response.data };
   } catch (error: any) {
     console.error('activateRole error', error);
@@ -102,11 +101,28 @@ export async function activateRole(roleId: number) {
 export async function deactivateRole(roleId: number) {
   try {
     const response = await axiosServices.patch(`${endpoints.base}/${roleId}/deactivate`);
-    mutate(`${endpoints.base}`);
-    mutate(`${endpoints.base}/${roleId}`);
+    await refreshRolesCache(roleId);
     return { success: true, status: response.status, data: response.data };
   } catch (error: any) {
     console.error('deactivateRole error', error);
     return { success: false, status: error.response?.status || 500, error: error.response?.data || error.message };
+  }
+}
+
+/**
+ * Refresh roles-related SWR cache
+ * - If roleId is provided, will also revalidate the individual role key
+ * - Always revalidates the roles list
+ */
+export async function refreshRolesCache(roleId?: number) {
+  try {
+    // revalidate list
+    await mutate(`${endpoints.base}?includeInactive=false`);
+    if (typeof roleId === 'number') {
+      await mutate(`${endpoints.base}/${roleId}`);
+    }
+  } catch (err) {
+    // ignore mutate errors but log for debugging
+    // console.warn('refreshRolesCache error', err);
   }
 }

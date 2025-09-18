@@ -52,7 +52,6 @@ export default function AddMessageModal({ open, onClose, onSend, participantes, 
       // participants: Yup.array(),
     }),
     onSubmit: async (values, { resetForm }) => {
-      console.log('Submitting values:', values);
       const formData = new FormData();
       formData.append('content', values.content);
       values.files.forEach((file: File, idx: number) => {

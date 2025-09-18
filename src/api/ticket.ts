@@ -45,6 +45,31 @@ const endpoints = {
   statistics: '/statistics'
 };
 
+/**
+ * Invalida todas las caches relacionadas con tickets.
+ * Llamar tras cualquier acción que modifique tickets (crear, actualizar, mensajes, asignar, cerrar, cancelar, etc.).
+ */
+export function invalidateTicketCaches(ticketId?: number | string) {
+  try {
+    // Lista principal (con límite)
+    mutate(endpoints.key + '?limit=1000');
+    // Key genérica de tickets
+    mutate(endpoints.key);
+    // Estadísticas
+    mutate(endpoints.key + endpoints.statistics);
+    // Detalle específico
+    if (ticketId !== undefined && ticketId !== null) {
+      mutate(`/tickets/${ticketId}`);
+    }
+    // Master actions state
+    mutate(endpoints.key + endpoints.actions);
+  } catch (e) {
+    // no-op: mutate puede lanzar si SWR no está inicializado, ignoramos
+    // para evitar romper la UI en tiempo de ejecución
+    // console.debug('invalidateTicketCaches error', e);
+  }
+}
+
 export function useGetTicket() {
   const { data, isLoading, error, isValidating } = useSWR(endpoints.key + '?limit=1000', fetcher, {
     revalidateIfStale: false,
@@ -180,8 +205,7 @@ export async function insertTicket(newTicket: any) {
         'Content-Type': 'multipart/form-data'
       }
     });
-    mutate(endpoints.key + '?limit=1000');
-    mutate(endpoints.key + endpoints.statistics);
+  invalidateTicketCaches();
 
     return response.data;
   } catch (error: any) {
@@ -195,8 +219,7 @@ export async function insertTicket(newTicket: any) {
 export async function cancelTicket(ticketId: number, justification: string) {
   try {
     const response = await axiosServices.patch(`/tickets/${ticketId}/cancel`, { justification });
-    mutate(endpoints.key);
-    mutate(`/tickets/${ticketId}`);
+  invalidateTicketCaches(ticketId);
     return response.data;
   } catch (error: any) {
     if (error.response && error.response.data) {
@@ -217,9 +240,8 @@ export async function createMessage(formData: FormData, idTicket: number) {
         'Content-Type': 'multipart/form-data'
       }
     });
-
-    // opcional: podríamos invalidar cache relacionado si existe
-    mutate(`/tickets/${idTicket}`);
+  // Invalidar caches relacionadas con el ticket
+  invalidateTicketCaches(idTicket);
 
     return response.data;
   } catch (error: any) {
@@ -231,6 +253,43 @@ export async function createMessage(formData: FormData, idTicket: number) {
      * @param idTicket - ID del ticket al que pertenece el mensaje
      * @returns response.data del servidor
      */
+    if (error.response && error.response.data) {
+      throw error.response.data;
+    }
+    throw error;
+  }
+}
+
+/**
+ * sendTicketFeedback
+ * Envía la retroalimentación de un ticket al endpoint backend.
+ * Centraliza la llamada para que los componentes no hagan fetch/axios directamente.
+ * @param payload - { ticketId, knowledge, timing, escalation, resolved, comment }
+ */
+export async function sendTicketFeedback(payload: { ticketId: string | number | null; knowledge: number | null; timing: number | null; escalation: number | null; resolved: number | null; comment?: string }) {
+  try {
+    const response = await axiosServices.post('/ticket-feedback', payload);
+    // Intentamos invalidar caches relacionadas con el ticket para refrescar detalle
+    if (payload.ticketId) invalidateTicketCaches(payload.ticketId as any);
+    return response.data;
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      throw error.response.data;
+    }
+    throw error;
+  }
+}
+
+/**
+ * getTicketFeedback
+ * Consulta si ya existe feedback para un ticket dado.
+ * Retorna { ticketId, exists }
+ */
+export async function getTicketFeedback(ticketId: string | number) {
+  try {
+    const response = await axiosServices.get(`/ticket-feedback/${ticketId}`);
+    return response.data;
+  } catch (error: any) {
     if (error.response && error.response.data) {
       throw error.response.data;
     }
@@ -260,9 +319,8 @@ export async function updateTicket(ticketId: number, updatedTicket: Partial<Tick
     // hit server
     const response = await axiosServices.patch(`/tickets/${ticketId}`, updatedTicket);
 
-    // refresh related caches
-    mutate(endpoints.key);
-    mutate(`/tickets/${ticketId}`);
+  // refresh related caches
+  invalidateTicketCaches(ticketId);
 
     return response.data;
   } catch (error: any) {
@@ -277,9 +335,8 @@ export async function updateTicket(ticketId: number, updatedTicket: Partial<Tick
 export async function closeTicket(ticketId: number, content: string) {
   try {
     const response = await axiosServices.patch(`/tickets/${ticketId}/close`, { content });
-    // refrescar caches relacionadas
-    mutate(endpoints.key);
-    mutate(`/tickets/${ticketId}`);
+  // refrescar caches relacionadas
+  invalidateTicketCaches(ticketId);
 
     /**
      * closeTicket
@@ -541,9 +598,8 @@ export async function reassignTechnician(ticketId: number | string, assigneeId: 
       assigneeId
     });
     // console.log('Reassign technician response:', response.data);
-    // Opcional: refresca la lista de tickets
-    mutate(endpoints.key);
-    mutate(`/tickets/${ticketId}`);
+  // Opcional: refresca la lista de tickets
+  invalidateTicketCaches(ticketId);
 
     return response.data;
   } catch (error: any) {
@@ -559,9 +615,8 @@ export async function updateTicketStatus(ticketId: number | string, status: stri
   try {
     // According to backend contract the update is performed on /tickets/{id}
     const response = await axiosServices.patch(`/tickets/${ticketId}`, { status });
-    // refrescar caches relacionadas
-    mutate(endpoints.key);
-    mutate(`/tickets/${ticketId}`);
+  // refrescar caches relacionadas
+  invalidateTicketCaches(ticketId);
 
     return response.data;
   } catch (error: any) {

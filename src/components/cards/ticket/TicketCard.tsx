@@ -5,7 +5,9 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
 // assets
-import { ArrowDown3, ArrowUp3 } from 'iconsax-react';
+import { ArrowDown3, ArrowUp3, ProfileTick, FolderOpen, CloseCircle, BookSaved, Book1, TickCircle } from 'iconsax-react';
+import Avatar from 'components/@extended/Avatar';
+import { stat } from 'fs';
 
 interface Props {
   title: string;
@@ -15,23 +17,73 @@ interface Props {
   color?: any;
   children: any;
   ticket: string;
+  status: string;
 }
+
+const getIcons = (status: string) => {
+
+  switch (status) {
+    case 'OPEN':
+      return <FolderOpen style={{ fontSize: '20px' }}/>;
+    case 'IN_PROGRESS':
+      return <Book1 style={{ fontSize: '20px' }} />;
+    case 'CLOSED':
+      return <BookSaved style={{ fontSize: '20px' }} />;
+    case 'FOLLOW_UP':
+      return <ArrowUp3 style={{ fontSize: '20px' }} />;
+    case 'COMPLETED':
+      return <TickCircle style={{ fontSize: '20px' }} />;
+    case 'CANCELLED':
+      return <CloseCircle style={{ fontSize: '20px' }} />;
+    case 'NON_CONFORMITY':
+      return <ProfileTick style={{ fontSize: '20px' }} />;
+    default:
+      return <ProfileTick style={{ fontSize: '20px' }} />;
+  }
+};
+
+const getColorByStatus = (status: string): 'error' | 'warning' | 'success' | 'info' | 'default' => {
+
+  switch (status) {
+    case 'OPEN':
+      return 'error';
+    case 'IN_PROGRESS':
+      return 'warning';
+    case 'CLOSED':
+      return 'success';
+    case 'FOLLOW_UP':
+      return 'info';
+    case 'COMPLETED':
+      return 'success';
+    case 'CANCELLED':
+      return 'error';
+    case 'NON_CONFORMITY':
+      return 'warning';
+    default:
+      return 'default';
+  }
+};
+
+
 
 // ==============================|| TICKET - CARD  ||============================== //
 
-export default function TicketCard({ color, title, count, percentage, isLoss, children, ticket }: Props) {
+export default function TicketCard({ color, title, count, percentage, isLoss, children, ticket, status }: Props) {
+  
   return (
     <Grid container direction="row" spacing={2}>
-      <Grid size={{ xs: 12, md: 5 }}>
-        <Stack direction="column" sx={{ gap: 2 }}>
-          <Typography variant="subtitle1">{title}</Typography>
-          <Stack direction="column" sx={{ gap: 1 }}>
-            <Typography variant="h4" color="inherit">
-              {count}
-            </Typography>
-            <Stack direction="row" sx={{ gap: 1 }}>
-              <Typography variant="subtitle1">{ticket}</Typography>
-              <Typography color="secondary">tickets</Typography>
+      <Grid size={{ xs: 12, md: 12 }}>
+        <Stack direction="row">
+          <Avatar alt="Tickets" variant="rounded" type="filled" color={getColorByStatus(status)} >
+            {getIcons(status)}
+          </Avatar>
+          <Stack direction="column" sx={{ ml: 1.25, gap: 0.25 }}>
+            <Typography variant="subtitle1">{title}</Typography>
+            <Stack direction="column" sx={{ gap: 1 }}>
+              <Typography  color="inherit">
+                {count} tickets
+              </Typography>
+              
             </Stack>
           </Stack>
         </Stack>
@@ -39,13 +91,7 @@ export default function TicketCard({ color, title, count, percentage, isLoss, ch
       <Grid size={{ xs: 12, md: 7 }}>
         <Box>
           <Stack sx={{ alignItems: 'flex-end' }}>
-            {percentage && (
-              <Stack direction="row" sx={{ gap: 1, alignItems: 'center', ml: 1.25, pl: 1 }}>
-                {!isLoss && <ArrowUp3 variant="Bold" style={{ fontSize: '0.75rem', color }} />}
-                {isLoss && <ArrowDown3 variant="Bold" style={{ fontSize: '0.75rem', color }} />}
-                <Typography color="secondary">{percentage}%</Typography>
-              </Stack>
-            )}
+            
             <Box sx={{ width: 1, height: 1 }}>{children}</Box>
           </Stack>
         </Box>

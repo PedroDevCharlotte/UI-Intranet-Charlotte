@@ -57,6 +57,7 @@ import { SnackbarProps } from 'types/snackbar';
 import { UserList } from 'types/user';
 import { passiveEventSupported } from '@tanstack/react-table';
 import { StringColorProps } from 'types/password';
+import { Checkbox } from '@mui/material';
 
 interface StatusProps {
   value: number;
@@ -121,6 +122,7 @@ const getInitialValues = (user: UserList | null) => {
     subordinates: []
   };
   if (user) {
+    newUser.supportTypeIds = user.supportTypes ? user.supportTypes.map((t) => t.id) : [];
     return merge({}, newUser, user, {
       manager: user.manager || null,
       subordinates: user.subordinates || []
@@ -267,7 +269,6 @@ const { users = [], usersLoading } = useGetUser();
           subordinateIds: Array.isArray(values.subordinates) ? values.subordinates.map((s: any) => s.id) : []
         };
 
-        console.log('Submitting user data:', userData);
 
         if (user) {
           // Para actualización, incluir el ID
@@ -454,23 +455,40 @@ const { users = [], usersLoading } = useGetUser();
                     {/* Campo de tipos de soporte */}
                     <Grid size={12}>
                       <Stack sx={{ gap: 1 }}>
-                        <InputLabel>Tipos de soporte</InputLabel>
-                        <Autocomplete
+                        <InputLabel htmlFor="user-supportTypes">Tipos de soporte</InputLabel>
+                        <Select
                           multiple
-                          options={supportTypes || []}
-                          getOptionLabel={(option: any) => option.name || option.label || ''}
-                          defaultValue={user && (user as any).supportTypes ? (user as any).supportTypes : []}
-                          onChange={(_, value) => {
-                            const ids = value.map((v: any) => v.id);
-                            setFieldValue('supportTypeIds', ids);
+                          fullWidth
+                          id="user-supportTypes"
+                          name="supportTypeIds"
+                          value={formik.values.supportTypeIds || []}
+                          onChange={(event) => {
+                            const value = event.target.value;
+                            setFieldValue('supportTypeIds', typeof value === 'string' ? value.split(',') : value);
                           }}
-                          renderTags={(value: any[], getTagProps) =>
-                            value.map((option: any, index: number) => (
-                              <Chip label={option.name || option.label} {...getTagProps({ index })} key={option.id} />
-                            ))
+                          renderValue={(selected) =>
+                            Array.isArray(selected)
+                              ? selected
+                                  .map(
+                                    (id) =>
+                                      (supportTypes || []).find((option: any) => option.id === id)?.name ||
+                                      (supportTypes || []).find((option: any) => option.id === id)?.label ||
+                                      id
+                                  )
+                                  .join(', ')
+                              : ''
                           }
-                          renderInput={(params) => <TextField {...params} placeholder="Selecciona tipos de soporte" />}
-                        />
+                          disabled={supportTypesLoading}
+                          displayEmpty
+                        >
+                          {Array.isArray(supportTypes) &&
+                            supportTypes.map((option: any) => (
+                              <MenuItem key={option.id} value={option.id}>
+                                <Checkbox checked={formik.values.supportTypeIds?.indexOf(option.id) > -1} />
+                                <ListItemText primary={option.name || option.label} />
+                              </MenuItem>
+                            ))}
+                        </Select>
                       </Stack>
                     </Grid>
 
@@ -492,11 +510,9 @@ const { users = [], usersLoading } = useGetUser();
                             <em>{departmentsLoading ? 'Cargando departamentos...' : 'Seleccione un departamento'}</em>
                           </MenuItem>
                           {(() => {
-                            // console.log('Rendering departments:', departments, 'isArray:', Array.isArray(departments), 'length:', departments?.length);
                             return (
                               Array.isArray(departments) &&
                               departments.map((dept: any) => {
-                                // console.log('Rendering department item:', dept);
                                 return (
                                   <MenuItem key={dept.id} value={dept.id}>
                                     {dept.name}
@@ -588,11 +604,9 @@ const { users = [], usersLoading } = useGetUser();
                             <em>{rolesLoading ? 'Cargando roles...' : 'Seleccione un rol'}</em>
                           </MenuItem>
                           {(() => {
-                            // console.log('Rendering roles:', roles, 'isArray:', Array.isArray(roles), 'length:', roles?.length);
                             return (
                               Array.isArray(roles) &&
                               roles.map((role: any) => {
-                                // console.log('Rendering role item:', role);
                                 return (
                                   <MenuItem key={role.id} value={role.id}>
                                     {role.name}

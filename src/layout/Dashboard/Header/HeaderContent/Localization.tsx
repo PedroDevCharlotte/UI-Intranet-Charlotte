@@ -92,18 +92,19 @@ export default function Localization() {
           <Transitions type="grow" position={downMD ? 'top-right' : 'top'} in={open} {...TransitionProps}>
             <Paper sx={(theme) => ({ boxShadow: theme.customShadows.z1, borderRadius: 1.5 })}>
               <ClickAwayListener onClickAway={handleClose}>
-                <MainCard border={false} content={false}>
-                  <List
-                    component="nav"
-                    sx={(theme) => ({
-                      p: 1,
-                      width: '100%',
-                      minWidth: 200,
-                      maxWidth: 290,
-                      bgcolor: theme.palette.background.paper,
-                      [theme.breakpoints.down('md')]: { maxWidth: 250 }
-                    })}
-                  >
+                <div>
+                  <MainCard border={false} content={false}>
+                    <List
+                      component="nav"
+                      sx={(theme) => ({
+                        p: 1,
+                        width: '100%',
+                        minWidth: 200,
+                        maxWidth: 290,
+                        bgcolor: theme.palette.background.paper,
+                        [theme.breakpoints.down('md')]: { maxWidth: 250 }
+                      })}
+                    >
                       <ListItemButton selected={i18n === 'es'} onClick={() => handleListItemClick('es')}>
                       <ListItemText
                         primary={
@@ -165,7 +166,8 @@ export default function Localization() {
                       />
                     </ListItemButton>
                   </List>
-                </MainCard>
+                  </MainCard>
+                </div>
               </ClickAwayListener>
             </Paper>
           </Transitions>

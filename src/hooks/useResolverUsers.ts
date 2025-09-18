@@ -11,7 +11,6 @@ export function useResolverUsers() {
 }
 
 export function useResolveUsersAttentsTiketByType(ticketType: number, CurrentUser: number) {
-  console.log("ticketType:", ticketType, "CurrentUser:", CurrentUser);
   const { attendants } = useGetAttendantsByTicketType(ticketType);
   // Filtra según lógica de negocio si es necesario
   return attendants

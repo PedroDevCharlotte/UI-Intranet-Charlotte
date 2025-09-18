@@ -49,21 +49,16 @@ import {
 } from '@tanstack/react-table';
 
 // project-imports
-import Avatar from 'components/@extended/Avatar';
-import Breadcrumbs from 'components/@extended/Breadcrumbs';
-import IconButton from 'components/@extended/IconButton';
-import TicketCard from 'components/cards/ticket/TicketCard';
-import TicketChart from 'components/cards/ticket/TicketChart';
+
 import MainCard from 'components/MainCard';
 import TicketsWidget from 'sections/dashboard/tickets/TicketsWidget';
+import usePermissions from 'hooks/usePermissions';
+import useAuth from 'hooks/useAuth';
 
 import {
-  CSVExport,
-  DebouncedInput,
+  
   HeaderSort,
-  IndeterminateCheckbox,
   RowSelection,
-  SelectColumnSorting,
   TablePagination
 } from 'components/third-party/react-table';
 import EmptyReactTable from 'pages/tables/react-table/empty';
@@ -82,8 +77,8 @@ import { TicketList } from 'types/ticket';
 import { SnackbarProps } from 'types/snackbar';
 
 // assets
-import { Add, Edit, Eye, InfoCircle, ProfileTick, Trash } from 'iconsax-react';
-import { Button } from '@mui/material';
+import { Add, Edit, Eye, InfoCircle, MessageTick, ProfileTick, Trash } from 'iconsax-react';
+import { Button, IconButton } from '@mui/material';
 import { formatDate } from 'date-fns';
 
 const fuzzyFilter: FilterFn<TicketList> = (row, columnId, value, addMeta) => {
@@ -241,6 +236,7 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
   // update createdAt filter when date range changes
   useEffect(() => {
     let filters: any[] = activeTab === 'All' ? [] : [{ id: 'status', value: activeTab }];
+
     // Only add date filter if at least one value is set
     if (dateFrom || dateTo) {
       let toValue = dateTo;
@@ -259,7 +255,6 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
     if (assignedFilter !== null && assignedFilter !== undefined && assignedFilter !== '') {
       filters.push({ id: 'assigneeName', value: assignedFilter });
     }
-    console.log('Applying filters:', filters);
     setColumnFilters(filters as any);
   }, [dateFrom, dateTo, activeTab, assignedFilter]);
 
@@ -331,7 +326,7 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
         direction={{ xs: 'column', sm: 'row' }}
         sx={{ gap: 2, alignItems: 'center', justifyContent: 'space-between', padding: 2.5, width: 1 }}
       >
-        <DebouncedInput
+        {/* <DebouncedInput
           value={visibleSearch ?? ''}
           onFilterChange={(value) => {
             setVisibleSearch(String(value));
@@ -339,7 +334,7 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
           }}
           placeholder={`Buscar ${data.length} registros en la página actual...`}
           sx={{ width: { xs: '100%', sm: 'auto' } }}
-        />
+        /> */}
         <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
           <TextField
             label="Desde"
@@ -471,7 +466,7 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
                 setPageIndex: table.setPageIndex,
                 getState: table.getState,
                 getPageCount: table.getPageCount,
-                initialPageSize: 5
+                initialPageSize: 25
               }}
             />
           </Box>
@@ -506,6 +501,9 @@ export default function List() {
     setOpenAddModal(false);
   };
 
+  const { user: currentUser } = useAuth();
+  const currentUserId = currentUser && currentUser.id ? Number(currentUser.id) : undefined;
+
   const columns = useMemo<ColumnDef<TicketList>[]>(
     () => [
       {
@@ -520,6 +518,50 @@ export default function List() {
       {
         header: 'Estatus',
         accessorKey: 'status',
+        cell: info => {
+          const value = info.getValue();
+          let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = 'default';
+          let label = value;
+          switch (value) {
+            case 'OPEN':
+              color = 'error';
+              label = 'Abierto';
+              break;
+            case 'IN_PROGRESS':
+              color = 'warning';
+              label = 'En Proceso';
+              break;
+
+            case 'FOLLOW_UP':
+              color = 'info';
+              label = 'En Seguimiento';
+              break;
+            case 'COMPLETED':
+              color = 'success';
+              label = 'Finalizado';
+              break;
+            case 'CLOSED':
+              color = 'default';
+              label = 'Cerrado';
+              break;
+            case 'NON_CONFORMITY':
+              color = 'secondary';
+              label = 'No Conformidad';
+              break;
+            case 'CANCELLED':
+              color = 'default';
+              label = 'Cancelado';
+              break;
+            default:
+              color = 'default';
+              label = value;
+              break;
+          }
+          return <Chip label={label ? String(label) : ''} color={color} variant="light" />;
+        },
+        filterFn: exactValueFilter,
+        meta: { className: 'cell-center' }
+            
       },
       {
         header: 'Tipo',
@@ -563,49 +605,50 @@ export default function List() {
         },
         meta: { className: 'cell-center' }
       },
+      {
+        header: 'Encuesta',
+        id: 'encuesta',
+        cell: ({ row }) => {
+          const navigate = useNavigate();
+          // show only when ticket is CLOSED
+          if (row.original.status !== 'CLOSED') return null;
+          // show only to the creator of the ticket
+          if (!currentUser) return null;
+          // convert current user id to number and validate
+          if (currentUserId === undefined || Number.isNaN(currentUserId)) return null;
+          // use createdBy (numeric id) to compare with currentUserId
+          if (row.original.createdBy !== currentUserId) return null;
+          return (
+            <Tooltip title="Responder encuesta">
+              <IconButton
+                size="medium"
+                color="primary"
+                aria-label="Responder encuesta"
+                onClick={() => navigate(`/apps/ticket/feedback/${row.original.id}`)}
+              >
+                <MessageTick size={18} />
+              </IconButton>
+            </Tooltip>
+          );
+        },
+        meta: { className: 'cell-center' }
+      },
     ],
     []
   );
 
   const theme = useTheme();
 
-  const widgetsData: TicketWidgets[] = [
-    {
-      title: 'Abierto',
-      count: '125',
-      percentage: 35.2,
-      isLoss: true,
-      ticket: '9',
-      color: theme.palette.error,
-      chartData: [200, 600, 100, 400, 300, 400, 50]
-    },
-    {
-      title: 'En Proceso',
-      count: '68',
-      percentage: 18.7,
-      isLoss: false,
-      ticket: '6',
-      color: theme.palette.warning,
-      chartData: [100, 550, 300, 350, 200, 100, 300]
-    },
-    {
-      title: 'Resuelto',
-      count: '247',
-      percentage: 46.1,
-      isLoss: false,
-      ticket: '4',
-      color: theme.palette.success,
-      chartData: [100, 550, 200, 300, 100, 200, 300]
-    }
-  ];
-
-  //   let breadcrumbLinks = [{ title: 'home', to: APP_DEFAULT_PATH }, { title: 'ticket', to: '/apps/ticket/dashboard' }, { title: 'list' }];
+  const { hasPerm } = usePermissions();
+ 
 
   return (
     <>
-      {/* <Breadcrumbs custom heading="ticket-list" links={breadcrumbLinks} /> */}
       <Grid container spacing={GRID_COMMON_SPACING} sx={{ pb: 2 }}>
-        <TicketsWidget />
+        {/* Mostrar TicketsWidget sólo si el usuario tiene el permiso tickets.viewDashboardTicket */}
+        {(() => {
+            return hasPerm('tickets.viewDashboardTicket') ? <TicketsWidget /> : null;
+        })()}
         <Grid size={12}>
           {(() => {
             return ticketLoading ? (

@@ -28,7 +28,6 @@ export default function TwoFactorAuth() {
 
     try {
       let resp = await verify2FA(code.value);
-      console.log('2FA verification successful:', resp);
       // Redirigir o mostrar mensaje de éxito
       if (!resp.isError) {
         navigate(APP_DEFAULT_PATH); // Redirigir a la página de verificación de 2FA

@@ -1,4 +1,4 @@
-import { Fragment, useLayoutEffect, useState } from 'react';
+import { Fragment, useLayoutEffect, useState, useContext } from 'react';
 
 // material-ui
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -14,6 +14,7 @@ import { MenuOrientation, HORIZONTAL_MAX_ITEM } from 'config';
 import useConfig from 'hooks/useConfig';
 import menuItem from 'menu-items';
 import { MenuFromAPI } from 'menu-items/dashboard';
+import JWTContext from 'contexts/JWTContext';
 
 // types
 import { NavItemType } from 'types/menu';
@@ -42,8 +43,12 @@ export default function Navigation() {
   const [selectedLevel, setSelectedLevel] = useState<number>(0);
   const [menuItems, setMenuItems] = useState<{ items: NavItemType[] }>({ items: [] });
 
+  // Get allowed menu paths from user context (set by /account/me)
+  const auth = useContext(JWTContext);
+  const allowedMenus: string[] = auth?.user?.menus ?? [];
+  allowedMenus.push('/dashboard/default'); // Always allow dashboard
 
-  let dashboardMenu = MenuFromAPI();
+  // let dashboardMenu = MenuFromAPI();
   // Add menu from API if it is loading
   // useLayoutEffect(() => {
   //   if (menuLoading && !isFound(menuItem, 'group-dashboard-loading')) {
@@ -79,9 +84,28 @@ export default function Navigation() {
       })
     }));
   }
-  // console.log('remItems', remItems);
 
-  const navGroups = menuItem.items.slice(0, lastItemIndex + 1).map((item) => {
+  // Filter menuItem.items by allowedMenus if provided (match by item.url or children urls)
+  const filteredItems = (allowedMenus && allowedMenus.length > 0)
+    ? menuItem.items.filter((it) => {
+      // If group has a url, allow only if its url is in allowedMenus
+      if (it.url) return allowedMenus.includes(it.url);
+      // If group has children, allow group if any child url is allowed
+      if (Array.isArray(it.children) && it.children.length > 0) {
+        return it.children.some((child: any) => {
+          if (child.url && allowedMenus.includes(child.url)) return true;
+          if (Array.isArray(child.children)) {
+            return child.children.some((sub: any) => sub.url && allowedMenus.includes(sub.url));
+          }
+          return false;
+        });
+      }
+      // Default: keep item (e.g., non-url groups)
+      return true;
+    })
+    : menuItem.items;
+
+  const navGroups = filteredItems.slice(0, lastItemIndex + 1).map((item) => {
     // console.log('item', item);
     switch (item.type) {
       case 'group':

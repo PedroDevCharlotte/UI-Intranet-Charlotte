@@ -45,7 +45,7 @@ export interface UserList {
     email: string;
     role?: string;
   } | null;
-
+supportTypes?: { id: number; name: string }[];
   /**
    * Subordinados directos del usuario (lista de objetos UserList reducidos)
    */

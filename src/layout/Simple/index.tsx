@@ -2,8 +2,8 @@ import { lazy, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 
 // project-imports
-import Loader from 'components/Loader';
-import { SimpleLayoutType } from 'config';
+import Loader from '../../components/Loader';
+import { SimpleLayoutType } from '../../config';
 
 const Header = lazy(() => import('./Header'));
 const FooterBlock = lazy(() => import('./FooterBlock'));

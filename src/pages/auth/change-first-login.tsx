@@ -4,8 +4,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 // project-imports
-import AuthWrapper from 'sections/auth/AuthWrapper';
-import AuthChangeFirstPassword from 'sections/auth/auth-forms/AuthChangeFirstPassword';
+import AuthWrapper from '../../sections/auth/AuthWrapper';
+import AuthChangeFirstPassword from '../../sections/auth/auth-forms/AuthChangeFirstPassword';
 // ================================|| CHANGE FIRST LOGIN ||================================ //
 
 

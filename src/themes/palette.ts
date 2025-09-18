@@ -4,10 +4,10 @@ import { PaletteMode } from '@mui/material';
 
 // project-imports
 import ThemeOption from './theme';
-import { ThemeMode } from 'config';
+import { ThemeMode } from '../config';
 
 // types
-import { PresetColor } from 'types/config';
+import { PresetColor } from '../types/config';
 import { PaletteThemeProps } from 'types/theme';
 
 // ==============================|| DEFAULT THEME - PALETTE  ||============================== //

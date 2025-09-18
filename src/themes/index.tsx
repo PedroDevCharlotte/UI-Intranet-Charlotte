@@ -11,12 +11,12 @@ import Typography from './typography';
 import CustomShadows from './shadows';
 import componentsOverride from './overrides';
 
-import { HEADER_HEIGHT, ThemeMode } from 'config';
-import useConfig from 'hooks/useConfig';
-import getWindowScheme from 'utils/getWindowScheme';
+import { HEADER_HEIGHT, ThemeMode } from '../config';
+import useConfig from '../hooks/useConfig';
+import getWindowScheme from '../utils/getWindowScheme';
 
 // types
-import { CustomShadowProps } from 'types/theme';
+import { CustomShadowProps } from '../types/theme';
 
 type ThemeCustomizationProps = {
   children: ReactNode;

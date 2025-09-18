@@ -2,10 +2,10 @@
 import { Theme } from '@mui/material/styles';
 
 // project-imports
-import getColors from 'utils/getColors';
+import getColors from '../../utils/getColors';
 
 // types
-import { ExtendedStyleProps } from 'types/extended';
+import { ExtendedStyleProps } from '../../types/extended';
 
 function getColorStyle({ color, theme }: ExtendedStyleProps) {
   const colors = getColors(theme, color);

@@ -4,8 +4,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 // project-imports
-import AuthWrapper from 'sections/auth/AuthWrapper';
-import AuthResetPassword from 'sections/auth/auth-forms/AuthResetPassword';
+import AuthWrapper from '../../sections/auth/AuthWrapper';
+import AuthResetPassword from '../../sections/auth/auth-forms/AuthResetPassword';
 
 // ================================|| RESET PASSWORD ||================================ //
 

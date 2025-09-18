@@ -22,23 +22,29 @@ import { ArrowDown, ArrowUp, Book, Calendar, CloudChange, Wallet3 } from 'iconsa
 import BannersSlider from 'sections/dashboard/banners/BannersSlider';
 import TicketsWidget from 'sections/dashboard/tickets/TicketsWidget';
 import TicketsResponseTrafficLight from 'sections/dashboard/tickets/TicketsResponseTrafficLight';
+import usePermissions from 'hooks/usePermissions';
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
 export default function DashboardDefault() {
   const theme = useTheme();
+  const { hasPerm } = usePermissions();
 
   return (
     <Grid container spacing={GRID_COMMON_SPACING}>
       <Grid size={{ xs: 12 }}>
         <BannersSlider />
       </Grid>
-      <Grid size={{ xs: 12 }} >
-        <TicketsWidget />
-      </Grid>
-      <Grid size={{ xs: 6 }}>
-        <TicketsResponseTrafficLight />
-      </Grid>
+      {hasPerm('tickets.viewDashboardTicket') && (
+        <Grid size={{ xs: 12 }}>
+          <TicketsWidget />
+        </Grid>
+      )}
+      {hasPerm('tickets.seeTrafficLight') && (
+        <Grid size={{ xs: 6 }}>
+          <TicketsResponseTrafficLight />
+        </Grid>
+      )}
     </Grid>
   );
 }

@@ -34,7 +34,6 @@ export default function SetupTwoFactorAuth() {
         const response = await setup2FA();
         // Aquí deberías manejar la respuesta, como generar el código QR
         setQrCodeUrl(response.qrCode);
-        console.log('2FA setup response:', response);
       } catch (error) {
         console.error('Error setting up 2FA:', error);
       }
@@ -46,14 +45,10 @@ export default function SetupTwoFactorAuth() {
 
   const handleActivate2FA = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log('Activating 2FA with code:', event);
     const form = event.target as HTMLFormElement;
-    console.log('Form elements:', form);
     const code = form.elements.namedItem('code') as HTMLInputElement;
-    console.log('Code input value:', code);
     try {
       let resp = await enable2FA(code.value);
-      console.log('2FA activated successfully:', resp);
 
       if (!resp.isError) {
         navigate(APP_DEFAULT_PATH); // Redirigir a la página de verificación de 2FA

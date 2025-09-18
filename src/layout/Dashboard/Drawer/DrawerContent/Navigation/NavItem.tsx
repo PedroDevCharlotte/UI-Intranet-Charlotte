@@ -6,6 +6,7 @@ import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
+import Tooltip from '@mui/material/Tooltip';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -15,7 +16,7 @@ import Dot from 'components/@extended/Dot';
 import IconButton from 'components/@extended/IconButton';
 
 // third-party
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 import { MenuOrientation, NavActionType } from 'config';
@@ -34,6 +35,8 @@ interface Props {
 // ==============================|| NAVIGATION - ITEM ||============================== //
 
 export default function NavItem({ item, level, isParents = false, setSelectedID }: Props) {
+  const intl = useIntl();
+  const hasMessage = (key?: string) => !!key && !!((intl && (intl as any).messages && (intl as any).messages[key]));
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
 
   const { menuMaster } = useGetMenuMaster();
@@ -104,7 +107,8 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
             onClick={() => itemHandler()}
           >
             {itemIcon && (
-              <ListItemIcon
+              <Tooltip title={hasMessage(item.title) ? <FormattedMessage id={item.title} /> : String(item.title)} placement="right">
+                <ListItemIcon
                 sx={(theme) => ({
                   minWidth: 38,
                   color: 'secondary.main',
@@ -128,7 +132,8 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
                 })}
               >
                 {itemIcon}
-              </ListItemIcon>
+                </ListItemIcon>
+              </Tooltip>
             )}
 
             {!itemIcon && drawerOpen && (
@@ -153,7 +158,7 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
                       fontWeight: isSelected ? 500 : 400
                     })}
                   >
-                    <FormattedMessage id={item.title} />
+                    {hasMessage(item.title) ? <FormattedMessage id={item.title} /> : String(item.title)}
                   </Typography>
                 }
               />
@@ -163,7 +168,7 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
                 color={item.chip.color}
                 variant={item.chip.variant}
                 size={item.chip.size}
-                label={<FormattedMessage id={item.chip.label as string} />}
+                label={hasMessage(item.chip?.label as string) ? <FormattedMessage id={item.chip.label as string} /> : String(item.chip?.label)}
                 avatar={item.chip.avatar && <Avatar>{item.chip.avatar}</Avatar>}
               />
             )}
@@ -235,7 +240,8 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
           onClick={() => itemHandler()}
         >
           {itemIcon && (
-            <ListItemIcon
+            <Tooltip title={<FormattedMessage id={item.title} defaultMessage={item.title} /> } placement="right">
+              <ListItemIcon
               sx={{
                 minWidth: 36,
                 ...(!drawerOpen && {
@@ -251,6 +257,7 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
             >
               {itemIcon}
             </ListItemIcon>
+            </Tooltip>
           )}
 
           <ListItemText

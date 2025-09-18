@@ -65,7 +65,6 @@ const BannersSlider: FC<Props> = ({ banners = defaultBanners, height = 220 }) =>
       .sort((a: Banner, b: Banner) => Number(a.order ?? 0) - Number(b.order ?? 0));
   }, [apiBanners]);
 
-  console.log(visibleBanners);
   const settings = {
     dots: true,
     arrows: true,
@@ -160,8 +159,7 @@ const BannersSlider: FC<Props> = ({ banners = defaultBanners, height = 220 }) =>
                   </Box>
                 </Box>
               );
-              console.log('slides count', slides.length);
-              console.log('slides', slides);
+              
             });
             return slides;
           })()}

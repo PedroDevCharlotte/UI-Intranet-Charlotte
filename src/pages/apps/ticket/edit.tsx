@@ -110,7 +110,6 @@ export default function EditTicket() {
 
     try {
       // Aquí iría la llamada a la API para actualizar el ticket
-      console.log('Updating ticket:', { id, ...formData });
 
       openSnackbar({
         open: true,
