@@ -18,7 +18,7 @@ import MainCard from 'components/MainCard';
 import { APP_DEFAULT_PATH, GRID_COMMON_SPACING } from 'config';
 
 // assets
-import { Ticket, Clock, Check, CloseCircle } from 'iconsax-react';
+import { Ticket, Clock, Check } from 'iconsax-react';
 
 // types
 interface TicketStatsCard {
@@ -78,20 +78,29 @@ export default function Dashboard() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'High': return 'error';
-      case 'Medium': return 'warning';
-      case 'Low': return 'info';
-      default: return 'default';
+      case 'High':
+        return 'error';
+      case 'Medium':
+        return 'warning';
+      case 'Low':
+        return 'info';
+      default:
+        return 'default';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Open': return 'error';
-      case 'In Progress': return 'warning';
-      case 'Resolved': return 'success';
-      case 'Closed': return 'default';
-      default: return 'default';
+      case 'Open':
+        return 'error';
+      case 'In Progress':
+        return 'warning';
+      case 'Resolved':
+        return 'success';
+      case 'Closed':
+        return 'default';
+      default:
+        return 'default';
     }
   };
 
@@ -124,11 +133,9 @@ export default function Dashboard() {
                     <FormattedMessage id={stat.title} />
                   </Typography>
                   {stat.percentage && (
-                    <Typography 
-                      variant="caption" 
-                      color={stat.isIncrease ? 'success.main' : 'error.main'}
-                    >
-                      {stat.isIncrease ? '+' : ''}{stat.percentage}% from last month
+                    <Typography variant="caption" color={stat.isIncrease ? 'success.main' : 'error.main'}>
+                      {stat.isIncrease ? '+' : ''}
+                      {stat.percentage}% from last month
                     </Typography>
                   )}
                 </Stack>
@@ -159,26 +166,14 @@ export default function Dashboard() {
                       <Typography variant="subtitle2" color="primary">
                         {ticket.id}
                       </Typography>
-                      <Typography variant="body1">
-                        {ticket.subject}
-                      </Typography>
+                      <Typography variant="body1">{ticket.subject}</Typography>
                       <Typography variant="body2" color="text.secondary">
                         by {ticket.customer}
                       </Typography>
                     </Stack>
                     <Stack direction="row" sx={{ gap: 1 }}>
-                      <Chip
-                        label={ticket.priority}
-                        size="small"
-                        color={getPriorityColor(ticket.priority) as any}
-                        variant="outlined"
-                      />
-                      <Chip
-                        label={ticket.status}
-                        size="small"
-                        color={getStatusColor(ticket.status) as any}
-                        variant="filled"
-                      />
+                      <Chip label={ticket.priority} size="small" color={getPriorityColor(ticket.priority) as any} variant="outlined" />
+                      <Chip label={ticket.status} size="small" color={getStatusColor(ticket.status) as any} variant="filled" />
                     </Stack>
                   </Stack>
                 </Box>
@@ -247,18 +242,26 @@ export default function Dashboard() {
             <Stack spacing={3}>
               <Box>
                 <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2"><FormattedMessage id="resolution-rate" /></Typography>
-                  <Typography variant="body2" color="success.main">84.5%</Typography>
+                  <Typography variant="body2">
+                    <FormattedMessage id="resolution-rate" />
+                  </Typography>
+                  <Typography variant="body2" color="success.main">
+                    84.5%
+                  </Typography>
                 </Stack>
                 <Box sx={{ width: '100%', bgcolor: 'grey.200', borderRadius: 1, height: 8 }}>
                   <Box sx={{ width: '84.5%', bgcolor: 'success.main', borderRadius: 1, height: 8 }} />
                 </Box>
               </Box>
-              
+
               <Box>
                 <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2"><FormattedMessage id="average-response-time" /></Typography>
-                  <Typography variant="body2" color="warning.main">2.3 hrs</Typography>
+                  <Typography variant="body2">
+                    <FormattedMessage id="average-response-time" />
+                  </Typography>
+                  <Typography variant="body2" color="warning.main">
+                    2.3 hrs
+                  </Typography>
                 </Stack>
                 <Box sx={{ width: '100%', bgcolor: 'grey.200', borderRadius: 1, height: 8 }}>
                   <Box sx={{ width: '65%', bgcolor: 'warning.main', borderRadius: 1, height: 8 }} />
@@ -267,8 +270,12 @@ export default function Dashboard() {
 
               <Box>
                 <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2"><FormattedMessage id="customer-satisfaction" /></Typography>
-                  <Typography variant="body2" color="success.main">4.7/5</Typography>
+                  <Typography variant="body2">
+                    <FormattedMessage id="customer-satisfaction" />
+                  </Typography>
+                  <Typography variant="body2" color="success.main">
+                    4.7/5
+                  </Typography>
                 </Stack>
                 <Box sx={{ width: '100%', bgcolor: 'grey.200', borderRadius: 1, height: 8 }}>
                   <Box sx={{ width: '94%', bgcolor: 'success.main', borderRadius: 1, height: 8 }} />

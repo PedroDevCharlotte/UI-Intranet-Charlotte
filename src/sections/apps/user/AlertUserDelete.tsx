@@ -35,10 +35,10 @@ export default function AlertUserDelete({ id, title, open, handleClose }: Props)
 
   const deletehandler = async () => {
     setIsDeleting(true);
-    
+
     try {
       const result = await deleteUser(id);
-      
+
       // Verificar si hay error
       if (result.error || !result.success) {
         openSnackbar({
@@ -52,7 +52,7 @@ export default function AlertUserDelete({ id, title, open, handleClose }: Props)
         } as SnackbarProps);
         return;
       }
-      
+
       // Verificar si el resultado es exitoso
       if (result.success) {
         openSnackbar({
@@ -122,20 +122,14 @@ export default function AlertUserDelete({ id, title, open, handleClose }: Props)
           </Stack>
 
           <Stack direction="row" sx={{ gap: 2, width: 1 }}>
-            <Button 
-              fullWidth 
-              onClick={handleClose} 
-              color="secondary" 
-              variant="outlined"
-              disabled={isDeleting}
-            >
+            <Button fullWidth onClick={handleClose} color="secondary" variant="outlined" disabled={isDeleting}>
               Cancelar
             </Button>
-            <Button 
-              fullWidth 
-              color="error" 
-              variant="contained" 
-              onClick={deletehandler} 
+            <Button
+              fullWidth
+              color="error"
+              variant="contained"
+              onClick={deletehandler}
               autoFocus
               disabled={isDeleting}
               startIcon={isDeleting ? <CircularProgress size={16} color="inherit" /> : undefined}

@@ -1,27 +1,21 @@
 // material-ui
-import useMediaQuery from '@mui/material/useMediaQuery';
+// import useMediaQuery from '@mui/material/useMediaQuery';
 
 // project-imports
 import NavUser from './NavUser';
-import NavCard from './NavCard';
 import Navigation from './Navigation';
-import { useGetMenuMaster } from 'api/menu';
 import SimpleBar from 'components/third-party/SimpleBar';
 
 // ==============================|| DRAWER CONTENT ||============================== //
 
 export default function DrawerContent() {
-  const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
-
-  const { menuMaster } = useGetMenuMaster();
-  const drawerOpen = menuMaster.isDashboardDrawerOpened;
+  // local layout variables intentionally not needed here; Navigation handles its own layout logic
+  // const { menuMaster } = useGetMenuMaster();
 
   return (
     <>
       <SimpleBar sx={{ '& .simplebar-content': { display: 'flex', flexDirection: 'column' } }}>
         <Navigation />
-        {/* {drawerOpen && !downLG && <NavCard />} */}
-        
       </SimpleBar>
       <NavUser />
     </>

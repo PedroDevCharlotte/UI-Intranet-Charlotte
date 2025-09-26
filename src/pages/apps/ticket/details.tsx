@@ -1,4 +1,4 @@
-import { Document, DocumentDownload } from 'iconsax-react';
+import { ArrowSwapHorizontal, Document, DocumentDownload, InfoCircle } from 'iconsax-react';
 import CustomTooltip from 'components/@extended/Tooltip';
 import IconButton from 'components/@extended/IconButton';
 import { useState, useEffect, useRef } from 'react';
@@ -7,12 +7,14 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Autocomplete from '@mui/material/Autocomplete';
-import MultiFileUpload from 'components/third-party/dropzone/MultiFile';
-import 'quill/dist/quill.snow.css';
-import ReactQuill from 'react-quill-new';
+// MultiFileUpload/ReactQuill/axios/useSWR imports are kept commented because they are not used in this file currently
+// import MultiFileUpload from 'components/third-party/dropzone/MultiFile';
+// import 'quill/dist/quill.snow.css';
+// import ReactQuill from 'react-quill-new';
 import { useParams, useNavigate } from 'react-router';
-import useSWR from 'swr';
-import axios from 'axios';
+// useSWR and axios are not directly used here; leave commented to avoid unused import warnings
+// import useSWR from 'swr';
+// import axios from 'axios';
 
 // material-ui
 import Button from '@mui/material/Button';
@@ -30,25 +32,25 @@ import Box from '@mui/material/Box';
 import Fab from '@mui/material/Fab';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { Add, Edit, CloseCircle, ArrowSwapHorizontal, InfoCircle, ArrowLeft2, Trash } from 'iconsax-react';
+import { Add, Edit, CloseCircle, ArrowLeft2, Trash } from 'iconsax-react';
 
 import AddMessageModal from 'sections/apps/ticket/AddMessageModal';
 import RichTextModal from 'sections/apps/ticket/RichTextModal';
 import ReassignModal from 'sections/apps/ticket/ReassignModal';
 import CancelTicketModal from 'components/CancelTicketModal';
-import { useResolverUsers, useResolveUsersAttentsTiketByType } from 'hooks/useResolverUsers';
+import { useResolveUsersAttentsTiketByType } from 'hooks/useResolverUsers';
 // project-imports
-import Breadcrumbs from 'components/@extended/Breadcrumbs';
-import { cancelTicket } from 'api/ticket';
+import { invalidateTicketCaches } from 'api/ticket';
 import MainCard from 'components/MainCard';
 import { openSnackbar } from 'api/snackbar';
-import { APP_DEFAULT_PATH, GRID_COMMON_SPACING } from 'config';
+import { GRID_COMMON_SPACING } from 'config';
 
 // types
 import { SnackbarProps } from 'types/snackbar';
-import { TicketList, User, TicketType, Department, TicketMessage, TicketAttachment } from 'types/ticket';
-import { useGetTicketById, useGetTicketMaster, downloadTicketAttachment, updateTicketStatus, closeTicket, updateTicket } from 'api/ticket';
+import { TicketList, TicketMessage, TicketAttachment } from 'types/ticket';
+import { useGetTicketById, downloadTicketAttachment, updateTicketStatus, closeTicket, updateTicket } from 'api/ticket';
 import { useGetUser } from 'api/user';
+import { createNonConformityFromTicket } from 'api/nonConformities';
 import usePermissions from 'hooks/usePermissions';
 import useAuth from 'hooks/useAuth';
 
@@ -62,9 +64,8 @@ export default function TicketDetails() {
   const [openNCModal, setOpenNCModal] = useState(false);
   const usersList = useGetUser().users.map((user) => ({ value: user.id, label: user.firstName + ' ' + user.lastName, email: user.email }));
   type ParticipantOption = { id: number; label: string };
-  const [formParticipants, setFormParticipants] = useState<ParticipantOption[]>([]);
+  // participantes form state removed (unused)
   const [openReassignModal, setOpenReassignModal] = useState(false);
-  const resolverUsers = useResolverUsers();
   const { id } = useParams();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
@@ -72,7 +73,6 @@ export default function TicketDetails() {
   // Consulta el ticket y mensajes usando SWR y axios
 
   const ticketData: TicketList | null = data || null;
-  type Message = { id: number; sender: string; date: string; content: string };
   const messages: TicketMessage[] = data?.messages || [];
   const sortedMessages = [...messages].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const [editData, setEditData] = useState<TicketList | null>(ticketData);
@@ -82,7 +82,6 @@ export default function TicketDetails() {
     if (ticketData) setEditData({ ...ticketData });
   };
 
-  const { ticketTypeId, assignedTo } = ticketData || {};
   const resolveUsersAttentsTiketByType = useResolveUsersAttentsTiketByType(ticketData?.ticketTypeId || 0, ticketData?.assignedTo || 0);
 
   // Permisos de usuario
@@ -111,8 +110,8 @@ export default function TicketDetails() {
             variant: 'alert',
             alert: { color: 'success' }
           } as SnackbarProps);
-        } catch (err) {
-          console.error('Error updating ticket status', err);
+        } catch {
+          console.error('Error updating ticket status');
           // No volver a intentar inmediatamente
           updatedRef.current = true;
         }
@@ -124,7 +123,6 @@ export default function TicketDetails() {
 
   const handleSave = async () => {
     if (!ticketData) return;
-    let saving = true;
     try {
       // set editing false to close inputs
       setIsEditing(false);
@@ -155,8 +153,6 @@ export default function TicketDetails() {
         variant: 'alert',
         alert: { color: 'error' }
       } as SnackbarProps);
-    } finally {
-      saving = false;
     }
   };
 
@@ -211,7 +207,7 @@ export default function TicketDetails() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch {
       alert('Error al descargar archivo');
     }
   };
@@ -261,11 +257,7 @@ export default function TicketDetails() {
   const participantes: ParticipantOption[] =
     ticketData.participants && ticketData.participants.length > 0
       ? ticketData.participants
-          .filter(
-            (p) =>
-              p.userId !== ticketData.creator?.id &&
-              p.userId !== ticketData.assignedTo
-          )
+          .filter((p) => p.userId !== ticketData.creator?.id && p.userId !== ticketData.assignedTo)
           .map((p) => ({
             id: p.userId || 0,
             label: `${p.user.firstName} ${p.user.lastName}`
@@ -297,8 +289,8 @@ export default function TicketDetails() {
               variant: 'alert',
               alert: { color: 'success' }
             } as SnackbarProps);
-          } catch (err) {
-            console.error('Error closing ticket', err);
+          } catch {
+            console.error('Error closing ticket');
             openSnackbar({
               open: true,
               message: 'Error al cerrar el ticket',
@@ -325,28 +317,32 @@ export default function TicketDetails() {
         onSubmit={async (content) => {
           if (!ticketData.id) return;
           try {
-            await closeTicket(ticketData.id, content);
+            // Crear la no conformidad desde el ticket
+            const nonConformity = await createNonConformityFromTicket(ticketData.id, content);
 
             openSnackbar({
               open: true,
-              message: 'Se creo una nueva no conformidad',
+              message: `No conformidad ${nonConformity.number} creada exitosamente`,
               anchorOrigin: { vertical: 'top', horizontal: 'right' },
               variant: 'alert',
               alert: { color: 'success' }
             } as SnackbarProps);
-          } catch (err) {
-            console.error('Error closing ticket', err);
+
+            // Cerrar el modal
+            setOpenNCModal(false);
+
+            // Redirigir al formulario por pasos de no conformidades
+            navigate(`/apps/non-conformities/new?nonConformityId=${nonConformity.id}`);
+          } catch (error) {
+            console.error('Error creating non-conformity from ticket:', error);
             openSnackbar({
               open: true,
-              message: 'Error al crear una nueva no conformidad',
+              message: 'Error al crear la no conformidad',
               anchorOrigin: { vertical: 'top', horizontal: 'right' },
               variant: 'alert',
               alert: { color: 'error' }
             } as SnackbarProps);
-          } finally {
-            setOpenCloseModal(false);
           }
-          // Aquí puedes llamar a la API para crear la no conformidad con el comentario
         }}
         title="Generar no conformidad"
         label="Motivo de la no conformidad"
@@ -414,7 +410,7 @@ export default function TicketDetails() {
                               Cancelar ticket
                             </Button>
                           )}
-                          
+
                           {hasPerm('tickets.createNoConformity') && ticketData.ticketTypeId == 5 && (
                             <Button variant="outlined" onClick={() => setOpenNCModal(true)}>
                               Generar no conformidad
@@ -428,7 +424,19 @@ export default function TicketDetails() {
                         </>
                       )}
 
-                      <Button variant="shadow" color="success" onClick={() => navigate('/apps/ticket/list')}>
+                      <Button
+                        variant="shadow"
+                        color="success"
+                        onClick={() => {
+                          try {
+                            if (ticketData && ticketData.id) invalidateTicketCaches(ticketData.id);
+                          } catch {
+                            // ignore
+                            console.debug('invalidateTicketCaches error');
+                          }
+                          navigate('/apps/ticket/list');
+                        }}
+                      >
                         Volver
                       </Button>
                     </>
@@ -575,27 +583,21 @@ export default function TicketDetails() {
                         }}
                         renderInput={(params) => <TextField {...params} label="Selecciona participantes" />}
                       />
+                    ) : ticketData.participants && ticketData.participants.length > 0 ? (
+                      ticketData.participants.map((participant) => (
+                        <Chip
+                          key={participant.userId}
+                          label={participant.user ? `${participant.user.firstName} ${participant.user.lastName}` : 'Usuario desconocido'}
+                          size="small"
+                          color={getPriorityColor(ticketData.priority) as any}
+                          variant="filled"
+                          sx={{ width: 'fit-content' }}
+                        />
+                      ))
                     ) : (
-                      ticketData.participants && ticketData.participants.length > 0 ? (
-                        ticketData.participants.map((participant) => (
-                          <Chip
-                            key={participant.userId}
-                            label={
-                              participant.user
-                                ? `${participant.user.firstName} ${participant.user.lastName}`
-                                : 'Usuario desconocido'
-                            }
-                            size="small"
-                            color={getPriorityColor(ticketData.priority) as any}
-                            variant="filled"
-                            sx={{ width: 'fit-content' }}
-                          />
-                        ))
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          Sin participantes
-                        </Typography>
-                      )
+                      <Typography variant="body2" color="text.secondary">
+                        Sin participantes
+                      </Typography>
                     )}
                   </Stack>
                 </Grid>
@@ -721,44 +723,66 @@ export default function TicketDetails() {
       </Grid>
       {/* Floating action buttons for small screens */}
       {isSmall && (
-        <Box sx={{ position: 'fixed', right: 16, bottom: 16, zIndex: (theme) => theme.zIndex.tooltip + 10, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box
+          sx={{
+            position: 'fixed',
+            right: 16,
+            bottom: 16,
+            zIndex: (theme) => theme.zIndex.tooltip + 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1
+          }}
+        >
           {!isEditing ? (
             <>
-                  {ticketData.status !== 'CLOSED' && ticketData.status !== 'COMPLETED' && (
-                    <>
-                      {hasPerm('tickets.sendMessage') && (
-                        <Fab size="medium" color="primary" aria-label="nuevo-mensaje" onClick={() => setOpenModal(true)}>
-                          <Add />
-                        </Fab>
-                      )}
-                        {hasPerm('tickets.update') && (
-                        <Fab size="medium" color="default" aria-label="editar" onClick={handleEdit}>
-                          <Edit />
-                        </Fab>
-                        )}
-                      {hasPerm('tickets.close') && (
-                        <Fab size="medium" color="inherit" aria-label="cerrar" onClick={() => setOpenCloseModal(true)}>
-                          <CloseCircle />
-                        </Fab>
-                      )}
-                        {hasPerm('tickets.cancel') && (
-                        <Fab size="medium" color="error" aria-label="cancelar-ticket" onClick={() => setOpenCancelModal(true)}>
-                          <Trash />
-                        </Fab>
-                        )}
-                      {hasPerm('tickets.noConformity') && ticketData.ticketTypeId == 5 && (
-                        <Fab size="medium" color="warning" aria-label="no-conformidad" onClick={() => setOpenNCModal(true)}>
-                          <InfoCircle />
-                        </Fab>
-                      )}
-                      {hasPerm('tickets.reassign') && (
-                        <Fab size="medium" color="secondary" aria-label="reasignar" onClick={() => setOpenReassignModal(true)}>
-                          <ArrowSwapHorizontal />
-                        </Fab>
-                      )}
-                    </>
+              {ticketData.status !== 'CLOSED' && ticketData.status !== 'COMPLETED' && (
+                <>
+                  {hasPerm('tickets.sendMessage') && (
+                    <Fab size="medium" color="primary" aria-label="nuevo-mensaje" onClick={() => setOpenModal(true)}>
+                      <Add />
+                    </Fab>
                   )}
-              <Fab size="medium" color="success" aria-label="volver" onClick={() => navigate('/apps/ticket/list')}>
+                  {hasPerm('tickets.update') && (
+                    <Fab size="medium" color="default" aria-label="editar" onClick={handleEdit}>
+                      <Edit />
+                    </Fab>
+                  )}
+                  {hasPerm('tickets.close') && (
+                    <Fab size="medium" color="inherit" aria-label="cerrar" onClick={() => setOpenCloseModal(true)}>
+                      <CloseCircle />
+                    </Fab>
+                  )}
+                  {hasPerm('tickets.cancel') && (
+                    <Fab size="medium" color="error" aria-label="cancelar-ticket" onClick={() => setOpenCancelModal(true)}>
+                      <Trash />
+                    </Fab>
+                  )}
+                  {hasPerm('tickets.noConformity') && ticketData.ticketTypeId == 5 && (
+                    <Fab size="medium" color="warning" aria-label="no-conformidad" onClick={() => setOpenNCModal(true)}>
+                      <InfoCircle />
+                    </Fab>
+                  )}
+                  {hasPerm('tickets.reassign') && (
+                    <Fab size="medium" color="secondary" aria-label="reasignar" onClick={() => setOpenReassignModal(true)}>
+                      <ArrowSwapHorizontal />
+                    </Fab>
+                  )}
+                </>
+              )}
+              <Fab
+                size="medium"
+                color="success"
+                aria-label="volver"
+                onClick={() => {
+                  try {
+                    if (ticketData && ticketData.id) invalidateTicketCaches(ticketData.id);
+                  } catch {
+                    // ignore
+                  }
+                  navigate('/apps/ticket/list');
+                }}
+              >
                 <ArrowLeft2 />
               </Fab>
             </>
@@ -783,7 +807,17 @@ export default function TicketDetails() {
           if (!ticketData) return;
           try {
             // Llama al endpoint de cancelación con justificación
-            await import('api/ticket').then(({ cancelTicket }) => cancelTicket(ticketData.id, justification));
+            await import('api/ticket').then(({ cancelTicket, invalidateTicketCaches }) =>
+              cancelTicket(ticketData.id, justification).then(() => {
+                try {
+                  // invalidar caches y redirigir a la lista
+                  invalidateTicketCaches(ticketData.id);
+                } catch {
+                  // noop
+                  console.debug('invalidateTicketCaches error');
+                }
+              })
+            );
             openSnackbar({
               action: false,
               open: true,
@@ -796,10 +830,17 @@ export default function TicketDetails() {
               actionButton: false,
               dense: false,
               maxStack: 3,
-              iconVariant: 'usedefault',
+              iconVariant: 'usedefault'
             });
             setOpenCancelModal(false);
-          } catch (err) {
+            // redirigir a la lista de tickets
+            try {
+              navigate('/apps/ticket/list');
+            } catch {
+              // noop
+              console.debug('navigate error');
+            }
+          } catch {
             openSnackbar({
               action: false,
               open: true,
@@ -812,7 +853,7 @@ export default function TicketDetails() {
               actionButton: false,
               dense: false,
               maxStack: 3,
-              iconVariant: 'usedefault',
+              iconVariant: 'usedefault'
             });
           }
         }}

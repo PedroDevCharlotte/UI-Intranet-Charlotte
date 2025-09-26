@@ -157,9 +157,7 @@ export default function ListSmallCard({ user }: Props) {
               >{`https://${user.firstName}.en`}</Link>
             </View>
           </View>
-          <View style={[styles.row, { gap: 1, paddingTop: 18 }]}>
-            
-          </View>
+          <View style={[styles.row, { gap: 1, paddingTop: 18 }]}></View>
           <View style={styles.timer}>
             <Text style={styles.iconTitle}> Updated in {user.time}</Text>
           </View>

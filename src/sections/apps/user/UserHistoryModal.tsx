@@ -68,7 +68,7 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
     setLoading(true);
     try {
       const response = await getUserHistory(userId, 50);
-      
+
       if (response.success) {
         setHistoryData(response.data);
       } else {
@@ -134,7 +134,7 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
     if (item.description) {
       return item.description;
     }
-    
+
     // Generar descripción basada en la acción
     switch (item.action.toUpperCase()) {
       case 'CREATE':
@@ -156,12 +156,12 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
         const oldData = JSON.parse(item.oldValues);
         const newData = JSON.parse(item.newValues);
         const changedFieldsList = JSON.parse(item.changedFields);
-        
+
         return changedFieldsList.map((field: string) => {
           const fieldName = getFieldDisplayName(field);
           const oldValue = oldData[field];
           const newValue = newData[field];
-          
+
           return {
             field: fieldName,
             from: oldValue !== undefined ? formatValue(oldValue) : 'Sin valor',
@@ -174,20 +174,20 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
         return null;
       }
     }
-    
+
     // Formato anterior con changes (mantener compatibilidad)
     if (!item.changes || typeof item.changes !== 'object') {
       return null;
     }
-    
+
     // Manejar diferentes formatos de datos de cambios
     let changesData = item.changes;
-    
+
     // Si changes tiene una propiedad 'changes' anidada (formato de algunos APIs)
     if (changesData.changes && typeof changesData.changes === 'object') {
       changesData = changesData.changes;
     }
-    
+
     // Si changes es un array de cambios
     if (Array.isArray(changesData)) {
       return changesData.map((change: any, index: number) => {
@@ -218,16 +218,16 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
         };
       });
     }
-    
+
     // Si changes es un objeto con propiedades
     const changes = Object.entries(changesData);
     if (changes.length === 0) {
       return null;
     }
-    
+
     return changes.map(([field, change]: [string, any]) => {
       const fieldName = getFieldDisplayName(field);
-      
+
       // Formato: { campo: { from: 'valor_anterior', to: 'valor_nuevo' } }
       if (change && typeof change === 'object' && 'from' in change && 'to' in change) {
         const fromValue = formatValue(change.from);
@@ -239,7 +239,7 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
           displayText: `${fieldName}: "${fromValue}" → "${toValue}"`
         };
       }
-      
+
       // Formato: { campo: { oldValue: 'valor_anterior', newValue: 'valor_nuevo' } }
       if (change && typeof change === 'object' && ('oldValue' in change || 'newValue' in change)) {
         const fromValue = change.oldValue !== undefined ? formatValue(change.oldValue) : null;
@@ -251,7 +251,7 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
           displayText: fromValue ? `${fieldName}: "${fromValue}" → "${toValue}"` : `${fieldName}: ${toValue}`
         };
       }
-      
+
       // Formato: { campo: 'valor_nuevo' } (sin valor anterior)
       return {
         field: fieldName,
@@ -265,40 +265,40 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
   // Función para obtener nombres de campo más amigables
   const getFieldDisplayName = (field: string): string => {
     const fieldNames: { [key: string]: string } = {
-      'id': 'ID',
-      'firstName': 'Nombre',
-      'lastName': 'Apellido',
-      'fullName': 'Nombre Completo',
-      'name': 'Nombre',
-      'email': 'Correo Electrónico',
-      'role': 'Rol',
-      'roleId': 'ID del Rol',
-      'roleName': 'Nombre del Rol',
-      'department': 'Departamento',
-      'departmentId': 'ID del Departamento',
-      'departmentName': 'Nombre del Departamento',
-      'active': 'Estado Activo',
-      'status': 'Estado',
-      'isActive': 'Activo',
-      'isBlocked': 'Bloqueado',
-      'blocked': 'Bloqueado',
-      'isTwoFactorEnabled': 'Autenticación 2FA',
-      'twoFactorEnabled': 'Autenticación 2FA',
-      'password': 'Contraseña',
-      'passwordChanged': 'Contraseña Cambiada',
-      'daysToPasswordExpiration': 'Días para Expiración de Contraseña',
-      'lastLogin': 'Último Acceso',
-      'loginAttempts': 'Intentos de Acceso',
-      'phone': 'Teléfono',
-      'phoneNumber': 'Número de Teléfono',
-      'position': 'Posición',
-      'jobTitle': 'Título del Trabajo',
-      'createdAt': 'Fecha de Creación',
-      'updatedAt': 'Fecha de Actualización',
-      'createdBy': 'Creado Por',
-      'updatedBy': 'Actualizado Por'
+      id: 'ID',
+      firstName: 'Nombre',
+      lastName: 'Apellido',
+      fullName: 'Nombre Completo',
+      name: 'Nombre',
+      email: 'Correo Electrónico',
+      role: 'Rol',
+      roleId: 'ID del Rol',
+      roleName: 'Nombre del Rol',
+      department: 'Departamento',
+      departmentId: 'ID del Departamento',
+      departmentName: 'Nombre del Departamento',
+      active: 'Estado Activo',
+      status: 'Estado',
+      isActive: 'Activo',
+      isBlocked: 'Bloqueado',
+      blocked: 'Bloqueado',
+      isTwoFactorEnabled: 'Autenticación 2FA',
+      twoFactorEnabled: 'Autenticación 2FA',
+      password: 'Contraseña',
+      passwordChanged: 'Contraseña Cambiada',
+      daysToPasswordExpiration: 'Días para Expiración de Contraseña',
+      lastLogin: 'Último Acceso',
+      loginAttempts: 'Intentos de Acceso',
+      phone: 'Teléfono',
+      phoneNumber: 'Número de Teléfono',
+      position: 'Posición',
+      jobTitle: 'Título del Trabajo',
+      createdAt: 'Fecha de Creación',
+      updatedAt: 'Fecha de Actualización',
+      createdBy: 'Creado Por',
+      updatedBy: 'Actualizado Por'
     };
-    
+
     return fieldNames[field] || field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1');
   };
 
@@ -307,16 +307,16 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
     if (value === null || value === undefined) {
       return 'Sin valor';
     }
-    
+
     if (typeof value === 'boolean') {
       return value ? 'Activo' : 'Inactivo';
     }
-    
+
     if (typeof value === 'string') {
       if (value.trim() === '') {
         return 'Vacío';
       }
-      
+
       // Formatear fechas si parece ser una fecha ISO
       if (value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
         try {
@@ -332,14 +332,14 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
           return value;
         }
       }
-      
+
       return value;
     }
-    
+
     if (typeof value === 'number') {
       return value.toString();
     }
-    
+
     if (typeof value === 'object' && value !== null) {
       // Si es un objeto con propiedades name o title, mostrar eso
       if (value.name) {
@@ -351,7 +351,7 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
       if (value.label) {
         return value.label;
       }
-      
+
       // Si no, convertir a JSON de forma más legible
       try {
         return JSON.stringify(value, null, 2);
@@ -359,7 +359,7 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
         return '[Objeto]';
       }
     }
-    
+
     return String(value);
   };
 
@@ -390,9 +390,9 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
           </IconButton>
         </Stack>
       </DialogTitle>
-      
+
       <Divider />
-      
+
       <DialogContent sx={{ p: 0 }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
@@ -402,10 +402,7 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
           <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
             {historyData.length === 0 ? (
               <ListItem>
-                <ListItemText
-                  primary="No hay historial disponible"
-                  secondary="Este usuario no tiene cambios registrados"
-                />
+                <ListItemText primary="No hay historial disponible" secondary="Este usuario no tiene cambios registrados" />
               </ListItem>
             ) : (
               historyData.map((item, index) => (
@@ -420,12 +417,7 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
                       primary={
                         <Stack direction="row" sx={{ alignItems: 'center', gap: 1, mb: 0.5 }}>
                           <Typography variant="subtitle1">{getChangeDescription(item)}</Typography>
-                          <Chip 
-                            label={item.action.toUpperCase()} 
-                            size="small" 
-                            color={getActionColor(item.action)}
-                            variant="outlined"
-                          />
+                          <Chip label={item.action.toUpperCase()} size="small" color={getActionColor(item.action)} variant="outlined" />
                         </Stack>
                       }
                       secondary={
@@ -453,11 +445,7 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
                                         <strong>{change.field}</strong>
                                       </Typography>
                                       {change.from !== null ? (
-                                        <Stack
-                                          direction="row"
-                                          spacing={1}
-                                          sx={{ alignItems: 'center', flexWrap: 'wrap' }}
-                                        >
+                                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                                           <Typography
                                             variant="caption"
                                             sx={{
@@ -513,15 +501,11 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
                           <Stack direction="row" sx={{ alignItems: 'center', gap: 2 }}>
                             <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
                               <User size={14} />
-                              <Typography variant="caption">
-                                {item.userEmail || `Usuario ID: ${item.userId}`}
-                              </Typography>
+                              <Typography variant="caption">{item.userEmail || `Usuario ID: ${item.userId}`}</Typography>
                             </Stack>
                             <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
                               <Clock size={14} />
-                              <Typography variant="caption">
-                                {formatDate(item.createdAt)}
-                              </Typography>
+                              <Typography variant="caption">{formatDate(item.createdAt)}</Typography>
                             </Stack>
                           </Stack>
                         </Stack>
@@ -535,9 +519,9 @@ export default function UserHistoryModal({ open, onClose, userId, userName }: Pr
           </List>
         )}
       </DialogContent>
-      
+
       <Divider />
-      
+
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={onClose} variant="outlined" color="secondary">
           Cerrar

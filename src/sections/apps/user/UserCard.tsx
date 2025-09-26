@@ -186,9 +186,7 @@ export default function UserCard({ user }: { user: UserList }) {
               </Grid>
             </Grid>
           </Grid>
-          <Grid size={12}>
-            
-          </Grid>
+          <Grid size={12}></Grid>
         </Grid>
         <Stack
           direction="row"

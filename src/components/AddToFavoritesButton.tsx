@@ -23,7 +23,8 @@ export default function AddToFavoritesButton({ title, url, description = '' }: A
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     } catch (err) {
-      // Opcional: mostrar error
+      // opcional: log de debug ligero para evitar no-unused-vars
+      console.debug('addFavorite error', err);
     } finally {
       setLoading(false);
     }

@@ -1,33 +1,22 @@
 // material-ui
-import { useTheme } from '@mui/material/styles';
 import Grid from '@mui/material/Grid2';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 
 // project-imports
-import EcommerceDataCard from 'components/cards/statistics/EcommerceDataCard';
 import { GRID_COMMON_SPACING } from 'config';
-
 import WelcomeBanner from 'sections/dashboard/default/WelcomeBanner';
-import ProjectRelease from 'sections/dashboard/default/ProjectRelease';
-import EcommerceDataChart from 'sections/widget/chart/EcommerceDataChart';
-import TotalIncome from 'sections/widget/chart/TotalIncome';
-import RepeatCustomerRate from 'sections/widget/chart/RepeatCustomerRate';
-import ProjectOverview from 'sections/widget/chart/ProjectOverview';
-import Transactions from 'sections/widget/data/Transactions';
-import AssignUsers from 'sections/widget/statistics/AssignUsers';
-
-// assets
-import { ArrowDown, ArrowUp, Book, Calendar, CloudChange, Wallet3 } from 'iconsax-react';
 import BannersSlider from 'sections/dashboard/banners/BannersSlider';
 import TicketsWidget from 'sections/dashboard/tickets/TicketsWidget';
 import TicketsResponseTrafficLight from 'sections/dashboard/tickets/TicketsResponseTrafficLight';
+import ClosedTicketsSurvey from 'sections/dashboard/tickets/ClosedTicketsSurvey';
+import RequestFeedbackTable from 'sections/dashboard/tickets/RequestFeedbackTable';
 import usePermissions from 'hooks/usePermissions';
+
+// assets
+// ...existing imports above
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
 export default function DashboardDefault() {
-  const theme = useTheme();
   const { hasPerm } = usePermissions();
 
   return (
@@ -41,8 +30,18 @@ export default function DashboardDefault() {
         </Grid>
       )}
       {hasPerm('tickets.seeTrafficLight') && (
-        <Grid size={{ xs: 6 }}>
+        <Grid size={{ xs: 4 }}>
           <TicketsResponseTrafficLight />
+        </Grid>
+      )}
+      {hasPerm('tickets.viewDashboardTicket') && (
+        <Grid size={{ xs: 4 }}>
+          <ClosedTicketsSurvey />
+        </Grid>
+      )}
+      {hasPerm('tickets.viewDashboardTicket') && (
+        <Grid size={{ xs: 4 }}>
+          <RequestFeedbackTable />
         </Grid>
       )}
     </Grid>

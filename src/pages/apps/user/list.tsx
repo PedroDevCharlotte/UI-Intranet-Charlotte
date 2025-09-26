@@ -1,4 +1,4 @@
-import { useMemo, useState, Fragment, MouseEvent, useContext } from 'react';
+import { useMemo, useState, Fragment, MouseEvent } from 'react';
 
 // material-ui
 import { alpha } from '@mui/material/styles';
@@ -20,7 +20,6 @@ import Box from '@mui/material/Box';
 
 // third-party
 import { LabelKeyObject } from 'react-csv/lib/core';
-import { PatternFormat } from 'react-number-format';
 import {
   ColumnDef,
   HeaderGroup,
@@ -39,15 +38,7 @@ import Avatar from 'components/@extended/Avatar';
 import IconButton from 'components/@extended/IconButton';
 import MainCard from 'components/MainCard';
 
-import {
-  CSVExport,
-  DebouncedInput,
-  HeaderSort,
-  IndeterminateCheckbox,
-  RowSelection,
-  SelectColumnSorting,
-  TablePagination
-} from 'components/third-party/react-table';
+import { CSVExport, DebouncedInput, HeaderSort, RowSelection, TablePagination } from 'components/third-party/react-table';
 
 import EmptyReactTable from 'pages/tables/react-table/empty';
 import AlertUserDelete from 'sections/apps/user/AlertUserDelete';
@@ -58,14 +49,14 @@ import UserView from 'sections/apps/user/UserView';
 import UserHistoryModal from 'sections/apps/user/UserHistoryModal';
 import UserSessionsModal from 'sections/apps/user/UserSessionsModal';
 
-import { useGetDepartments, useGetRoles, useGetUser, disable2FA, getUserHistory, getUserSessions } from 'api/user';
+import { useGetUser } from 'api/user';
 import { ImagePath, getImageUrl } from 'utils/getImageUrl';
 
 // types
 import { UserList } from 'types/user';
 
 // assets
-import { Add, Edit, Eye, Global, Lock1, SecuritySafe, Ticket, Trash, Shield, People, Monitor } from 'iconsax-react';
+import { Add, Edit, Eye, Global, Trash, Shield, People, Monitor } from 'iconsax-react';
 import usePermissions from 'hooks/usePermissions';
 
 interface Props {
@@ -82,7 +73,7 @@ function ReactTable({ data, columns, modalToggler, hasPerm }: Props) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState('');
-  const sortBy = { id: 'id', desc: false };
+
   const [statusFilter, setStatusFilter] = useState<string | number>('');
   const filteredData = useMemo(() => {
     if (statusFilter === '') return data;
@@ -146,7 +137,8 @@ function ReactTable({ data, columns, modalToggler, hasPerm }: Props) {
           <Select
             value={statusFilter}
             onChange={(event) => {
-              setStatusFilter(event.target.value)}}
+              setStatusFilter(event.target.value);
+            }}
             displayEmpty
             inputProps={{ 'aria-label': 'Filtro de estado' }}
           >
@@ -155,25 +147,25 @@ function ReactTable({ data, columns, modalToggler, hasPerm }: Props) {
             <MenuItem value={0}>Inactivo</MenuItem>
           </Select>
           {/* <SelectColumnSorting sortBy={sortBy.id} {...{ getState: table.getState, getAllColumns: table.getAllColumns, setSorting }} /> */}
-            <Stack direction="row" sx={{ gap: 2, alignItems: 'center' }}>
-              {hasPerm('user.create') && (
-                <Button variant="contained" startIcon={<Add />} onClick={modalToggler} size="large">
-                  Agregar usuario
-                </Button>
-              )}
-              {hasPerm('user.exportList') && (
-                <CSVExport
-                  {...{
-                    data:
-                      table.getSelectedRowModel().flatRows.map((row) => row.original).length === 0
-                        ? data
-                        : table.getSelectedRowModel().flatRows.map((row) => row.original),
-                    headers,
-                    filename: 'lista-usuarios.csv'
-                  }}
-                />
-              )}
-            </Stack>
+          <Stack direction="row" sx={{ gap: 2, alignItems: 'center' }}>
+            {hasPerm('user.create') && (
+              <Button variant="contained" startIcon={<Add />} onClick={modalToggler} size="large">
+                Agregar usuario
+              </Button>
+            )}
+            {hasPerm('user.exportList') && (
+              <CSVExport
+                {...{
+                  data:
+                    table.getSelectedRowModel().flatRows.map((row) => row.original).length === 0
+                      ? data
+                      : table.getSelectedRowModel().flatRows.map((row) => row.original),
+                  headers,
+                  filename: 'lista-usuarios.csv'
+                }}
+              />
+            )}
+          </Stack>
         </Stack>
       </Stack>
       <Stack>
@@ -264,13 +256,10 @@ export default function UserListPage() {
   const { hasPerm } = usePermissions();
 
   const [open, setOpen] = useState<boolean>(false);
-  const { roles, rolesLoading } = useGetRoles();
-  const { departments, departmentsLoading } = useGetDepartments();
 
   const [userModal, setUserModal] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<UserList | null>(null);
   const [userDeleteId, setUserDeleteId] = useState<any>('');
-  const [disabling2FA, setDisabling2FA] = useState<number | null>(null);
 
   // Nuevos estados para las alertas y modales
   const [disable2FAAlert, setDisable2FAAlert] = useState<boolean>(false);
@@ -300,7 +289,6 @@ export default function UserListPage() {
   const handleSessionsModalClose = () => {
     setSessionsModal(!sessionsModal);
   };
-
 
   const columns = useMemo<ColumnDef<UserList>[]>(
     () => [
@@ -353,14 +341,14 @@ export default function UserListPage() {
       {
         header: 'Correo',
         accessorKey: 'email',
-         meta: {
+        meta: {
           className: 'cell-center'
         }
       },
       {
         header: 'Rol',
         accessorKey: 'role',
-        
+
         meta: {
           className: 'cell-center'
         }
@@ -399,7 +387,7 @@ export default function UserListPage() {
           className: 'cell-center'
         }
       },
-      
+
       {
         header: 'Acciones',
         meta: {
@@ -407,14 +395,6 @@ export default function UserListPage() {
         },
         disableSortBy: true,
         cell: ({ row }) => {
-          const collapseIcon =
-            row.getCanExpand() && row.getIsExpanded() ? (
-              <Box component="span" sx={{ color: 'error.main' }}>
-                <Add style={{ transform: 'rotate(45deg)' }} />
-              </Box>
-            ) : (
-              <Eye />
-            );
           return (
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center' }}>
               {hasPerm('user.update') && (
@@ -544,7 +524,12 @@ export default function UserListPage() {
       <AlertDisable2FA id={Number(selectedUserId)} userName={selectedUserName} open={disable2FAAlert} handleClose={handleDisable2FAClose} />
       <AlertAssignTeam id={Number(selectedUserId)} userName={selectedUserName} open={assignTeamAlert} handleClose={handleAssignTeamClose} />
       <UserHistoryModal open={historyModal} onClose={handleHistoryModalClose} userId={Number(selectedUserId)} userName={selectedUserName} />
-      <UserSessionsModal open={sessionsModal} onClose={handleSessionsModalClose} userId={Number(selectedUserId)} userName={selectedUserName} />
+      <UserSessionsModal
+        open={sessionsModal}
+        onClose={handleSessionsModalClose}
+        userId={Number(selectedUserId)}
+        userName={selectedUserName}
+      />
       <UserModal open={userModal} modalToggler={setUserModal} user={selectedUser} />
     </>
   );

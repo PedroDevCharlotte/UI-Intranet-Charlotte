@@ -15,22 +15,17 @@ export default function Demo2FADisable() {
   return (
     <Stack spacing={2} sx={{ p: 3 }}>
       <Typography variant="h5">Demo: Deshabilitar 2FA con Código de Autenticación</Typography>
-      
+
       <Typography variant="body1">
-        Este componente ahora requiere un código de 6 dígitos del autenticador antes de permitir
-        la deshabilitación del 2FA, agregando una capa adicional de seguridad.
+        Este componente ahora requiere un código de 6 dígitos del autenticador antes de permitir la deshabilitación del 2FA, agregando una
+        capa adicional de seguridad.
       </Typography>
 
       <Button variant="contained" onClick={handleOpen} sx={{ width: 'fit-content' }}>
         Abrir Modal de Deshabilitar 2FA
       </Button>
 
-      <AlertDisable2FA 
-        id={123}
-        userName="Juan Pérez"
-        open={open}
-        handleClose={handleClose}
-      />
+      <AlertDisable2FA id={123} userName="Juan Pérez" open={open} handleClose={handleClose} />
 
       <Typography variant="h6">Características implementadas:</Typography>
       <ul>

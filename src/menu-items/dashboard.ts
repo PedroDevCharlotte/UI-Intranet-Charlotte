@@ -1,24 +1,19 @@
 // project-imports
-import { useGetMenu } from 'api/menu';
-
-// assets
-import { Refresh, Home3, HomeTrendUp, Box1, Home2 } from 'iconsax-react';
+// menu API intentionally unused in this simplified fallback module
 
 // types
 import { NavItemType } from 'types/menu';
-
+import {Home} from 'iconsax-react';
+// fallback icons are intentionally omitted to reduce unused imports
 const icons = {
-  navigation: Home2,
-  dashboard: HomeTrendUp,
-  components: Box1,
-  loading: Refresh
+  dashboard: Home
 };
- export const loadingMenu: NavItemType = {
-   id: 'group-dashboard-loading',
-   title: 'Inicio',
-   type: 'group',
-   url: '/dashboard/default',
-  icon: icons.dashboard,
+export const loadingMenu: NavItemType = {
+  id: 'group-dashboard-loading',
+  title: 'Inicio',
+  type: 'group',
+  url: '/dashboard/default',
+  icon: icons.dashboard
   // children: [
   //   {
   //     id: 'dashboard1',
@@ -48,7 +43,7 @@ const icons = {
 // ==============================|| MENU ITEMS - API ||============================== //
 
 export function MenuFromAPI() {
-  const { menu, menuLoading } = useGetMenu();
+  // const { menu, menuLoading } = useGetMenu();
 
   // if (menuLoading) return loadingMenu;
 

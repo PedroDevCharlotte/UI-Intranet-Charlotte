@@ -21,14 +21,7 @@ interface DynamicFieldProps {
   disabled?: boolean;
 }
 
-const DynamicField: React.FC<DynamicFieldProps> = ({
-  field,
-  value,
-  onChange,
-  error = false,
-  helperText,
-  disabled = false
-}) => {
+const DynamicField: React.FC<DynamicFieldProps> = ({ field, value, onChange, error = false, helperText, disabled = false }) => {
   const handleChange = (newValue: any) => {
     onChange(field.name, newValue);
   };
@@ -118,13 +111,7 @@ const DynamicField: React.FC<DynamicFieldProps> = ({
     case 'select':
       return (
         <FormControl fullWidth error={Boolean(error)} disabled={disabled}>
-          <Select
-            id={field.name}
-            name={field.name}
-            value={value || ''}
-            onChange={(e) => handleChange(e.target.value)}
-            displayEmpty
-          >
+          <Select id={field.name} name={field.name} value={value || ''} onChange={(e) => handleChange(e.target.value)} displayEmpty>
             <MenuItem value="">
               <em>{getSelectPlaceholder()}</em>
             </MenuItem>

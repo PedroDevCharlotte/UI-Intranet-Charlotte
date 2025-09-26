@@ -106,66 +106,66 @@ export default function Localization() {
                       })}
                     >
                       <ListItemButton selected={i18n === 'es'} onClick={() => handleListItemClick('es')}>
-                      <ListItemText
-                        primary={
-                          <Grid container>
-                            <Typography sx={{ color: 'text.primary' }}>Español</Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', ml: '8px' }}>
-                              (MX)
-                            </Typography>
-                          </Grid>
-                        }
-                      />
-                    </ListItemButton>
-                    <ListItemButton selected={i18n === 'en'} onClick={() => handleListItemClick('en')}>
-                      <ListItemText
-                        primary={
-                          <Grid container>
-                            <Typography sx={{ color: 'text.primary' }}>English</Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', ml: '8px' }}>
-                              (USA)
-                            </Typography>
-                          </Grid>
-                        }
-                      />
-                    </ListItemButton>
-                    <ListItemButton selected={i18n === 'fr'} onClick={() => handleListItemClick('fr')}>
-                      <ListItemText
-                        primary={
-                          <Grid container>
-                            <Typography sx={{ color: 'text.primary' }}>français</Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', ml: '8px' }}>
-                              (French)
-                            </Typography>
-                          </Grid>
-                        }
-                      />
-                    </ListItemButton>
-                    <ListItemButton selected={i18n === 'ro'} onClick={() => handleListItemClick('ro')}>
-                      <ListItemText
-                        primary={
-                          <Grid container>
-                            <Typography sx={{ color: 'text.primary' }}>Română</Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', ml: '8px' }}>
-                              (Romanian)
-                            </Typography>
-                          </Grid>
-                        }
-                      />
-                    </ListItemButton>
-                    <ListItemButton selected={i18n === 'zh'} onClick={() => handleListItemClick('zh')}>
-                      <ListItemText
-                        primary={
-                          <Grid container>
-                            <Typography sx={{ color: 'text.primary' }}>中国人</Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', ml: '8px' }}>
-                              (Chinese)
-                            </Typography>
-                          </Grid>
-                        }
-                      />
-                    </ListItemButton>
-                  </List>
+                        <ListItemText
+                          primary={
+                            <Grid container>
+                              <Typography sx={{ color: 'text.primary' }}>Español</Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', ml: '8px' }}>
+                                (MX)
+                              </Typography>
+                            </Grid>
+                          }
+                        />
+                      </ListItemButton>
+                      <ListItemButton selected={i18n === 'en'} onClick={() => handleListItemClick('en')}>
+                        <ListItemText
+                          primary={
+                            <Grid container>
+                              <Typography sx={{ color: 'text.primary' }}>English</Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', ml: '8px' }}>
+                                (USA)
+                              </Typography>
+                            </Grid>
+                          }
+                        />
+                      </ListItemButton>
+                      <ListItemButton selected={i18n === 'fr'} onClick={() => handleListItemClick('fr')}>
+                        <ListItemText
+                          primary={
+                            <Grid container>
+                              <Typography sx={{ color: 'text.primary' }}>français</Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', ml: '8px' }}>
+                                (French)
+                              </Typography>
+                            </Grid>
+                          }
+                        />
+                      </ListItemButton>
+                      <ListItemButton selected={i18n === 'ro'} onClick={() => handleListItemClick('ro')}>
+                        <ListItemText
+                          primary={
+                            <Grid container>
+                              <Typography sx={{ color: 'text.primary' }}>Română</Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', ml: '8px' }}>
+                                (Romanian)
+                              </Typography>
+                            </Grid>
+                          }
+                        />
+                      </ListItemButton>
+                      <ListItemButton selected={i18n === 'zh'} onClick={() => handleListItemClick('zh')}>
+                        <ListItemText
+                          primary={
+                            <Grid container>
+                              <Typography sx={{ color: 'text.primary' }}>中国人</Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', ml: '8px' }}>
+                                (Chinese)
+                              </Typography>
+                            </Grid>
+                          }
+                        />
+                      </ListItemButton>
+                    </List>
                   </MainCard>
                 </div>
               </ClickAwayListener>

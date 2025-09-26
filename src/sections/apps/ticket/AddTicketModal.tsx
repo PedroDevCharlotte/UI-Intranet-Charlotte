@@ -41,7 +41,6 @@ import { DropzopType } from 'config';
 import { useGetTicketTypes, useGetDynamicFields, insertTicket } from 'api/ticket';
 import { useGetUser, useGetUserMaster } from 'api/user';
 import { OutlinedInput } from '@mui/material';
-import JWTContext from 'contexts/JWTContext';
 import useAuth from 'hooks/useAuth';
 
 // ==============================|| ADD TICKET MODAL ||============================== //
@@ -182,7 +181,7 @@ const AddTicketModal = ({ open, onClose, onSubmit }: AddTicketModalProps) => {
           customFields: JSON.stringify({ ...values.dynamicFields }),
           initialMessage: values.description,
           files: values.files || [],
-          participants: JSON.stringify((participants || [])),
+          participants: JSON.stringify(participants || []),
           priority: 'MEDIUM',
           dueDate: new Date().toISOString(),
           estimatedHours: 8,
@@ -204,7 +203,7 @@ const AddTicketModal = ({ open, onClose, onSubmit }: AddTicketModalProps) => {
           variant: 'alert',
           alert: { color: 'success' }
         } as SnackbarProps);
-        
+
         resetForm();
         onClose();
         return response;
@@ -246,7 +245,7 @@ const AddTicketModal = ({ open, onClose, onSubmit }: AddTicketModalProps) => {
 
   const handleClose = () => {
     formik.resetForm();
-  setSelectedTicketTypeCode(null);
+    setSelectedTicketTypeCode(null);
     onClose();
   };
 

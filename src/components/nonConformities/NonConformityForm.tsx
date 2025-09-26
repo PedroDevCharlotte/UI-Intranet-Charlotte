@@ -11,7 +11,8 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import FormHelperText from '@mui/material/FormHelperText';
 import CircularProgress from '@mui/material/CircularProgress';
-import axiosServices, { fetcher } from 'utils/axios';
+import { useGetListOptions, NC_LIST_IDS } from 'api/generalLists';
+import axiosServices from 'utils/axios';
 
 type Props = {
   initial?: any;
@@ -20,44 +21,18 @@ type Props = {
 };
 
 export default function NonConformityForm({ initial = {}, onSave, onCancel }: Props) {
-  const [loadingOptions, setLoadingOptions] = useState(false);
-  const [typeOptions, setTypeOptions] = useState<any[]>([]);
-  const [motiveOptions, setMotiveOptions] = useState<any[]>([]);
+  // Usar hooks para obtener las opciones de las listas
+  const { options: typeOptions, loading: loadingTypes } = useGetListOptions(NC_LIST_IDS.TYPES);
+  const { options: areaOptions, loading: loadingAreas } = useGetListOptions(NC_LIST_IDS.AREAS);
+  const { options: statusOptions, loading: loadingStatus } = useGetListOptions(NC_LIST_IDS.STATUS);
 
-  // Example: list ids may vary; assuming codes exist in general-lists to identify
-  const TYPE_LIST_ID = 'non-conformity-types'; // replace with actual list id or numeric id if needed
-  const MOTIVE_LIST_ID = 'non-conformity-motives';
-
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      setLoadingOptions(true);
-      try {
-        // try code-based lists first
-        const [typesRes, motivesRes] = await Promise.all([
-          axiosServices.get(`/general-lists/by-code/${TYPE_LIST_ID}/options`).catch(() => axiosServices.get(`/general-lists/${TYPE_LIST_ID}/options`)),
-          axiosServices.get(`/general-lists/by-code/${MOTIVE_LIST_ID}/options`).catch(() => axiosServices.get(`/general-lists/${MOTIVE_LIST_ID}/options`))
-        ]);
-        if (!mounted) return;
-        setTypeOptions(typesRes?.data ?? []);
-        setMotiveOptions(motivesRes?.data ?? []);
-      } catch (e) {
-        // fallback: empty
-        setTypeOptions([]);
-        setMotiveOptions([]);
-      } finally {
-        if (mounted) setLoadingOptions(false);
-      }
-    };
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const loadingOptions = loadingTypes || loadingAreas || loadingStatus;
 
   const schema = Yup.object().shape({
     number: Yup.string().required('Número es requerido'),
-    areaOrProcess: Yup.string().required('Área / Proceso es requerido'),
+    typeOptionId: Yup.number().nullable().required('Tipo es requerido'),
+    areaOptionId: Yup.number().nullable().required('Área / Proceso es requerido'),
+    statusOptionId: Yup.number().nullable().required('Estado es requerido'),
     category: Yup.string().nullable(),
     findingDescription: Yup.string().required('Descripción del hallazgo es requerida')
   });
@@ -68,6 +43,8 @@ export default function NonConformityForm({ initial = {}, onSave, onCancel }: Pr
       validFrom: initial.validFrom ?? '',
       validTo: initial.validTo ?? '',
       typeOptionId: initial.typeOptionId ?? null,
+      areaOptionId: initial.areaOptionId ?? null,
+      statusOptionId: initial.statusOptionId ?? null,
       otherType: initial.otherType ?? '',
       detectedAt: initial.detectedAt ?? '',
       areaOrProcess: initial.areaOrProcess ?? '',
@@ -135,7 +112,7 @@ export default function NonConformityForm({ initial = {}, onSave, onCancel }: Pr
               />
             </Grid>
 
-      <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 6 }}>
               <FormControl fullWidth error={Boolean(touched.typeOptionId && errors.typeOptionId)}>
                 <InputLabel shrink>Type</InputLabel>
                 {loadingOptions ? (
@@ -155,49 +132,83 @@ export default function NonConformityForm({ initial = {}, onSave, onCancel }: Pr
                     ))}
                   </Select>
                 )}
-        <FormHelperText>{touched.typeOptionId && (errors.typeOptionId as any)}</FormHelperText>
+                <FormHelperText>{touched.typeOptionId && (errors.typeOptionId as any)}</FormHelperText>
               </FormControl>
             </Grid>
 
-      <Grid size={{ xs: 6 }}>
-              <FormControl fullWidth error={Boolean(touched.motiveOptionId && errors.motiveOptionId)}>
-                <InputLabel shrink>Motive</InputLabel>
+            <Grid size={{ xs: 6 }}>
+              <FormControl fullWidth error={Boolean(touched.areaOptionId && errors.areaOptionId)}>
+                <InputLabel shrink>Área / Proceso</InputLabel>
                 {loadingOptions ? (
                   <CircularProgress size={20} />
                 ) : (
                   <Select
-                    name="motiveOptionId"
-                    value={values.motiveOptionId ?? ''}
-                    onChange={(e) => setFieldValue('motiveOptionId', e.target.value || null)}
+                    name="areaOptionId"
+                    value={values.areaOptionId ?? ''}
+                    onChange={(e) => setFieldValue('areaOptionId', e.target.value || null)}
                     displayEmpty
                   >
-                    <MenuItem value="">-- Select motive --</MenuItem>
-                    {motiveOptions.map((opt) => (
+                    <MenuItem value="">-- Seleccionar área --</MenuItem>
+                    {areaOptions.map((opt) => (
                       <MenuItem key={opt.id} value={opt.id}>
                         {opt.displayText ?? opt.value}
                       </MenuItem>
                     ))}
                   </Select>
                 )}
-        <FormHelperText>{touched.motiveOptionId && (errors.motiveOptionId as any)}</FormHelperText>
+                <FormHelperText>{touched.areaOptionId && (errors.areaOptionId as any)}</FormHelperText>
               </FormControl>
             </Grid>
 
-      <Grid size={{ xs: 12 }}>
+            <Grid size={{ xs: 6 }}>
+              <FormControl fullWidth error={Boolean(touched.statusOptionId && errors.statusOptionId)}>
+                <InputLabel shrink>Estado</InputLabel>
+                {loadingOptions ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <Select
+                    name="statusOptionId"
+                    value={values.statusOptionId ?? ''}
+                    onChange={(e) => setFieldValue('statusOptionId', e.target.value || null)}
+                    displayEmpty
+                  >
+                    <MenuItem value="">-- Seleccionar estado --</MenuItem>
+                    {statusOptions.map((opt) => (
+                      <MenuItem key={opt.id} value={opt.id} sx={{ 
+                        '&::before': {
+                          content: '""',
+                          display: 'inline-block',
+                          width: 12,
+                          height: 12,
+                          borderRadius: '50%',
+                          backgroundColor: opt.color || '#ccc',
+                          marginRight: 1
+                        }
+                      }}>
+                        {opt.displayText ?? opt.value}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+                <FormHelperText>{touched.statusOptionId && (errors.statusOptionId as any)}</FormHelperText>
+              </FormControl>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 multiline
                 minRows={3}
                 label="Finding Description"
-                name="findingDescription"
+                name="findingDescription"  
                 value={values.findingDescription}
                 onChange={handleChange}
-        error={Boolean(touched.findingDescription && errors.findingDescription)}
-        helperText={touched.findingDescription && (errors.findingDescription as string)}
+                error={Boolean(touched.findingDescription && errors.findingDescription)}
+                helperText={touched.findingDescription && (errors.findingDescription as string)}
               />
             </Grid>
 
-      <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+            <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
               <Button variant="outlined" onClick={() => onCancel()} disabled={isSubmitting}>
                 Cancel
               </Button>

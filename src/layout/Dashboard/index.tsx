@@ -3,11 +3,9 @@ import { Outlet } from 'react-router-dom';
 
 // material-ui
 import useMediaQuery from '@mui/material/useMediaQuery';
-import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
-import Link from '@mui/material/Link';
-import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
 
 // project-imports
 import Drawer from './Drawer';
@@ -23,13 +21,8 @@ import useConfig from 'hooks/useConfig';
 import AuthGuard from 'utils/route-guard/AuthGuard';
 
 // assets
-import { ShoppingCart } from 'iconsax-react';
 
 // ==============================|| MAIN LAYOUT ||============================== //
-
-let value: string = window.location.search;
-const params = new URLSearchParams(value);
-
 
 export default function MainLayout() {
   const { menuMasterLoading } = useGetMenuMaster();
@@ -45,8 +38,7 @@ export default function MainLayout() {
     if (!miniDrawer) {
       handlerDrawerOpen(!downXL);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [downXL]);
+  }, [downXL, miniDrawer]);
 
   if (menuMasterLoading) return <Loader />;
 
@@ -72,7 +64,6 @@ export default function MainLayout() {
             <Outlet />
             <Footer />
           </Container>
-         
         </Box>
       </Box>
     </AuthGuard>

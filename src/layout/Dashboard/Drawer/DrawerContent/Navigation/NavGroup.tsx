@@ -102,7 +102,7 @@ export default function NavGroup({
 
   const openMini = Boolean(anchorEl);
   const intl = useIntl();
-  const hasMessage = (key?: string) => !!key && !!((intl && (intl as any).messages && (intl as any).messages[key]));
+  const hasMessage = (key?: string) => !!key && !!(intl && (intl as any).messages && (intl as any).messages[key]);
 
   useEffect(() => {
     if (lastItem) {
@@ -273,7 +273,7 @@ export default function NavGroup({
                 drawerOpen &&
                 menuCaption && (
                   <Box sx={{ pl: 3, mb: 1.5 }}>
-                      <Typography
+                    <Typography
                       variant="h5"
                       sx={(theme) => ({
                         textTransform: 'uppercase',

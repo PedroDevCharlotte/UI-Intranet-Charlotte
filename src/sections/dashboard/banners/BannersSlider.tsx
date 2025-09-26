@@ -2,8 +2,6 @@ import React, { FC, memo, useMemo } from 'react';
 import Slider from 'react-slick';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import useTheme from '@mui/material/styles/useTheme';
 import MainCard from 'components/MainCard';
 import { useGetBanners } from 'api/banners';
 import 'slick-carousel/slick/slick.css';
@@ -14,6 +12,7 @@ type Banner = {
   title?: string;
   description?: string;
   link?: string;
+  linkName?: string;
   imagePath?: string;
   imageFileName?: string;
   imagePreviewUrl?: string;
@@ -55,8 +54,7 @@ const defaultBanners: Banner[] = [
 ];
 
 const BannersSlider: FC<Props> = ({ banners = defaultBanners, height = 220 }) => {
-  const theme = useTheme();
-  const { banners: apiBanners = [], bannersLoading } = useGetBanners();
+  const { banners: apiBanners = [] } = useGetBanners();
 
   const visibleBanners = useMemo(() => {
     const source = apiBanners && apiBanners.length > 0 ? apiBanners : banners;
@@ -100,23 +98,51 @@ const BannersSlider: FC<Props> = ({ banners = defaultBanners, height = 220 }) =>
                     overflow: 'hidden'
                   }}
                 >
-                  {/*
-            ✅ Cambio aquí: Usar <img /> para OneDrive y background-image para las locales.
-            Esto soluciona el problema de seguridad de los iframes.
-          */}
                   {isOneDriveImage ? (
-                    <img
-                      src={imageUrl}
-                      alt={b.title || 'Banner'}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover', // Simula background-size: cover
-                        position: 'absolute',
-                        top: 0,
-                        left: 0
-                      }}
-                    />
+                    b.link ? (
+                      <a href={b.link} target="_blank" rel="noopener noreferrer" aria-label={b.linkName || ''} title={b.linkName || ''}>
+                        <img
+                          src={imageUrl}
+                          alt={b.title || 'Banner'}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover', // Simula background-size: cover
+                            position: 'absolute',
+                            top: 0,
+                            left: 0
+                          }}
+                        />
+                      </a>
+                    ) : (
+                      <img
+                        src={imageUrl}
+                        alt={b.title || 'Banner'}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover', // Simula background-size: cover
+                          position: 'absolute',
+                          top: 0,
+                          left: 0
+                        }}
+                      />
+                    )
+                  ) : b.link ? (
+                    <a href={b.link} target="_blank" rel="noopener noreferrer" aria-label={b.linkName || ''}>
+                      <Box
+                        sx={{
+                          width: '100%',
+                          height: '100%',
+                          backgroundImage: `url(${imageUrl})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0
+                        }}
+                      />
+                    </a>
                   ) : (
                     <Box
                       sx={{
@@ -143,7 +169,7 @@ const BannersSlider: FC<Props> = ({ banners = defaultBanners, height = 220 }) =>
                       maxWidth: 400
                     }}
                   >
-                    <Typography variant="h6" sx={{ mb: 1 }}>
+                    <Typography variant="h2" sx={{ mb: 1 }}>
                       {b.title}
                     </Typography>
                     {b.description && (
@@ -151,15 +177,9 @@ const BannersSlider: FC<Props> = ({ banners = defaultBanners, height = 220 }) =>
                         {b.description}
                       </Typography>
                     )}
-                    {b.link && (
-                      <Button variant="contained" color="primary" href={b.link} sx={{ mt: 1 }}>
-                        Abrir
-                      </Button>
-                    )}
                   </Box>
                 </Box>
               );
-              
             });
             return slides;
           })()}

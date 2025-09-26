@@ -41,7 +41,6 @@ export default function SetupTwoFactorAuth() {
 
     fetchQrCode();
   }, [setup2FA]);
-  
 
   const handleActivate2FA = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -52,18 +51,15 @@ export default function SetupTwoFactorAuth() {
 
       if (!resp.isError) {
         navigate(APP_DEFAULT_PATH); // Redirigir a la página de verificación de 2FA
-
-      }else{
-        setError( 'Error al activar 2FA, intenta nuevamente o recarga la pagina y vuelve a escanear el QR.');
+      } else {
+        setError('Error al activar 2FA, intenta nuevamente o recarga la pagina y vuelve a escanear el QR.');
       }
       // Redirigir o mostrar mensaje de éxito
     } catch (error) {
       // Manejar error de activación
       console.error('Error al activar 2FA:', error);
     }
-
   };
-
 
   return (
     <AuthWrapper>
@@ -85,16 +81,27 @@ export default function SetupTwoFactorAuth() {
         <Grid size={12}>
           <Stack spacing={2}>
             <Typography variant="body1">
-              Escanea el siguiente código QR con tu aplicación de autenticación (Microsoft Authenticator, Google Authenticator, Authy, etc.) y luego ingresa el código generado para completar la configuración.
+              Escanea el siguiente código QR con tu aplicación de autenticación (Microsoft Authenticator, Google Authenticator, Authy, etc.)
+              y luego ingresa el código generado para completar la configuración.
             </Typography>
             {/* Aquí deberías renderizar el código QR generado por el backend */}
             <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>
               {qrCodeUrl ? (
-              <img src={qrCodeUrl} alt="Código QR 2FA" />
+                <img src={qrCodeUrl} alt="Código QR 2FA" />
               ) : (
-              <div style={{ width: 180, height: 180, background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
-                Código QR aquí
-              </div>
+                <div
+                  style={{
+                    width: 180,
+                    height: 180,
+                    background: '#eee',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#888'
+                  }}
+                >
+                  Código QR aquí
+                </div>
               )}
             </div>
             <form onSubmit={handleActivate2FA}>

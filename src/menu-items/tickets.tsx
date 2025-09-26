@@ -23,7 +23,7 @@ const ticketsMenu: NavItemType = {
       title: 'tickets',
       type: 'item',
       icon: icons.tickets,
-          url: '/apps/ticket/list',
+      url: '/apps/ticket/list'
       // children: [
       //   {
       //     id: 'new-ticket',

@@ -151,7 +151,7 @@ export default function UserList() {
         <MenuItem component={Link} to="/apps/profiles/user/personal" onClick={handleClose}>
           Profile
         </MenuItem>
-  <MenuItem component={Link} to="/apps/profiles/account/my-account" onClick={handleClose}>
+        <MenuItem component={Link} to="/apps/profiles/account/my-account" onClick={handleClose}>
           My account
         </MenuItem>
       </Menu>

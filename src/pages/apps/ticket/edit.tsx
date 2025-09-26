@@ -14,10 +14,9 @@ import MenuItem from '@mui/material/MenuItem';
 import Autocomplete from '@mui/material/Autocomplete';
 
 // project-imports
-import Breadcrumbs from 'components/@extended/Breadcrumbs';
 import MainCard from 'components/MainCard';
 import { openSnackbar } from 'api/snackbar';
-import { APP_DEFAULT_PATH, GRID_COMMON_SPACING } from 'config';
+import { GRID_COMMON_SPACING } from 'config';
 
 // types
 import { SnackbarProps } from 'types/snackbar';
@@ -27,7 +26,7 @@ import { SnackbarProps } from 'types/snackbar';
 export default function EditTicket() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     subject: '',
     description: '',
@@ -51,34 +50,27 @@ export default function EditTicket() {
     { id: 3, name: 'Lisa Garcia', department: 'Billing' }
   ];
 
-  const categories = [
-    'Technical Issue',
-    'Billing Question',
-    'Feature Request',
-    'Bug Report',
-    'Account Access',
-    'General Inquiry',
-    'Other'
-  ];
+  const categories = ['Technical Issue', 'Billing Question', 'Feature Request', 'Bug Report', 'Account Access', 'General Inquiry', 'Other'];
 
   // Simular carga de datos del ticket
   useEffect(() => {
     // En una aplicación real, aquí harías una llamada a la API para obtener los datos del ticket
     const mockTicketData = {
       subject: 'Login Issue - Cannot access account',
-      description: 'User is unable to login to their account. They receive an error message saying "Invalid credentials" even though they are using the correct username and password.',
+      description:
+        'User is unable to login to their account. They receive an error message saying "Invalid credentials" even though they are using the correct username and password.',
       priority: 'High',
       status: 'In Progress',
       category: 'Technical Issue',
       customer: customers[0],
       assignedTo: agents[0]
     };
-    
+
     setFormData(mockTicketData);
   }, [id]);
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value
     }));
@@ -121,7 +113,7 @@ export default function EditTicket() {
 
       // Redirigir a los detalles del ticket
       navigate(`/apps/ticket/details/${id}`);
-    } catch (error) {
+    } catch {
       openSnackbar({
         open: true,
         message: 'Error updating ticket',
@@ -140,7 +132,7 @@ export default function EditTicket() {
             <Stack spacing={3}>
               {/* Basic Information */}
               <Typography variant="h6">Ticket Information</Typography>
-              
+
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Stack spacing={1}>
@@ -153,15 +145,12 @@ export default function EditTicket() {
                     />
                   </Stack>
                 </Grid>
-                
+
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Stack spacing={1}>
                     <InputLabel>Status</InputLabel>
                     <FormControl fullWidth>
-                      <Select
-                        value={formData.status}
-                        onChange={(e) => handleInputChange('status', e.target.value)}
-                      >
+                      <Select value={formData.status} onChange={(e) => handleInputChange('status', e.target.value)}>
                         <MenuItem value="Open">Open</MenuItem>
                         <MenuItem value="In Progress">In Progress</MenuItem>
                         <MenuItem value="Resolved">Resolved</MenuItem>
@@ -177,10 +166,7 @@ export default function EditTicket() {
                   <Stack spacing={1}>
                     <InputLabel>Priority</InputLabel>
                     <FormControl fullWidth>
-                      <Select
-                        value={formData.priority}
-                        onChange={(e) => handleInputChange('priority', e.target.value)}
-                      >
+                      <Select value={formData.priority} onChange={(e) => handleInputChange('priority', e.target.value)}>
                         <MenuItem value="Low">Low</MenuItem>
                         <MenuItem value="Medium">Medium</MenuItem>
                         <MenuItem value="High">High</MenuItem>
@@ -194,11 +180,7 @@ export default function EditTicket() {
                   <Stack spacing={1}>
                     <InputLabel>Category</InputLabel>
                     <FormControl fullWidth>
-                      <Select
-                        value={formData.category}
-                        onChange={(e) => handleInputChange('category', e.target.value)}
-                        displayEmpty
-                      >
+                      <Select value={formData.category} onChange={(e) => handleInputChange('category', e.target.value)} displayEmpty>
                         <MenuItem value="">Select Category</MenuItem>
                         {categories.map((category) => (
                           <MenuItem key={category} value={category}>
@@ -220,9 +202,7 @@ export default function EditTicket() {
                       onChange={(event, newValue) => handleInputChange('customer', newValue)}
                       options={customers}
                       getOptionLabel={(option) => `${option.name} (${option.email})`}
-                      renderInput={(params) => (
-                        <TextField {...params} placeholder="Select customer" />
-                      )}
+                      renderInput={(params) => <TextField {...params} placeholder="Select customer" />}
                     />
                   </Stack>
                 </Grid>
@@ -235,9 +215,7 @@ export default function EditTicket() {
                       onChange={(event, newValue) => handleInputChange('assignedTo', newValue)}
                       options={agents}
                       getOptionLabel={(option) => `${option.name} (${option.department})`}
-                      renderInput={(params) => (
-                        <TextField {...params} placeholder="Assign to agent" />
-                      )}
+                      renderInput={(params) => <TextField {...params} placeholder="Assign to agent" />}
                     />
                   </Stack>
                 </Grid>
@@ -258,16 +236,10 @@ export default function EditTicket() {
 
               {/* Actions */}
               <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end', pt: 2 }}>
-                <Button
-                  variant="outlined"
-                  onClick={() => navigate(`/apps/ticket/details/${id}`)}
-                >
+                <Button variant="outlined" onClick={() => navigate(`/apps/ticket/details/${id}`)}>
                   Cancel
                 </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleSubmit}
-                >
+                <Button variant="contained" onClick={handleSubmit}>
                   Update Ticket
                 </Button>
               </Stack>

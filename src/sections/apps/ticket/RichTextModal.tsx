@@ -5,7 +5,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import InputLabel from '@mui/material/InputLabel';
-import ReactQuill from 'react-quill-new';
+import TextField from '@mui/material/TextField';
 import { useFormik, Form, FormikProvider } from 'formik';
 import * as Yup from 'yup';
 
@@ -20,21 +20,28 @@ interface RichTextModalProps {
   idTicket: number;
 }
 
-export default function RichTextModal({ open, onClose, onSubmit, title, label = 'Comentario', submitText = 'Confirmar', initialContent = '', idTicket}: RichTextModalProps) {
+export default function RichTextModal({
+  open,
+  onClose,
+  onSubmit,
+  title,
+  label = 'Comentario',
+  submitText = 'Confirmar',
+  initialContent = '',
+  idTicket
+}: RichTextModalProps) {
   const formik = useFormik({
     initialValues: {
-      content: initialContent || '',
+      content: initialContent || ''
     },
     validationSchema: Yup.object({
-      content: Yup.string().required('Este campo es obligatorio'),
+      content: Yup.string().required('Este campo es obligatorio')
     }),
     onSubmit: (values, { resetForm }) => {
-      
-
       onSubmit(values.content);
       resetForm();
       onClose();
-    },
+    }
   });
 
   return (
@@ -44,15 +51,17 @@ export default function RichTextModal({ open, onClose, onSubmit, title, label = 
         <Form>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
-              <InputLabel>{label} *</InputLabel>
-              <ReactQuill
-                theme="snow"
+              <TextField
+                fullWidth
+                multiline
+                minRows={4}
+                label={`${label} *`}
+                name="content"
                 value={formik.values.content}
-                onChange={value => formik.setFieldValue('content', value)}
+                onChange={(e) => formik.setFieldValue('content', e.target.value)}
+                error={Boolean(formik.touched.content && formik.errors.content)}
+                helperText={formik.touched.content && (formik.errors.content as string)}
               />
-              {formik.touched.content && formik.errors.content && (
-                <span style={{ color: 'red', fontSize: 12 }}>{formik.errors.content}</span>
-              )}
             </Stack>
           </DialogContent>
           <DialogActions>

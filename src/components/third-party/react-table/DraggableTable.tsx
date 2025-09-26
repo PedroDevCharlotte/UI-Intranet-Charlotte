@@ -16,7 +16,9 @@ interface DraggableTableProps {
 
 export default function DraggableTable({ rows, columns, onReorder }: DraggableTableProps) {
   const [tableData, setTableData] = React.useState(rows);
-  React.useEffect(() => { setTableData(rows); }, [rows]);
+  React.useEffect(() => {
+    setTableData(rows);
+  }, [rows]);
   const sensors = useSensors(useSensor(PointerSensor));
 
   const handleDragEnd = (event: DragEndEvent) => {

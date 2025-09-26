@@ -57,7 +57,7 @@ export default function UserSessionsModal({ open, onClose, userId, userName }: P
     setLoading(true);
     try {
       const response = await getUserSessions(userId, 20);
-      
+
       if (response.success) {
         setSessionsData(response.data);
       } else {
@@ -102,18 +102,18 @@ export default function UserSessionsModal({ open, onClose, userId, userName }: P
   // Función para obtener información del dispositivo desde user agent
   const getDeviceInfo = (userAgent: string) => {
     if (!userAgent) return 'Dispositivo desconocido';
-    
+
     const ua = userAgent.toLowerCase();
     let device = 'Escritorio';
     let browser = 'Navegador desconocido';
-    
+
     // Detectar dispositivo
     if (ua.includes('mobile') || ua.includes('android') || ua.includes('iphone')) {
       device = 'Móvil';
     } else if (ua.includes('tablet') || ua.includes('ipad')) {
       device = 'Tablet';
     }
-    
+
     // Detectar navegador
     if (ua.includes('chrome')) {
       browser = 'Chrome';
@@ -124,7 +124,7 @@ export default function UserSessionsModal({ open, onClose, userId, userName }: P
     } else if (ua.includes('edge')) {
       browser = 'Edge';
     }
-    
+
     return `${device} - ${browser}`;
   };
 
@@ -140,7 +140,7 @@ export default function UserSessionsModal({ open, onClose, userId, userName }: P
     const diff = logout.getTime() - login.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m`;
     }
@@ -174,9 +174,9 @@ export default function UserSessionsModal({ open, onClose, userId, userName }: P
           </IconButton>
         </Stack>
       </DialogTitle>
-      
+
       <Divider />
-      
+
       <DialogContent sx={{ p: 0 }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
@@ -186,10 +186,7 @@ export default function UserSessionsModal({ open, onClose, userId, userName }: P
           <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
             {sessionsData.length === 0 ? (
               <ListItem>
-                <ListItemText
-                  primary="No hay sesiones disponibles"
-                  secondary="Este usuario no tiene sesiones registradas"
-                />
+                <ListItemText primary="No hay sesiones disponibles" secondary="Este usuario no tiene sesiones registradas" />
               </ListItem>
             ) : (
               sessionsData.map((session, index) => (
@@ -204,9 +201,9 @@ export default function UserSessionsModal({ open, onClose, userId, userName }: P
                       primary={
                         <Stack direction="row" sx={{ alignItems: 'center', gap: 1, mb: 0.5 }}>
                           <Typography variant="subtitle1">{getDeviceInfo(session.userAgent)}</Typography>
-                          <Chip 
-                            label={session.isActive ? 'Activa' : 'Finalizada'} 
-                            size="small" 
+                          <Chip
+                            label={session.isActive ? 'Activa' : 'Finalizada'}
+                            size="small"
                             color={getStatusColor(session.isActive)}
                             variant="outlined"
                           />
@@ -224,23 +221,17 @@ export default function UserSessionsModal({ open, onClose, userId, userName }: P
                             {session.location && (
                               <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
                                 <Location size={14} />
-                                <Typography variant="caption">
-                                  {session.location}
-                                </Typography>
+                                <Typography variant="caption">{session.location}</Typography>
                               </Stack>
                             )}
                             <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
                               <Clock size={14} />
-                              <Typography variant="caption">
-                                Inicio: {formatDate(session.loginAt)}
-                              </Typography>
+                              <Typography variant="caption">Inicio: {formatDate(session.loginAt)}</Typography>
                             </Stack>
                             {session.logoutAt && (
                               <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
                                 <Clock size={14} />
-                                <Typography variant="caption">
-                                  Fin: {formatDate(session.logoutAt)}
-                                </Typography>
+                                <Typography variant="caption">Fin: {formatDate(session.logoutAt)}</Typography>
                               </Stack>
                             )}
                             <Typography variant="caption" color="primary.main">
@@ -258,9 +249,9 @@ export default function UserSessionsModal({ open, onClose, userId, userName }: P
           </List>
         )}
       </DialogContent>
-      
+
       <Divider />
-      
+
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={onClose} variant="outlined" color="secondary">
           Cerrar

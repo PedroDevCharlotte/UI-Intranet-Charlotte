@@ -30,7 +30,7 @@ export default function Login() {
         <Grid sx={{ textAlign: 'center' }} size={12}>
           <Logo />
         </Grid>
-       
+
         <Grid size={12}>
           <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', mb: { xs: -0.5, sm: 0.5 } }}>
             <Typography variant="h3">Iniciar sesión</Typography>

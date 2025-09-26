@@ -156,11 +156,7 @@ export default function UserCardPage() {
           </Stack>
         </Stack>
       </Box>
-      <Grid
-        container
-        spacing={GRID_COMMON_SPACING}
-        sx={{ ...(!(!userLoading && userCard.length > 0) && { justifyContent: 'center' }) }}
-      >
+      <Grid container spacing={GRID_COMMON_SPACING} sx={{ ...(!(!userLoading && userCard.length > 0) && { justifyContent: 'center' }) }}>
         {!userLoading && userCard.length > 0 ? (
           _DATA.currentData().map((user: UserList, index: number) => (
             <Slide key={index} direction="up" in={true} timeout={50}>

@@ -4,12 +4,11 @@ import { useMemo } from 'react';
 import useSWR, { mutate } from 'swr';
 
 // project-imports
-import { fetcher  }  from '../utils/axios';
-import axios  from '../utils/axios';
+import { fetcher } from '../utils/axios';
+import axios from '../utils/axios';
 
 // types
 import { UserList, UserProps } from 'types/user';
-import { array } from 'yup';
 import { isArray } from 'lodash-es';
 
 const initialState: UserProps = {
@@ -18,56 +17,8 @@ const initialState: UserProps = {
 
 // ==============================|| API - USER ||============================== //
 
-// Función para validar y limpiar la estructura de datos del usuario para INSERT (sin id)
-const validateUserStructureForInsert = (userData: any): {
-  name: string;
-  lastname: string;
-  rol: string[];
-  email: string;
-  password: string;
-} => {
-  const validatedUser: any = {};
-  
-  // Para INSERT no incluimos el id - Solo copiamos los campos necesarios
-  validatedUser.name = userData.name || '';
-  validatedUser.lastname = userData.lastname || '';
-  validatedUser.email = userData.email || '';
-  validatedUser.password = userData.password || '';
-  
-  // Manejar rol como array
-  if (userData.rol) {
-    if (Array.isArray(userData.rol)) {
-      validatedUser.rol = userData.rol;
-    } else {
-      validatedUser.rol = [userData.rol];
-    }
-  } else {
-    validatedUser.rol = [];
-  }
-  
-  return validatedUser;
-};
-
-// Función para validar y limpiar la estructura de datos del usuario para UPDATE (con id opcional)
-const validateUserStructureForUpdate = (userData: any): any => {
-  const validatedUser: any = {};
-  
-  // Para UPDATE solo incluir campos que existen
-  if (userData.name !== undefined) validatedUser.name = userData.name;
-  if (userData.lastname !== undefined) validatedUser.lastname = userData.lastname;
-  if (userData.email !== undefined) validatedUser.email = userData.email;
-  if (userData.password !== undefined) validatedUser.password = userData.password;
-  
-  if (userData.rol !== undefined) {
-    if (Array.isArray(userData.rol)) {
-      validatedUser.rol = userData.rol;
-    } else {
-      validatedUser.rol = [userData.rol];
-    }
-  }
-  
-  return validatedUser;
-};
+// NOTE: helper validators were removed to reduce unused-symbol lint noise.
+// If needed, reintroduce small validators closer to the caller.
 
 // Configuración común para requests
 const getRequestConfig = () => ({
@@ -87,7 +38,7 @@ const endpoints = {
   disable2fa: '/auth/2fa/disable', // server URL for disabling 2FA
   // Nuevos endpoints para historial
   auditHistory: '/audit/entity/User', // historial de cambios de una entidad
-  userHistory: '/audit/user', // historial de cambios por usuario  
+  userHistory: '/audit/user', // historial de cambios por usuario
   userSessions: '/audit/admin/sessions', // sesiones de usuario (admin)
   activeSessions: '/audit/sessions/active' // sesiones activas
 };
@@ -105,7 +56,7 @@ export function useGetUser() {
 
   const memoizedValue = useMemo(
     () => ({
-      users: data?.users as UserList[] || [],
+      users: (data?.users as UserList[]) || [],
       usersLoading: isLoading,
       usersError: error,
       usersValidating: isValidating,
@@ -128,7 +79,7 @@ export function useGetSupportUsers() {
 
   return useMemo(
     () => ({
-      supportUsers: data && isArray(data) ? data.map((user:any)=>({...user, fullName: `${user.firstName} ${user.lastName}`})) : [],
+      supportUsers: data && isArray(data) ? data.map((user: any) => ({ ...user, fullName: `${user.firstName} ${user.lastName}` })) : [],
       supportUsersLoading: isLoading,
       supportUsersError: error,
       supportUsersValidating: isValidating,
@@ -141,7 +92,7 @@ export function useGetSupportUsers() {
 export async function insertUser(newUser: UserList) {
   try {
     // console.log('Iniciando inserción de usuario:', newUser);
-    
+
     // Crear estructura simple sin id - usando los nombres correctos del tipo UserList
     // const userData = {
     //   name: newUser.firstName || newUser.name || '',
@@ -152,11 +103,11 @@ export async function insertUser(newUser: UserList) {
     // };
     let userData = newUser;
     // console.log('Datos para enviar (INSERT):', userData);
-    
+
     const response = await axios.post(endpoints.key + endpoints.insert, userData);
-    
+
     // console.log('insertUser response:', response.status, response.data);
-    
+
     if ([200, 201].indexOf(response.status) == -1) {
       throw new Error(`Failed to insert user. Status: ${response.status}`);
     }
@@ -175,9 +126,9 @@ export async function insertUser(newUser: UserList) {
   } catch (error: any) {
     console.error('Error inserting user:', error);
     console.error('Error details:', error.response?.data);
-    
+
     let errorMessage = 'Error al crear el usuario, por favor intente de nuevo o contacte al administrador';
-    
+
     // Manejo de errores simplificado
     if (error.response?.status === 400) {
       errorMessage = 'Datos inválidos. Verifique que todos los campos requeridos estén completos y sean válidos.';
@@ -199,8 +150,8 @@ export async function insertUser(newUser: UserList) {
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
-    return { 
+
+    return {
       error: errorMessage,
       status: error.response?.status || 500,
       success: false
@@ -208,20 +159,18 @@ export async function insertUser(newUser: UserList) {
   }
 }
 
-
 export async function updateUser(userId: number, updatedUser: Partial<UserList>) {
   try {
     // console.log(`Iniciando actualización del usuario con ID: ${userId}`, updatedUser);
-    
+
     // Crear estructura simple con los campos necesarios
     const userData: any = {
       ...updatedUser,
       id: userId
     };
- 
-    
+
     // console.log('Datos para enviar (UPDATE):', userData);
-    
+
     const response = await axios.put(endpoints.key + endpoints.update, userData);
 
     // console.log('updateUser response:', response.status, response.data);
@@ -244,9 +193,9 @@ export async function updateUser(userId: number, updatedUser: Partial<UserList>)
   } catch (error: any) {
     console.error('Error al actualizar el usuario:', error);
     console.error('Error details:', error.response?.data);
-    
+
     let errorMessage = 'Error al actualizar el usuario, por favor intente de nuevo o contacte al administrador';
-    
+
     // Manejo de errores simplificado
     if (error.response?.status === 400) {
       errorMessage = 'Datos inválidos. Verifique que todos los campos sean válidos.';
@@ -270,8 +219,8 @@ export async function updateUser(userId: number, updatedUser: Partial<UserList>)
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
-    return { 
+
+    return {
       error: errorMessage,
       status: error.response?.status || 500,
       success: false
@@ -279,35 +228,34 @@ export async function updateUser(userId: number, updatedUser: Partial<UserList>)
   }
 }
 
-
 export async function deleteUser(userId: number) {
   try {
     // console.log(`Iniciando eliminación del usuario con ID: ${userId}`);
-    
+
     // Validación de parámetros
     if (!userId || userId <= 0) {
       throw new Error('ID de usuario inválido');
     }
-    
+
     // Opción alternativa: usar POST si el servidor lo requiere
     // const response = await axios.post(endpoints.key + endpoints.delete, { id: userId }, getRequestConfig());
-    
+
     // Opción principal: DELETE con parámetro en URL
     const response = await axios.delete(`${endpoints.key}${endpoints.delete}/${userId}`, getRequestConfig());
-    
+
     // console.log(`Respuesta del servidor:`, response.status, response.data);
-    
+
     if ([200, 201, 204].indexOf(response.status) == -1) {
       throw new Error(`Failed to delete user. Status: ${response.status}`);
     }
 
     // console.log('Usuario eliminado exitosamente, actualizando caché...');
-    
+
     // Actualiza el caché local
     mutate(endpoints.key + endpoints.list);
 
-    return { 
-      status: response.status, 
+    return {
+      status: response.status,
       data: response.data,
       success: true,
       message: 'Usuario eliminado correctamente'
@@ -315,7 +263,7 @@ export async function deleteUser(userId: number) {
   } catch (error: any) {
     console.error('Error deleting user:', error);
     let errorMessage = 'Error al eliminar el usuario, por favor intente de nuevo o contacte al administrador';
-    
+
     // Mejor manejo de errores con más detalles
     if (error.message === 'ID de usuario inválido') {
       errorMessage = 'ID de usuario inválido. No se puede eliminar el usuario.';
@@ -342,11 +290,11 @@ export async function deleteUser(userId: number) {
     } else if (error.code === 'NETWORK_ERROR') {
       errorMessage = 'Error de red. Verifique su conexión a internet.';
     }
-    
-    return { 
-      error: errorMessage, 
+
+    return {
+      error: errorMessage,
       status: error.response?.status || 500,
-      success: false 
+      success: false
     };
   }
 }
@@ -440,7 +388,7 @@ export function useGetSupportTypes() {
   let supportTypes: any = [];
   if (Array.isArray(data)) {
     // Do something with the array
-    supportTypes = data.map(type => ({
+    supportTypes = data.map((type) => ({
       id: type.id,
       name: type.name,
       description: type.description
@@ -465,33 +413,33 @@ export function useGetSupportTypes() {
 export async function disable2FA(userId: number, authCode?: string, from: boolean = false) {
   try {
     // console.log(`Iniciando deshabilitación de 2FA para usuario con ID: ${userId}`);
-    
+
     // Validación de parámetros
     if (!userId || userId <= 0) {
       throw new Error('ID de usuario inválido');
     }
-    
+
     // Validación del código de autenticación si se proporciona
-    if (authCode && (!/^\d{6}$/.test(authCode))) {
+    if (authCode && !/^\d{6}$/.test(authCode)) {
       throw new Error('Código de autenticación debe tener 6 dígitos');
     }
-    
+
     const requestData = authCode ? { userId, token: authCode, from } : { userId, from };
     const response = await axios.post(endpoints.disable2fa, requestData, getRequestConfig());
-    
+
     // console.log(`Respuesta del servidor (disable2FA):`, response.status, response.data);
-    
+
     if ([200, 201, 204].indexOf(response.status) === -1) {
       throw new Error(`Failed to disable 2FA. Status: ${response.status}`);
     }
 
     // console.log('2FA deshabilitado exitosamente, actualizando caché...');
-    
+
     // Actualiza el caché local para reflejar el cambio
     mutate(endpoints.key + endpoints.list);
 
-    return { 
-      status: response.status, 
+    return {
+      status: response.status,
       data: response.data,
       success: true,
       message: 'Autenticación de dos factores deshabilitada correctamente'
@@ -499,7 +447,7 @@ export async function disable2FA(userId: number, authCode?: string, from: boolea
   } catch (error: any) {
     console.error('Error disabling 2FA:', error);
     let errorMessage = 'Error al deshabilitar 2FA, por favor intente de nuevo o contacte al administrador';
-    
+
     // Manejo de errores específicos
     if (error.message === 'ID de usuario inválido') {
       errorMessage = 'ID de usuario inválido. No se puede deshabilitar 2FA.';
@@ -523,8 +471,8 @@ export async function disable2FA(userId: number, authCode?: string, from: boolea
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
-    return { 
+
+    return {
       error: errorMessage,
       status: error.response?.status || 500,
       success: false
@@ -561,28 +509,28 @@ export function useGetDepartments() {
 export async function getUserHistory(userId: number, limit: number = 50) {
   try {
     // console.log(`Obteniendo historial de cambios para usuario con ID: ${userId}`);
-    
+
     if (!userId || userId <= 0) {
       throw new Error('ID de usuario inválido');
     }
-    
+
     const response = await axios.get(`${endpoints.auditHistory}/${userId}?limit=${limit}`, getRequestConfig());
-    
+
     // console.log(`Respuesta del servidor (getUserHistory):`, response.status, response.data);
-    
+
     if ([200, 201].indexOf(response.status) === -1) {
       throw new Error(`Error al obtener historial. Status: ${response.status}`);
     }
 
-    return { 
-      status: response.status, 
+    return {
+      status: response.status,
       data: response.data || [],
       success: true,
       message: 'Historial obtenido correctamente'
     };
   } catch (error: any) {
     console.error('Error al obtener historial de usuario:', error);
-    
+
     return {
       status: error.response?.status || 500,
       data: [],
@@ -597,28 +545,28 @@ export async function getUserHistory(userId: number, limit: number = 50) {
 export async function getUserSessions(userId: number, limit: number = 20) {
   try {
     // console.log(`Obteniendo historial de sesiones para usuario con ID: ${userId}`);
-    
+
     if (!userId || userId <= 0) {
       throw new Error('ID de usuario inválido');
     }
-    
+
     const response = await axios.get(`${endpoints.userSessions}/${userId}?limit=${limit}`, getRequestConfig());
-    
+
     // console.log(`Respuesta del servidor (getUserSessions):`, response.status, response.data);
-    
+
     if ([200, 201].indexOf(response.status) === -1) {
       throw new Error(`Error al obtener sesiones. Status: ${response.status}`);
     }
 
-    return { 
-      status: response.status, 
+    return {
+      status: response.status,
       data: response.data || [],
       success: true,
       message: 'Sesiones obtenidas correctamente'
     };
   } catch (error: any) {
     console.error('Error al obtener sesiones de usuario:', error);
-    
+
     return {
       status: error.response?.status || 500,
       data: [],
@@ -632,20 +580,20 @@ export async function getUserSessions(userId: number, limit: number = 20) {
 
 export async function getActiveSessions() {
   try {
-    const response = await axios.get(endpoints.activeSessions, getRequestConfig());    
+    const response = await axios.get(endpoints.activeSessions, getRequestConfig());
     if ([200, 201].indexOf(response.status) === -1) {
       throw new Error(`Error al obtener sesiones activas. Status: ${response.status}`);
     }
 
-    return { 
-      status: response.status, 
+    return {
+      status: response.status,
       data: response.data || [],
       success: true,
       message: 'Sesiones activas obtenidas correctamente'
     };
   } catch (error: any) {
     console.error('Error al obtener sesiones activas:', error);
-    
+
     return {
       status: error.response?.status || 500,
       data: [],
@@ -661,7 +609,7 @@ export async function logoutUser() {
   try {
     const config = getRequestConfig();
     const response = await axios.post('/auth/logout', {}, config);
-    
+
     return {
       success: true,
       data: response.data,
@@ -675,5 +623,3 @@ export async function logoutUser() {
     };
   }
 }
-
-

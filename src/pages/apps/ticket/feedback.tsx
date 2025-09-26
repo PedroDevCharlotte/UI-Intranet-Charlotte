@@ -30,7 +30,12 @@ export default function TicketFeedbackPage() {
       try {
         const resp = await getTicketFeedback(id);
         if (resp?.exists) {
-          openSnackbar({ open: true, message: 'La encuesta para este ticket ya fue respondida.', variant: 'alert', alert: { color: 'info' } } as any);
+          openSnackbar({
+            open: true,
+            message: 'La encuesta para este ticket ya fue respondida.',
+            variant: 'alert',
+            alert: { color: 'info' }
+          } as any);
           navigate('/apps/ticket/list');
         }
       } catch (err) {
@@ -62,7 +67,12 @@ export default function TicketFeedbackPage() {
       navigate('/apps/ticket/list');
     } catch (err) {
       console.error('Feedback submission error', err);
-      openSnackbar({ open: true, message: 'Ocurrió un error al enviar la retroalimentación', variant: 'alert', alert: { color: 'error' } } as any);
+      openSnackbar({
+        open: true,
+        message: 'Ocurrió un error al enviar la retroalimentación',
+        variant: 'alert',
+        alert: { color: 'error' }
+      } as any);
     }
   };
 
@@ -92,7 +102,10 @@ export default function TicketFeedbackPage() {
             </Box>
 
             <Box>
-              <Typography variant="subtitle1">¿Considera que los problemas fueron tratados y/o escalados correctamente según su complejidad y especialidad técnica necesaria?</Typography>
+              <Typography variant="subtitle1">
+                ¿Considera que los problemas fueron tratados y/o escalados correctamente según su complejidad y especialidad técnica
+                necesaria?
+              </Typography>
               <RadioGroup value={String(escalation ?? '')} onChange={(e) => setEscalation(Number(e.target.value) as RatingValue)}>
                 <FormControlLabel value="3" control={<Radio />} label="Muy Bueno" />
                 <FormControlLabel value="2" control={<Radio />} label="Bueno" />
@@ -110,8 +123,12 @@ export default function TicketFeedbackPage() {
             </Box>
 
             <Stack direction="row" spacing={2}>
-              <Button variant="contained" color="primary" onClick={handleSubmit}>Enviar</Button>
-              <Button variant="outlined" onClick={() => navigate('/apps/ticket/list')}>Cancelar</Button>
+              <Button variant="contained" color="primary" onClick={handleSubmit}>
+                Enviar
+              </Button>
+              <Button variant="outlined" onClick={() => navigate('/apps/ticket/list')}>
+                Cancelar
+              </Button>
             </Stack>
           </Stack>
         </Grid>

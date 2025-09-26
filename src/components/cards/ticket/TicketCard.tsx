@@ -5,9 +5,8 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
 // assets
-import { ArrowDown3, ArrowUp3, ProfileTick, FolderOpen, CloseCircle, BookSaved, Book1, TickCircle } from 'iconsax-react';
+import { ArrowUp3, ProfileTick, FolderOpen, CloseCircle, BookSaved, Book1, TickCircle } from 'iconsax-react';
 import Avatar from 'components/@extended/Avatar';
-import { stat } from 'fs';
 
 interface Props {
   title: string;
@@ -21,10 +20,9 @@ interface Props {
 }
 
 const getIcons = (status: string) => {
-
   switch (status) {
     case 'OPEN':
-      return <FolderOpen style={{ fontSize: '20px' }}/>;
+      return <FolderOpen style={{ fontSize: '20px' }} />;
     case 'IN_PROGRESS':
       return <Book1 style={{ fontSize: '20px' }} />;
     case 'CLOSED':
@@ -43,7 +41,6 @@ const getIcons = (status: string) => {
 };
 
 const getColorByStatus = (status: string): 'error' | 'warning' | 'success' | 'info' | 'default' => {
-
   switch (status) {
     case 'OPEN':
       return 'error';
@@ -64,26 +61,20 @@ const getColorByStatus = (status: string): 'error' | 'warning' | 'success' | 'in
   }
 };
 
-
-
 // ==============================|| TICKET - CARD  ||============================== //
 
 export default function TicketCard({ color, title, count, percentage, isLoss, children, ticket, status }: Props) {
-  
   return (
     <Grid container direction="row" spacing={2}>
       <Grid size={{ xs: 12, md: 12 }}>
         <Stack direction="row">
-          <Avatar alt="Tickets" variant="rounded" type="filled" color={getColorByStatus(status)} >
+          <Avatar alt="Tickets" variant="rounded" type="filled" color={getColorByStatus(status)}>
             {getIcons(status)}
           </Avatar>
           <Stack direction="column" sx={{ ml: 1.25, gap: 0.25 }}>
             <Typography variant="subtitle1">{title}</Typography>
             <Stack direction="column" sx={{ gap: 1 }}>
-              <Typography  color="inherit">
-                {count} tickets
-              </Typography>
-              
+              <Typography color="inherit">{count} tickets</Typography>
             </Stack>
           </Stack>
         </Stack>
@@ -91,7 +82,6 @@ export default function TicketCard({ color, title, count, percentage, isLoss, ch
       <Grid size={{ xs: 12, md: 7 }}>
         <Box>
           <Stack sx={{ alignItems: 'flex-end' }}>
-            
             <Box sx={{ width: 1, height: 1 }}>{children}</Box>
           </Stack>
         </Box>

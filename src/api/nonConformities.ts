@@ -9,7 +9,7 @@ const endpoints = {
 };
 
 export function useGetNonConformities() {
-  const { data, error, isLoading, mutate } = useSWR(endpoints.key , fetcher, {
+  const { data, error, isLoading, mutate } = useSWR(endpoints.key, fetcher, {
     revalidateIfStale: false,
     revalidateOnFocus: false,
     revalidateOnReconnect: false
@@ -26,7 +26,7 @@ export function useGetNonConformities() {
 export async function createNonConformity(payload: any) {
   try {
     const response = await axiosServices.post(endpoints.base, payload);
-    mutate(endpoints.key );
+    mutate(endpoints.key);
     return response.data;
   } catch (err: any) {
     if (err.response?.data) throw err.response.data;
@@ -37,7 +37,7 @@ export async function createNonConformity(payload: any) {
 export async function updateNonConformity(id: number, payload: any) {
   try {
     const response = await axiosServices.put(`${endpoints.base}/${id}`, payload);
-    mutate(endpoints.key );
+    mutate(endpoints.key);
     mutate(`${endpoints.base}/${id}`);
     return response.data;
   } catch (err: any) {
@@ -56,3 +56,49 @@ export async function deleteNonConformity(id: number) {
     throw err;
   }
 }
+
+export async function createNonConformityFromTicket(ticketId: number, motivo: string) {
+  try {
+    const response = await axiosServices.post(`/tickets/${ticketId}/non-conformity`, { motivo });
+    mutate(endpoints.key);
+    return response.data;
+  } catch (err: any) {
+    if (err.response?.data) throw err.response.data;
+    throw err;
+  }
+}
+
+export async function cancelNonConformity(id: number, reason: string) {
+  try {
+    const response = await axiosServices.post(`${endpoints.base}/${id}/cancel`, { reason });
+    mutate(endpoints.key);
+    mutate(`${endpoints.base}/${id}`);
+    return response.data;
+  } catch (err: any) {
+    if (err.response?.data) throw err.response.data;
+    throw err;
+  }
+}
+
+export async function createNonConformityWithFormData(formData: FormData) {
+  try {
+    const response = await axiosServices.post(endpoints.base, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    mutate(endpoints.key);
+    return response.data;
+  } catch (err: any) {
+    if (err.response?.data) throw err.response.data;
+    throw err;
+  }
+}
+
+export const getNonConformityById = async (id: string) => {
+  try {
+    const response = await axiosServices.get(`/non-conformities/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching non-conformity by ID:', error);
+    throw error;
+  }
+};

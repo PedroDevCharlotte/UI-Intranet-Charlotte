@@ -8,7 +8,7 @@ import { fetcher } from 'utils/axios';
 import axiosServices from 'utils/axios';
 
 // types
-import { TicketList, TicketProps, TicketType, DynamicField, DynamicFieldResponse } from 'types/ticket';
+import { TicketList, TicketProps, TicketType, DynamicField } from 'types/ticket';
 
 /**
  * Módulo: API - Tickets
@@ -66,7 +66,7 @@ export function invalidateTicketCaches(ticketId?: number | string) {
   } catch (e) {
     // no-op: mutate puede lanzar si SWR no está inicializado, ignoramos
     // para evitar romper la UI en tiempo de ejecución
-    // console.debug('invalidateTicketCaches error', e);
+    console.debug('invalidateTicketCaches error', e);
   }
 }
 
@@ -205,7 +205,7 @@ export async function insertTicket(newTicket: any) {
         'Content-Type': 'multipart/form-data'
       }
     });
-  invalidateTicketCaches();
+    invalidateTicketCaches();
 
     return response.data;
   } catch (error: any) {
@@ -219,12 +219,28 @@ export async function insertTicket(newTicket: any) {
 export async function cancelTicket(ticketId: number, justification: string) {
   try {
     const response = await axiosServices.patch(`/tickets/${ticketId}/cancel`, { justification });
-  invalidateTicketCaches(ticketId);
+    invalidateTicketCaches(ticketId);
     return response.data;
   } catch (error: any) {
     if (error.response && error.response.data) {
       throw error.response.data;
     }
+    throw error;
+  }
+}
+
+/**
+ * requestTicketFeedback
+ * Solicita por backend que se envíe un correo al creador del ticket con el enlace a la encuesta.
+ */
+export async function requestTicketFeedback(ticketId: number) {
+  try {
+    const response = await axiosServices.post(`/tickets/${ticketId}/request-feedback`);
+    // opcional: invalidar caches para reflejar cualquier cambio
+    invalidateTicketCaches(ticketId);
+    return response.data;
+  } catch (error: any) {
+    if (error.response && error.response.data) throw error.response.data;
     throw error;
   }
 }
@@ -240,8 +256,8 @@ export async function createMessage(formData: FormData, idTicket: number) {
         'Content-Type': 'multipart/form-data'
       }
     });
-  // Invalidar caches relacionadas con el ticket
-  invalidateTicketCaches(idTicket);
+    // Invalidar caches relacionadas con el ticket
+    invalidateTicketCaches(idTicket);
 
     return response.data;
   } catch (error: any) {
@@ -266,7 +282,14 @@ export async function createMessage(formData: FormData, idTicket: number) {
  * Centraliza la llamada para que los componentes no hagan fetch/axios directamente.
  * @param payload - { ticketId, knowledge, timing, escalation, resolved, comment }
  */
-export async function sendTicketFeedback(payload: { ticketId: string | number | null; knowledge: number | null; timing: number | null; escalation: number | null; resolved: number | null; comment?: string }) {
+export async function sendTicketFeedback(payload: {
+  ticketId: string | number | null;
+  knowledge: number | null;
+  timing: number | null;
+  escalation: number | null;
+  resolved: number | null;
+  comment?: string;
+}) {
   try {
     const response = await axiosServices.post('/ticket-feedback', payload);
     // Intentamos invalidar caches relacionadas con el ticket para refrescar detalle
@@ -319,8 +342,8 @@ export async function updateTicket(ticketId: number, updatedTicket: Partial<Tick
     // hit server
     const response = await axiosServices.patch(`/tickets/${ticketId}`, updatedTicket);
 
-  // refresh related caches
-  invalidateTicketCaches(ticketId);
+    // refresh related caches
+    invalidateTicketCaches(ticketId);
 
     return response.data;
   } catch (error: any) {
@@ -335,8 +358,8 @@ export async function updateTicket(ticketId: number, updatedTicket: Partial<Tick
 export async function closeTicket(ticketId: number, content: string) {
   try {
     const response = await axiosServices.patch(`/tickets/${ticketId}/close`, { content });
-  // refrescar caches relacionadas
-  invalidateTicketCaches(ticketId);
+    // refrescar caches relacionadas
+    invalidateTicketCaches(ticketId);
 
     /**
      * closeTicket
@@ -594,12 +617,13 @@ export function useGetAttendantsByTicketType(ticketTypeCode: number | null) {
 // Reasigna el técnico de un ticket
 export async function reassignTechnician(ticketId: number | string, assigneeId: number | string) {
   try {
-    const response = await axiosServices.patch(`/tickets/${ticketId}/assign`, {
+    // Backend: PATCH /tickets/:id/reassign (se añadió el endpoint desde la API)
+    const response = await axiosServices.patch(`/tickets/${ticketId}/reassign`, {
       assigneeId
     });
     // console.log('Reassign technician response:', response.data);
-  // Opcional: refresca la lista de tickets
-  invalidateTicketCaches(ticketId);
+    // Opcional: refresca la lista de tickets
+    invalidateTicketCaches(ticketId);
 
     return response.data;
   } catch (error: any) {
@@ -615,8 +639,8 @@ export async function updateTicketStatus(ticketId: number | string, status: stri
   try {
     // According to backend contract the update is performed on /tickets/{id}
     const response = await axiosServices.patch(`/tickets/${ticketId}`, { status });
-  // refrescar caches relacionadas
-  invalidateTicketCaches(ticketId);
+    // refrescar caches relacionadas
+    invalidateTicketCaches(ticketId);
 
     return response.data;
   } catch (error: any) {
@@ -627,27 +651,20 @@ export async function updateTicketStatus(ticketId: number | string, status: stri
   }
 }
 
-export function getTicketStatistics() {
-  try {
-    const { data, isLoading } = useSWR(endpoints.key + endpoints.statistics, fetcher, {
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false
-    });
+export function useTicketStatistics() {
+  const { data, isLoading } = useSWR(endpoints.key + endpoints.statistics, fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false
+  });
 
-    const memoizedValue = useMemo(
-      () => ({
-        dataStatistics: (data as any) || {},
-        dataStatisticsLoading: isLoading
-      }),
-      [data, isLoading]
-    );
+  const memoizedValue = useMemo(
+    () => ({
+      dataStatistics: (data as any) || {},
+      dataStatisticsLoading: isLoading
+    }),
+    [data, isLoading]
+  );
 
-    return memoizedValue;
-  } catch (error: any) {
-    if (error.response && error.response.data) {
-      throw error.response.data;
-    }
-    throw error;
-  }
+  return memoizedValue;
 }

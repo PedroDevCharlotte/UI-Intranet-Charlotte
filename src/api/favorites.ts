@@ -11,7 +11,12 @@ const endpoints = {
 };
 
 export function useGetFavorites() {
-  const { data, error, isLoading, mutate: swrMutate } = useSWR(endpoints.key, fetcher, {
+  const {
+    data,
+    error,
+    isLoading,
+    mutate: swrMutate
+  } = useSWR(endpoints.key, fetcher, {
     revalidateIfStale: false,
     revalidateOnFocus: false,
     revalidateOnReconnect: false

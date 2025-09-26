@@ -28,16 +28,12 @@ export default function UserModal({ open, modalToggler, user }: Props) {
 
   const closeModal = useCallback(() => modalToggler(false), [modalToggler]);
 
-  const userForm = useMemo(
-    () => !loading && <FormUserAdd user={user || null} closeModal={closeModal} />,
-    [user, loading, closeModal]
-  );
+  const userForm = useMemo(() => !loading && <FormUserAdd user={user || null} closeModal={closeModal} />, [user, loading, closeModal]);
 
   return (
     <>
       {open && (
         <Modal
-
           open={open}
           onClose={closeModal}
           aria-labelledby="modal-user-add-label"

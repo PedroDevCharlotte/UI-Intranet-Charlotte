@@ -1,6 +1,5 @@
 import { useState, SyntheticEvent } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { preload } from 'swr';
 
 // material-ui
 import Button from '@mui/material/Button';
@@ -24,7 +23,6 @@ import AnimateButton from 'components/@extended/AnimateButton';
 import IconButton from 'components/@extended/IconButton';
 import useAuth from 'hooks/useAuth';
 import useScriptRef from 'hooks/useScriptRef';
-import { fetcher } from 'utils/axios';
 
 // assets
 import { Eye, EyeSlash } from 'iconsax-react';
@@ -51,7 +49,6 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
   return (
     <>
       <Formik
-      
         initialValues={{
           email: '',
           password: '',
@@ -62,22 +59,22 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
             .email('Debe ser un correo electrónico válido')
             .max(255)
             .required('El correo electrónico es obligatorio')
-            .test(
-              'domain',
-              'El correo debe ser del dominio charlotte.com.mx',
-              (value) => !!value && value.endsWith('@charlotte.com.mx')
-            ),
+            .test('domain', 'El correo debe ser del dominio charlotte.com.mx', (value) => !!value && value.endsWith('@charlotte.com.mx')),
           password: Yup.string()
             .required('La contraseña es obligatoria')
-            .test('no-leading-trailing-whitespace', 'La contraseña no puede comenzar ni terminar con espacios', (value) => value === value.trim())
+            .test(
+              'no-leading-trailing-whitespace',
+              'La contraseña no puede comenzar ni terminar con espacios',
+              (value) => value === value.trim()
+            )
             .min(7, 'La contraseña debe tener al menos 8 caracteres')
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
             const trimmedEmail = values.email.trim();
-            
-            const { requires2FA, register2FA } = await login(trimmedEmail, values.password);
 
+            const { requires2FA, register2FA } = await login(trimmedEmail, values.password);
+            console.log('Login successful, requires2FA:', requires2FA, 'register2FA:', register2FA, 'scriptedRef:', scriptedRef);
             if (scriptedRef.current) {
               setStatus({ success: true });
               setSubmitting(false);
@@ -87,6 +84,7 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
               } else if (register2FA) {
                 redirectPath = '/setup-2fa';
               }
+              console.log('Navigating to:', redirectPath);
               navigate(redirectPath);
               // Forzar recarga después de la navegación
               setTimeout(() => {

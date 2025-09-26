@@ -94,11 +94,7 @@ export default function UserPreview({ user, open, onClose, editUser }: Props) {
                 }
               >
                 <ListItemAvatar sx={{ mr: 0.75 }}>
-                  <Avatar
-                    alt={user.name}
-                    size="lg"
-                    src={getImageUrl(`avatar-${!user.avatar ? 1 : user.avatar}.png`, ImagePath.USERS)}
-                  />
+                  <Avatar alt={user.name} size="lg" src={getImageUrl(`avatar-${!user.avatar ? 1 : user.avatar}.png`, ImagePath.USERS)} />
                 </ListItemAvatar>
                 <ListItemText
                   primary={<Typography variant="h5">{user.name}</Typography>}
@@ -214,7 +210,6 @@ export default function UserPreview({ user, open, onClose, editUser }: Props) {
                         </List>
                       </MainCard>
                     </Grid>
-                    
                   </Grid>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4, xl: 3 }}>

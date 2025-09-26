@@ -39,7 +39,7 @@ const CancelTicketModal: React.FC<CancelTicketModalProps> = ({ open, onClose, on
         <TextField
           label="Justificación de cancelación"
           value={justification}
-          onChange={e => setJustification(e.target.value)}
+          onChange={(e) => setJustification(e.target.value)}
           multiline
           rows={4}
           fullWidth
@@ -49,8 +49,12 @@ const CancelTicketModal: React.FC<CancelTicketModalProps> = ({ open, onClose, on
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="secondary">Cerrar</Button>
-        <Button onClick={handleConfirm} color="error" variant="contained">Cancelar ticket</Button>
+        <Button onClick={handleClose} color="secondary">
+          Cerrar
+        </Button>
+        <Button onClick={handleConfirm} color="error" variant="contained">
+          Cancelar ticket
+        </Button>
       </DialogActions>
     </Dialog>
   );

@@ -221,7 +221,6 @@ export default function ListCard({ user }: Props) {
               </View>
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Skill</Text>
-                
               </View>
             </View>
             <View style={styles.rightColumn}>

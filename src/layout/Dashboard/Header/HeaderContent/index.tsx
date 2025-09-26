@@ -8,10 +8,7 @@ import Box from '@mui/material/Box';
 // project-imports
 import FullScreen from './FullScreen';
 import Localization from './Localization';
-import MegaMenuSection from './MegaMenuSection';
-import Message from './Message';
 import MobileSection from './MobileSection';
-import Notification from './Notification';
 import Profile from './Profile';
 import Search from './Search';
 
@@ -28,7 +25,6 @@ export default function HeaderContent() {
   const { menuOrientation } = useConfig();
   const downLG = useMediaQuery((theme: Theme) => theme.breakpoints.down('lg'));
   const localization = useMemo(() => <Localization />, []);
-  const megaMenu = useMemo(() => <MegaMenuSection />, []);
   const location = useLocation();
   const [pageTitle, setPageTitle] = useState('');
 

@@ -8,7 +8,6 @@ import AuthWrapper from '../../sections/auth/AuthWrapper';
 import AuthChangeFirstPassword from '../../sections/auth/auth-forms/AuthChangeFirstPassword';
 // ================================|| CHANGE FIRST LOGIN ||================================ //
 
-
 export default function FirstLogin() {
   return (
     <AuthWrapper>

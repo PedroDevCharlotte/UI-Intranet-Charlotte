@@ -4,12 +4,11 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Autocomplete from '@mui/material/Autocomplete';
 import MultiFileUpload from 'components/third-party/dropzone/MultiFile';
-import ReactQuill from 'react-quill-new';
+// Usar TextField multiline en lugar de ReactQuill para evitar romper la estructura
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import InputLabel from '@mui/material/InputLabel';
 import TextField from '@mui/material/TextField';
-import { useState } from 'react';
 import { useFormik, Form, FormikProvider } from 'formik';
 import * as Yup from 'yup';
 import { useGetUser } from 'api/user';
@@ -30,24 +29,23 @@ interface AddMessageModalProps {
 
 export default function AddMessageModal({ open, onClose, onSend, participantes, idTicket }: AddMessageModalProps) {
   const { users } = useGetUser();
-  const userOptions = users.map(user => ({ id: user.id || 0, label: `${user.firstName} ${user.lastName}` }));
+  const userOptions = users.map((user) => ({ id: user.id || 0, label: `${user.firstName} ${user.lastName}` }));
   const intl = useIntl();
 
-    const initialValues = (participantes: ParticipantOption[]) => {
-        let valueInitial = {
+  const initialValues = (participantes: ParticipantOption[]) => {
+    let valueInitial = {
       content: '',
       files: [] as any[],
-      participants: participantes || [],
-    }
-
+      participants: participantes || []
+    };
 
     return valueInitial;
-};
+  };
 
   const formik = useFormik({
     initialValues: initialValues(participantes),
     validationSchema: Yup.object({
-      content: Yup.string().required('El mensaje es obligatorio'),
+      content: Yup.string().required('El mensaje es obligatorio')
       // files: Yup.array(),
       // participants: Yup.array(),
     }),
@@ -61,7 +59,7 @@ export default function AddMessageModal({ open, onClose, onSend, participantes, 
         formData.append('participants', JSON.stringify(participant));
       });
       try {
-        const resp = await createMessage(formData, idTicket);
+        await createMessage(formData, idTicket);
 
         openSnackbar({
           open: true,
@@ -77,7 +75,7 @@ export default function AddMessageModal({ open, onClose, onSend, participantes, 
         onClose();
       } catch (error: any) {
         console.error('Error submitting form:', error);
-        const message = (error && error.message) ? error.message : String(error ?? 'Error submitting message');
+        const message = error && error.message ? error.message : String(error ?? 'Error submitting message');
         openSnackbar({
           open: true,
           message,
@@ -86,7 +84,7 @@ export default function AddMessageModal({ open, onClose, onSend, participantes, 
           alert: { color: 'error' }
         } as SnackbarProps);
       }
-    },
+    }
   });
 
   return (
@@ -96,30 +94,28 @@ export default function AddMessageModal({ open, onClose, onSend, participantes, 
         <Form>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
-              <InputLabel>Mensaje *</InputLabel>
-              <ReactQuill
-                theme="snow"
+              <TextField
+                fullWidth
+                multiline
+                minRows={4}
+                label="Mensaje *"
+                name="content"
                 value={formik.values.content}
-                onChange={value => formik.setFieldValue('content', value)}
+                onChange={(e) => formik.setFieldValue('content', e.target.value)}
+                error={Boolean(formik.touched.content && formik.errors.content)}
+                helperText={formik.touched.content && (formik.errors.content as string) }
               />
-              {formik.touched.content && formik.errors.content && (
-                <span style={{ color: 'red', fontSize: 12 }}>{formik.errors.content}</span>
-              )}
               <InputLabel>Adjuntar archivos</InputLabel>
-              <MultiFileUpload
-                files={formik.values.files}
-                setFieldValue={(_, value) => formik.setFieldValue('files', value)}
-              />
+              <MultiFileUpload files={formik.values.files} setFieldValue={(_, value) => formik.setFieldValue('files', value)} />
               <InputLabel>Participantes</InputLabel>
               <Autocomplete
                 multiple
                 options={userOptions}
                 value={formik.values.participants}
-                onChange={(_, value) =>{
-                    const uniqueParticipants = value.filter(
-                        (option, index, self) => self.findIndex(o => o.id === option.id) === index
-                    );
-                     formik.setFieldValue('participants', uniqueParticipants)}}
+                onChange={(_, value) => {
+                  const uniqueParticipants = value.filter((option, index, self) => self.findIndex((o) => o.id === option.id) === index);
+                  formik.setFieldValue('participants', uniqueParticipants);
+                }}
                 renderInput={(params) => <TextField {...params} label="Selecciona participantes" />}
               />
             </Stack>

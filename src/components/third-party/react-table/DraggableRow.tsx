@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
 
 // material-ui
 import TableCell from '@mui/material/TableCell';
@@ -15,7 +15,6 @@ import IconButton from 'components/@extended/IconButton';
 import { HambergerMenu } from 'iconsax-react';
 
 // types
-
 
 // ==============================|| DRAGGABLE ROW ||============================== //
 

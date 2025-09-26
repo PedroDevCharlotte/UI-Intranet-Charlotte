@@ -198,6 +198,7 @@
   "widgets": "Widgets",
   "more-items": "Más Elementos",
   "Inicio": "Inicio",
+  "Usuarios": "Usuarios",
   "users": "Usuarios",
   "tickets": "Tickets",
   "ticket-list": "Lista de Tickets",
@@ -273,4 +274,7 @@
   "files": "Archivos",
   "copy-to-collaborator-label": "Copiar a Colaborador",
   "role-list": "Lista de roles"
+  ,"Roles": "Roles"
+  ,"coming-soon-2": "Próximamente 2"
+  ,"non-conformities": "No conformidades"
 }

@@ -36,7 +36,7 @@ export default function TwoFactorAuth() {
       }
     } catch (error) {
       // Manejar error de verificación
-        setError('Error al verificar 2FA, intenta nuevamente o solicita al administrador que reestablesca la autenticación 2FA.');
+      setError('Error al verificar 2FA, intenta nuevamente o solicita al administrador que reestablesca la autenticación 2FA.');
 
       console.error('Error al verificar el código 2FA:', error);
     }

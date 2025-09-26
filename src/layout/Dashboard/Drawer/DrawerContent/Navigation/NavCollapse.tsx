@@ -210,7 +210,7 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
   const darkTextColor = selectedTextColor || 'secondary.400';
 
   const intl = useIntl();
-  const hasMessage = (key?: string) => !!key && !!((intl && (intl as any).messages && (intl as any).messages[key]));
+  const hasMessage = (key?: string) => !!key && !!(intl && (intl as any).messages && (intl as any).messages[key]);
 
   const arrowStyle = { size: 12, style: { marginLeft: 1 } };
 
@@ -460,7 +460,9 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
                   >
                     <ClickAwayListener onClickAway={handleClose}>
                       <div>
-                        <SimpleBar sx={{ overflowX: 'hidden', overflowY: 'auto', maxHeight: 'calc(100vh - 170px)' }}>{navCollapse}</SimpleBar>
+                        <SimpleBar sx={{ overflowX: 'hidden', overflowY: 'auto', maxHeight: 'calc(100vh - 170px)' }}>
+                          {navCollapse}
+                        </SimpleBar>
                       </div>
                     </ClickAwayListener>
                   </Paper>

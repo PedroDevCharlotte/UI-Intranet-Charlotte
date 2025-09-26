@@ -25,9 +25,7 @@ export function useGetBanners() {
     Array.isArray(data) && data.length > 0
       ? data.map((banner: any) => ({
           ...banner,
-          imagePreviewUrl: banner.oneDriveFileId
-            ? `${urlApi}/onedrive/file/${banner.oneDriveFileId}/content`
-            : null,
+          imagePreviewUrl: banner.oneDriveFileId ? `${urlApi}/onedrive/file/${banner.oneDriveFileId}/content` : null,
           isPermanent: !banner.endDate
         }))
       : [];
@@ -47,14 +45,22 @@ export async function getBannerById(id: number) {
 export async function createBanner(banner: any) {
   // support FormData for image uploads
   const isFormData = banner instanceof FormData;
-  const res = await axiosServices.post(endpoints.list, banner, isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined);
+  const res = await axiosServices.post(
+    endpoints.list,
+    banner,
+    isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+  );
   mutate(endpoints.list);
   return res.data;
 }
 
 export async function updateBanner(id: number, banner: any) {
   const isFormData = banner instanceof FormData;
-  const res = await axiosServices.put(endpoints.single(id), banner, isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined);
+  const res = await axiosServices.put(
+    endpoints.single(id),
+    banner,
+    isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+  );
   mutate(endpoints.list);
   mutate(endpoints.single(id));
   return res.data;

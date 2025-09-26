@@ -94,197 +94,197 @@ export default function MegaMenuSection() {
               <ClickAwayListener onClickAway={handleClose}>
                 <div>
                   <MainCard elevation={0} border={false} content={false}>
-                  <Grid container>
-                    <Grid
-                      size={4}
-                      sx={(theme) => ({
-                        bgcolor: 'primary.darker',
-                        ...theme.applyStyles('dark', { bgcolor: 'primary.400' }),
-                        position: 'relative',
-                        '&:after': {
-                          content: '""',
-                          background: `url("${cardBack}") 100% / cover no-repeat`,
-                          position: 'absolute',
-                          top: '41%',
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          zIndex: 1,
-                          opacity: 0.5
-                        }
-                      })}
-                    >
-                      <Box sx={{ p: 4.5, pb: 3, position: 'inherit', zIndex: 2 }}>
-                        <Stack sx={(theme) => ({ color: 'background.paper', ...theme.applyStyles('dark', { color: 'text.primary' }) })}>
-                          <Typography variant="h2" sx={{ fontSize: '1.875rem', mb: 1 }}>
-                            Explore Components
-                          </Typography>
-                          <Typography variant="h6">
-                            Try Able Pro&apos;s component pages to check how it feels and suits as per your need.
-                          </Typography>
-                          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-end', mt: -1 }}>
-                            <AnimateButton>
-                              <Button
-                                variant="contained"
-                                color="secondary"
-                                sx={{
-                                  zIndex: 2,
-                                  color: 'text.primary',
-                                  bgcolor: 'background.paper',
-                                  '&:hover': { bgcolor: 'background.paper', color: 'text.primary' },
-                                  '& svg': { color: 'primary.main' }
-                                }}
-                                endIcon={<ArrowRight3 variant="Bulk" />}
-                                component={Link}
-                                to="#"
-                                target="_blank"
-                              >
-                                View All
-                              </Button>
-                            </AnimateButton>
-                            <CardMedia component="img" src={imageChart} alt="Chart" sx={{ mr: -2.5, mb: -2.5, width: 124 }} />
-                          </Stack>
-                        </Stack>
-                      </Box>
-                    </Grid>
-                    <Grid size={8}>
-                      <Box
-                        sx={{
-                          p: 4,
-                          '& .MuiList-root': { pb: 0 },
-                          '& .MuiListSubheader-root': { p: 0, pb: 1.5 },
-                          '& .MuiListItemButton-root': {
-                            p: 0.5,
-                            '&:hover': { bgcolor: 'transparent', '& .MuiTypography-root': { color: 'primary.main' } }
-                          },
-                          '& .MuiListItemIcon-root': { minWidth: 16 }
-                        }}
+                    <Grid container>
+                      <Grid
+                        size={4}
+                        sx={(theme) => ({
+                          bgcolor: 'primary.darker',
+                          ...theme.applyStyles('dark', { bgcolor: 'primary.400' }),
+                          position: 'relative',
+                          '&:after': {
+                            content: '""',
+                            background: `url("${cardBack}") 100% / cover no-repeat`,
+                            position: 'absolute',
+                            top: '41%',
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 1,
+                            opacity: 0.5
+                          }
+                        })}
                       >
-                        <Grid container spacing={6}>
-                          <Grid size={4}>
-                            <List
-                              component="nav"
-                              aria-labelledby="nested-list-user"
-                              subheader={
-                                <ListSubheader id="nested-list-user">
-                                  <Typography variant="subtitle1" sx={{ color: 'text.primary' }}>
-                                    Authentication
-                                  </Typography>
-                                </ListSubheader>
-                              }
-                            >
-                              <ListItemButton disableRipple component={Link} target="_blank" to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="Login" />
-                              </ListItemButton>
-                              <ListItemButton disableRipple component={Link} target="_blank" to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="Register" />
-                              </ListItemButton>
-                              <ListItemButton disableRipple component={Link} target="_blank" to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="Reset Password" />
-                              </ListItemButton>
-                              <ListItemButton disableRipple component={Link} target="_blank" to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="Forgot Password" />
-                              </ListItemButton>
-                              <ListItemButton disableRipple component={Link} target="_blank" to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="Verification Code" />
-                              </ListItemButton>
-                            </List>
+                        <Box sx={{ p: 4.5, pb: 3, position: 'inherit', zIndex: 2 }}>
+                          <Stack sx={(theme) => ({ color: 'background.paper', ...theme.applyStyles('dark', { color: 'text.primary' }) })}>
+                            <Typography variant="h2" sx={{ fontSize: '1.875rem', mb: 1 }}>
+                              Explore Components
+                            </Typography>
+                            <Typography variant="h6">
+                              Try Able Pro&apos;s component pages to check how it feels and suits as per your need.
+                            </Typography>
+                            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-end', mt: -1 }}>
+                              <AnimateButton>
+                                <Button
+                                  variant="contained"
+                                  color="secondary"
+                                  sx={{
+                                    zIndex: 2,
+                                    color: 'text.primary',
+                                    bgcolor: 'background.paper',
+                                    '&:hover': { bgcolor: 'background.paper', color: 'text.primary' },
+                                    '& svg': { color: 'primary.main' }
+                                  }}
+                                  endIcon={<ArrowRight3 variant="Bulk" />}
+                                  component={Link}
+                                  to="#"
+                                  target="_blank"
+                                >
+                                  View All
+                                </Button>
+                              </AnimateButton>
+                              <CardMedia component="img" src={imageChart} alt="Chart" sx={{ mr: -2.5, mb: -2.5, width: 124 }} />
+                            </Stack>
+                          </Stack>
+                        </Box>
+                      </Grid>
+                      <Grid size={8}>
+                        <Box
+                          sx={{
+                            p: 4,
+                            '& .MuiList-root': { pb: 0 },
+                            '& .MuiListSubheader-root': { p: 0, pb: 1.5 },
+                            '& .MuiListItemButton-root': {
+                              p: 0.5,
+                              '&:hover': { bgcolor: 'transparent', '& .MuiTypography-root': { color: 'primary.main' } }
+                            },
+                            '& .MuiListItemIcon-root': { minWidth: 16 }
+                          }}
+                        >
+                          <Grid container spacing={6}>
+                            <Grid size={4}>
+                              <List
+                                component="nav"
+                                aria-labelledby="nested-list-user"
+                                subheader={
+                                  <ListSubheader id="nested-list-user">
+                                    <Typography variant="subtitle1" sx={{ color: 'text.primary' }}>
+                                      Authentication
+                                    </Typography>
+                                  </ListSubheader>
+                                }
+                              >
+                                <ListItemButton disableRipple component={Link} target="_blank" to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="Login" />
+                                </ListItemButton>
+                                <ListItemButton disableRipple component={Link} target="_blank" to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="Register" />
+                                </ListItemButton>
+                                <ListItemButton disableRipple component={Link} target="_blank" to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="Reset Password" />
+                                </ListItemButton>
+                                <ListItemButton disableRipple component={Link} target="_blank" to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="Forgot Password" />
+                                </ListItemButton>
+                                <ListItemButton disableRipple component={Link} target="_blank" to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="Verification Code" />
+                                </ListItemButton>
+                              </List>
+                            </Grid>
+                            <Grid size={4}>
+                              <List
+                                component="nav"
+                                aria-labelledby="nested-list-user"
+                                subheader={
+                                  <ListSubheader id="nested-list-user">
+                                    <Typography variant="subtitle1" sx={{ color: 'text.primary' }}>
+                                      Other Pages
+                                    </Typography>
+                                  </ListSubheader>
+                                }
+                              >
+                                <ListItemButton disableRipple component={Link} to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="About us" />
+                                </ListItemButton>
+                                <ListItemButton disableRipple component={Link} to="#" target="_blank">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="Contact us" />
+                                </ListItemButton>
+                                <ListItemButton disableRipple component={Link} to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="Pricing" />
+                                </ListItemButton>
+                                <ListItemButton disableRipple component={Link} to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="Payment" />
+                                </ListItemButton>
+                                <ListItemButton disableRipple component={Link} target="_blank" to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="Construction" />
+                                </ListItemButton>
+                                <ListItemButton disableRipple component={Link} target="_blank" to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="Coming Soon" />
+                                </ListItemButton>
+                              </List>
+                            </Grid>
+                            <Grid size={4}>
+                              <List
+                                component="nav"
+                                aria-labelledby="nested-list-user"
+                                subheader={
+                                  <ListSubheader id="nested-list-user">
+                                    <Typography variant="subtitle1" sx={{ color: 'text.primary' }}>
+                                      SAAS Pages
+                                    </Typography>
+                                  </ListSubheader>
+                                }
+                              >
+                                <ListItemButton disableRipple component={Link} target="_blank" to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="404 Error" />
+                                </ListItemButton>
+                                <ListItemButton disableRipple component={Link} target="_blank" to="#">
+                                  <ListItemIcon>
+                                    <Dot size={6} color="secondary" variant="outlined" />
+                                  </ListItemIcon>
+                                  <ListItemText primary="Landing" />
+                                </ListItemButton>
+                              </List>
+                            </Grid>
                           </Grid>
-                          <Grid size={4}>
-                            <List
-                              component="nav"
-                              aria-labelledby="nested-list-user"
-                              subheader={
-                                <ListSubheader id="nested-list-user">
-                                  <Typography variant="subtitle1" sx={{ color: 'text.primary' }}>
-                                    Other Pages
-                                  </Typography>
-                                </ListSubheader>
-                              }
-                            >
-                              <ListItemButton disableRipple component={Link} to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="About us" />
-                              </ListItemButton>
-                              <ListItemButton disableRipple component={Link} to="#" target="_blank">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="Contact us" />
-                              </ListItemButton>
-                              <ListItemButton disableRipple component={Link} to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="Pricing" />
-                              </ListItemButton>
-                              <ListItemButton disableRipple component={Link} to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="Payment" />
-                              </ListItemButton>
-                              <ListItemButton disableRipple component={Link} target="_blank" to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="Construction" />
-                              </ListItemButton>
-                              <ListItemButton disableRipple component={Link} target="_blank" to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="Coming Soon" />
-                              </ListItemButton>
-                            </List>
-                          </Grid>
-                          <Grid size={4}>
-                            <List
-                              component="nav"
-                              aria-labelledby="nested-list-user"
-                              subheader={
-                                <ListSubheader id="nested-list-user">
-                                  <Typography variant="subtitle1" sx={{ color: 'text.primary' }}>
-                                    SAAS Pages
-                                  </Typography>
-                                </ListSubheader>
-                              }
-                            >
-                              <ListItemButton disableRipple component={Link} target="_blank" to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="404 Error" />
-                              </ListItemButton>
-                              <ListItemButton disableRipple component={Link} target="_blank" to="#">
-                                <ListItemIcon>
-                                  <Dot size={6} color="secondary" variant="outlined" />
-                                </ListItemIcon>
-                                <ListItemText primary="Landing" />
-                              </ListItemButton>
-                            </List>
-                          </Grid>
-                        </Grid>
-                      </Box>
+                        </Box>
+                      </Grid>
                     </Grid>
-                  </Grid>
                   </MainCard>
                 </div>
               </ClickAwayListener>

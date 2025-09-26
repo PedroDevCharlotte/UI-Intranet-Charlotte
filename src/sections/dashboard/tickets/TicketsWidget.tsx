@@ -1,19 +1,15 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
-import { ArrowRight, Cards } from 'iconsax-react';
+import { ArrowRight, Cards, InfoCircle } from 'iconsax-react';
 import Grid from '@mui/material/Grid2';
 import MainCard from 'components/MainCard';
 import TicketCard from 'components/cards/ticket/TicketCard';
-import TicketChart from 'components/cards/ticket/TicketChart';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Avatar from 'components/@extended/Avatar';
 import Typography from '@mui/material/Typography';
-import LinearProgress, { LinearProgressProps } from '@mui/material/LinearProgress';
-import { ProfileTick, InfoCircle } from 'iconsax-react';
 import { useTheme } from '@mui/material/styles';
-import { getTicketStatistics } from 'api/ticket';
+import { useTicketStatistics } from 'api/ticket';
 import { useGetTicketStatisticsAdvisors } from 'api/ticketStatisticsAdvisors';
 import useAuth from 'hooks/useAuth';
 import { TicketStatsByStatus } from 'types/ticket';
@@ -29,23 +25,12 @@ interface TicketWidgets {
   status?: string;
 }
 
-function LinearWithLabel({ value, ...others }: LinearProgressProps) {
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <Box sx={{ width: '100%', mr: 1 }}>
-        <LinearProgress color="warning" variant="determinate" value={value} {...others} />
-      </Box>
-      <Box sx={{ minWidth: 35 }}>
-        <Typography variant="body2" color="white">{`${Math.round(value!)}%`}</Typography>
-      </Box>
-    </Box>
-  );
-}
+// LinearWithLabel used previously for charts; removed to avoid unused declarations
 
 export default function TicketsWidget() {
   const theme = useTheme();
-  const { dataStatistics, dataStatisticsLoading } = getTicketStatistics();
-  const { advisors, advisorsLoading } = useGetTicketStatisticsAdvisors();
+  const { dataStatistics } = useTicketStatistics();
+  const { advisors } = useGetTicketStatisticsAdvisors();
   const { user } = useAuth();
 
   const navigate = useNavigate();
@@ -53,37 +38,36 @@ export default function TicketsWidget() {
   // Helper para saber si el usuario es admin del sistema
   const isAdmin = user?.role === 'Administrador del Sistema';
 
-  const totalClosed: number = (dataStatistics?.byStatus as TicketStatsByStatus[] | undefined)?.find((e: TicketStatsByStatus) => e.status === 'CLOSED')?.count || 0;
   // helper: map status codes to display label and theme color
   const statusLabel = (status: string) =>
     status === 'OPEN'
       ? 'Abierto'
       : status === 'IN_PROGRESS'
-      ? 'En Proceso'
-      : status === 'FOLLOW_UP'
-      ? 'En Seguimiento'
-      : status === 'COMPLETED'
-      ? 'Finalizado'
-      : status === 'CLOSED'
-      ? 'Cerrado'
-      : status === 'NON_CONFORMITY'
-      ? 'No Conformidad'
-      : status === 'CANCELLED'
-      ? 'Cancelado'
-      : status;
+        ? 'En Proceso'
+        : status === 'FOLLOW_UP'
+          ? 'En Seguimiento'
+          : status === 'COMPLETED'
+            ? 'Finalizado'
+            : status === 'CLOSED'
+              ? 'Cerrado'
+              : status === 'NON_CONFORMITY'
+                ? 'No Conformidad'
+                : status === 'CANCELLED'
+                  ? 'Cancelado'
+                  : status;
 
   const statusColor = (status: string) =>
     status === 'OPEN'
       ? theme.palette.error
       : status === 'IN_PROGRESS'
-      ? theme.palette.warning
-      : status === 'FOLLOW_UP'
-      ? theme.palette.info
-      : status === 'COMPLETED'
-      ? theme.palette.success
-      : status === 'NON_CONFORMITY'
-      ? theme.palette.secondary
-      : theme.palette.primary;
+        ? theme.palette.warning
+        : status === 'FOLLOW_UP'
+          ? theme.palette.info
+          : status === 'COMPLETED'
+            ? theme.palette.success
+            : status === 'NON_CONFORMITY'
+              ? theme.palette.secondary
+              : theme.palette.primary;
 
   const total = Number(dataStatistics?.total ?? 0);
 
@@ -103,11 +87,6 @@ export default function TicketsWidget() {
   });
 
   // Fallback if API returns nothing yet (show some placeholders)
-  const displayWidgets = widgetsData.length ? widgetsData : [
-    { title: 'Abierto', count: '0', percentage: 0, isLoss: true, ticket: '0', color: theme.palette.error, chartData: [] },
-    { title: 'En Proceso', count: '0', percentage: 0, isLoss: false, ticket: '0', color: theme.palette.warning, chartData: [] },
-    { title: 'Resuelto', count: '0', percentage: 0, isLoss: false, ticket: '0', color: theme.palette.success, chartData: [] }
-  ];
 
   if (isAdmin) {
     // Mostrar un TicketCard por cada advisor
@@ -125,9 +104,7 @@ export default function TicketsWidget() {
                 <MainCard>
                   <TicketCard
                     title={advisor.advisorName}
-                    count={String(
-                      (advisor.counts.OPEN || 0) + (advisor.counts.IN_PROGRESS || 0) + (advisor.counts.CLOSED || 0)
-                    )}
+                    count={String((advisor.counts.OPEN || 0) + (advisor.counts.IN_PROGRESS || 0) + (advisor.counts.CLOSED || 0))}
                     percentage={undefined}
                     isLoss={false}
                     ticket={''}
@@ -135,22 +112,28 @@ export default function TicketsWidget() {
                     status={''}
                   >
                     <Stack direction="column" sx={{ gap: 1 }}>
-                      <Typography variant="body2" color="error">Abiertos: {advisor.counts.OPEN || 0}</Typography>
-                      <Typography variant="body2" color="warning.main">En Proceso: {advisor.counts.IN_PROGRESS || 0}</Typography>
-                      <Typography variant="body2" color="success.main">Cerrados: {advisor.counts.CLOSED || 0}</Typography>
-                      
+                      <Typography variant="body2" color="error">
+                        Abiertos: {advisor.counts.OPEN || 0}
+                      </Typography>
+                      <Typography variant="body2" color="warning.main">
+                        En Proceso: {advisor.counts.IN_PROGRESS || 0}
+                      </Typography>
+                      <Typography variant="body2" color="success.main">
+                        Cerrados: {advisor.counts.CLOSED || 0}
+                      </Typography>
                     </Stack>
                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                      {!window.location.pathname.includes('/apps/ticket/list') && (<Button
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        endIcon={<ArrowRight size={18} style={{ marginLeft: 4 }} />}
-                        sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none', boxShadow: 1 }}
-                        onClick={() => navigate(`/apps/ticket/list?status=ALL&advisorId=${advisor.advisorId}`)}
-                      >
-                        Ver
-                      </Button>
+                      {!window.location.pathname.includes('/apps/ticket/list') && (
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          size="small"
+                          endIcon={<ArrowRight size={18} style={{ marginLeft: 4 }} />}
+                          sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none', boxShadow: 1 }}
+                          onClick={() => navigate(`/apps/ticket/list?status=ALL&advisorId=${advisor.advisorId}`)}
+                        >
+                          Ver
+                        </Button>
                       )}
                     </Box>
                   </TicketCard>
@@ -177,7 +160,6 @@ export default function TicketsWidget() {
                 isLoss={widget.isLoss}
                 ticket=""
                 color={widget.color}
-                
                 status={widget.status || ''}
               >
                 {/* <TicketChart color={widget.color} data={widget.chartData} /> */}
@@ -191,7 +173,7 @@ export default function TicketsWidget() {
                       sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none', boxShadow: 1 }}
                       onClick={() => navigate(`/apps/ticket/list?status=${encodeURIComponent(widget.status || 'ALL')}`)}
                     >
-                      Ver 
+                      Ver
                     </Button>
                   )}
                 </Box>

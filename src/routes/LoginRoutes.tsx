@@ -55,11 +55,11 @@ const LoginRoutes = {
         },
         {
           path: 'verify-2fa',
-          element: <Auth2FA/>
+          element: <Auth2FA />
         },
         {
           path: 'setup-2fa',
-          element: <AuthSetup2FA />,
+          element: <AuthSetup2FA />
         },
         {
           path: 'change-first-password',

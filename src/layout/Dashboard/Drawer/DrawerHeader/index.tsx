@@ -32,7 +32,6 @@ export default function DrawerHeader({ open }: Props) {
       }}
     >
       <Logo isIcon={!open} sx={{ width: open ? 'auto' : 52, height: 'auto' }} />
-     
     </DrawerHeaderStyled>
   );
 }

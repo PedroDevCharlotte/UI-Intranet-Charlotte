@@ -1,5 +1,4 @@
 // action - state management
-import { is } from 'immutable';
 import { REGISTER, LOGIN, LOGOUT } from './actions';
 
 // types

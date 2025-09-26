@@ -10,7 +10,13 @@ const endpoints = {
 
 export function useGetRoles(includeInactive: boolean = false) {
   const url = `${endpoints.base}?includeInactive=${includeInactive}`;
-  const { data, error, isLoading, isValidating, mutate: rolesMutate } = useSWR(url, fetcher, {
+  const {
+    data,
+    error,
+    isLoading,
+    isValidating,
+    mutate: rolesMutate
+  } = useSWR(url, fetcher, {
     revalidateIfStale: false,
     revalidateOnFocus: false,
     revalidateOnReconnect: false
@@ -123,6 +129,7 @@ export async function refreshRolesCache(roleId?: number) {
     }
   } catch (err) {
     // ignore mutate errors but log for debugging
-    // console.warn('refreshRolesCache error', err);
+    // small debug to avoid unused var warning
+    console.warn('refreshRolesCache error', err);
   }
 }

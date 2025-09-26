@@ -18,7 +18,6 @@ const MaintenanceUnderConstruction2 = Loadable(lazy(() => import('../pages/maint
 const MaintenanceComingSoon = Loadable(lazy(() => import('../pages/maintenance/coming-soon/coming-soon')));
 const MaintenanceComingSoon2 = Loadable(lazy(() => import('../pages/maintenance/coming-soon/coming-soon2')));
 
-
 // pages users
 const AppUserList = Loadable(lazy(() => import('../pages/apps/user/list')));
 const AppUserCard = Loadable(lazy(() => import('../pages/apps/user/card')));
@@ -28,6 +27,7 @@ const AppBannersList = Loadable(lazy(() => import('../pages/apps/banners/list'))
 
 // pages non-conformities
 const AppNonConformities = Loadable(lazy(() => import('../pages/apps/non-conformities')));
+const AppNonConformityNew = Loadable(lazy(() => import('../pages/apps/non-conformities/NewNonConformityStepper')));
 
 // pages roles
 const AppRoleTypesList = Loadable(lazy(() => import('../pages/apps/role-types/list')));
@@ -61,7 +61,6 @@ const AccountTabRole = Loadable(lazy(() => import('../sections/apps/profiles/acc
 const AccountTabSettings = Loadable(lazy(() => import('../sections/apps/profiles/account/TabSettings')));
 const AccountTabEmoji = Loadable(lazy(() => import('../sections/apps/profiles/account/TabEmoji')));
 
-
 const MainRoutes = {
   path: '/',
   children: [
@@ -72,7 +71,7 @@ const MainRoutes = {
         {
           path: 'dashboard',
           // element: <SamplePage />,
-           children: [
+          children: [
             {
               path: 'default',
               element: <DashboardDefault />
@@ -90,7 +89,6 @@ const MainRoutes = {
         {
           path: 'apps',
           children: [
-            
             {
               path: 'user',
               children: [
@@ -139,8 +137,7 @@ const MainRoutes = {
                 {
                   path: 'list',
                   element: <AppRoleTypesList />
-                }
-                ,
+                },
                 {
                   path: 'permissions-demo',
                   element: <AppRolePermissionsDemo />
@@ -162,10 +159,14 @@ const MainRoutes = {
                 {
                   path: '',
                   element: <AppNonConformities />
+                },
+                {
+                  path: 'new',
+                  element: <AppNonConformityNew />
                 }
               ]
             },
-           
+
             {
               path: 'profiles',
               children: [
@@ -202,7 +203,7 @@ const MainRoutes = {
                       element: <AccountTabSettings />
                     }
                   ]
-                },
+                }
                 // {
                 //   path: 'user',
                 //   element: <UserProfile />,
@@ -226,10 +227,9 @@ const MainRoutes = {
                 //   ]
                 // }
               ]
-            },
-            
+            }
           ]
-        },
+        }
       ]
     },
     {

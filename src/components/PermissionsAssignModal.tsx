@@ -77,7 +77,9 @@ export default function PermissionsAssignModal({ open, onClose, roleId, initialP
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>Cancelar</Button>
+        <Button onClick={onClose} disabled={saving}>
+          Cancelar
+        </Button>
         <Button onClick={handleSave} variant="contained" disabled={saving}>
           {saving ? 'Guardando...' : 'Guardar'}
         </Button>

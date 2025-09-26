@@ -1,6 +1,6 @@
 // ==============================|| TYPES - TICKET ||============================== //
 
-interface InfoType {
+export interface InfoType {
   name: string;
   address: string;
   phone: string;
@@ -140,11 +140,15 @@ export interface TicketList {
   ticketNumber: string;
   title: string;
   description: string;
+  statusLabel: string;
   status: string;
   priority: string;
   ticketTypeId: number;
+  ticketTypeName: string;
   createdBy: number;
+  creatorName: string;
   assignedTo: number;
+  assigneeName: string;
   departmentId: number;
   dueDate: string;
   resolvedAt: string | null;

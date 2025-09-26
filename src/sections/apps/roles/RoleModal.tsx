@@ -53,7 +53,7 @@ export default function RoleModal({ open, onClose, role }: any) {
         return;
       }
 
-  openSnackbar({
+      openSnackbar({
         action: false,
         open: true,
         message: result.message || 'Operación exitosa',
@@ -70,7 +70,7 @@ export default function RoleModal({ open, onClose, role }: any) {
       setSubmitting(false);
       onClose();
     } catch (err: any) {
-  openSnackbar({
+      openSnackbar({
         action: false,
         open: true,
         message: err?.message || 'Error inesperado',
@@ -95,8 +95,12 @@ export default function RoleModal({ open, onClose, role }: any) {
           <TextField label="Nombre" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
           <TextField label="Descripción" value={description} onChange={(e) => setDescription(e.target.value)} fullWidth />
           <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
-            <Button onClick={onClose} disabled={submitting}>Cancelar</Button>
-            <Button variant="contained" onClick={handleSubmit} disabled={submitting}>{submitting ? 'Guardando...' : isEdit ? 'Guardar' : 'Crear'}</Button>
+            <Button onClick={onClose} disabled={submitting}>
+              Cancelar
+            </Button>
+            <Button variant="contained" onClick={handleSubmit} disabled={submitting}>
+              {submitting ? 'Guardando...' : isEdit ? 'Guardar' : 'Crear'}
+            </Button>
           </Stack>
         </Stack>
       </MainCard>

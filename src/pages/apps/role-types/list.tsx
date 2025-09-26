@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ColumnDef, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable, SortingState, FilterFn, ColumnFiltersState, HeaderGroup } from '@tanstack/react-table';
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  SortingState,
+  FilterFn,
+  ColumnFiltersState,
+  HeaderGroup
+} from '@tanstack/react-table';
 
 import MainCard from 'components/MainCard';
 import Stack from '@mui/material/Stack';
@@ -11,8 +23,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TableContainer from '@mui/material/TableContainer';
 import Box from '@mui/material/Box';
-import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
+// Tooltip and Typography removed (unused)
 
 import { Add, Edit, ProfileTick } from 'iconsax-react';
 
@@ -21,7 +32,6 @@ import RoleModal from 'sections/apps/roles/RoleModal';
 import PermissionsModal from 'sections/apps/roles/PermissionsModal';
 
 import { DebouncedInput, HeaderSort, IndeterminateCheckbox, RowSelection, TablePagination } from 'components/third-party/react-table';
-import { NavItemType } from 'types/menu';
 import { Role } from 'types/roles-departments';
 
 const fuzzyFilter: FilterFn<Role> = (row, columnId, value, addMeta) => {
@@ -36,7 +46,7 @@ function TableCellWithFilterComponent(props: any) {
 }
 
 export default function RoleTypesList() {
-  const { roles = [], rolesLoading } = useGetRoles();
+  const { roles = [] } = useGetRoles();
   const [openModal, setOpenModal] = useState(false);
   const [openPermissions, setOpenPermissions] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
@@ -99,8 +109,26 @@ export default function RoleTypesList() {
           const r = row.original as Role;
           return (
             <Stack direction="row" sx={{ gap: 1 }}>
-              <Button size="small" onClick={() => { setSelectedRole(r); setOpenModal(true); }} startIcon={<Edit />}>Editar</Button>
-              <Button size="small" onClick={() => { setSelectedRole(r); setOpenPermissions(true); }} startIcon={<ProfileTick />}>Permisos</Button>
+              <Button
+                size="small"
+                onClick={() => {
+                  setSelectedRole(r);
+                  setOpenModal(true);
+                }}
+                startIcon={<Edit />}
+              >
+                Editar
+              </Button>
+              <Button
+                size="small"
+                onClick={() => {
+                  setSelectedRole(r);
+                  setOpenPermissions(true);
+                }}
+                startIcon={<ProfileTick />}
+              >
+                Permisos
+              </Button>
             </Stack>
           );
         }
@@ -138,8 +166,22 @@ export default function RoleTypesList() {
   return (
     <MainCard>
       <Stack direction="row" sx={{ justifyContent: 'space-between', p: 2 }}>
-        <DebouncedInput value={globalFilter ?? ''} onFilterChange={(v) => setGlobalFilter(String(v))} placeholder={`Buscar ${roles.length} roles...`} sx={{ width: 300 }} />
-        <Button variant="contained" startIcon={<Add />} onClick={() => { setSelectedRole(null); setOpenModal(true); }}>Nuevo rol</Button>
+        <DebouncedInput
+          value={globalFilter ?? ''}
+          onFilterChange={(v) => setGlobalFilter(String(v))}
+          placeholder={`Buscar ${roles.length} roles...`}
+          sx={{ width: 300 }}
+        />
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => {
+            setSelectedRole(null);
+            setOpenModal(true);
+          }}
+        >
+          Nuevo rol
+        </Button>
       </Stack>
 
       <Box sx={{ p: 2 }}>

@@ -36,7 +36,7 @@ interface Props {
 
 export default function NavItem({ item, level, isParents = false, setSelectedID }: Props) {
   const intl = useIntl();
-  const hasMessage = (key?: string) => !!key && !!((intl && (intl as any).messages && (intl as any).messages[key]));
+  const hasMessage = (key?: string) => !!key && !!(intl && (intl as any).messages && (intl as any).messages[key]);
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
 
   const { menuMaster } = useGetMenuMaster();
@@ -109,29 +109,29 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
             {itemIcon && (
               <Tooltip title={hasMessage(item.title) ? <FormattedMessage id={item.title} /> : String(item.title)} placement="right">
                 <ListItemIcon
-                sx={(theme) => ({
-                  minWidth: 38,
-                  color: 'secondary.main',
-                  ...theme.applyStyles('dark', { color: 'secondary.400' }),
-                  ...(isSelected && { color: iconSelectedColor }),
-                  ...(!drawerOpen &&
-                    level === 1 && {
-                      borderRadius: 1,
-                      width: 46,
-                      height: 46,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      '&:hover': { bgcolor: 'secondary.200', ...theme.applyStyles('dark', { bgcolor: 'divider' }) }
-                    }),
-                  ...(!drawerOpen &&
-                    isSelected && {
-                      bgcolor: 'primary.lighter',
-                      '&:hover': { bgcolor: 'primary.lighter' },
-                      ...theme.applyStyles('dark', { bgcolor: 'divider', '&:hover': { bgcolor: 'divider' } })
-                    })
-                })}
-              >
-                {itemIcon}
+                  sx={(theme) => ({
+                    minWidth: 38,
+                    color: 'secondary.main',
+                    ...theme.applyStyles('dark', { color: 'secondary.400' }),
+                    ...(isSelected && { color: iconSelectedColor }),
+                    ...(!drawerOpen &&
+                      level === 1 && {
+                        borderRadius: 1,
+                        width: 46,
+                        height: 46,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        '&:hover': { bgcolor: 'secondary.200', ...theme.applyStyles('dark', { bgcolor: 'divider' }) }
+                      }),
+                    ...(!drawerOpen &&
+                      isSelected && {
+                        bgcolor: 'primary.lighter',
+                        '&:hover': { bgcolor: 'primary.lighter' },
+                        ...theme.applyStyles('dark', { bgcolor: 'divider', '&:hover': { bgcolor: 'divider' } })
+                      })
+                  })}
+                >
+                  {itemIcon}
                 </ListItemIcon>
               </Tooltip>
             )}
@@ -168,7 +168,9 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
                 color={item.chip.color}
                 variant={item.chip.variant}
                 size={item.chip.size}
-                label={hasMessage(item.chip?.label as string) ? <FormattedMessage id={item.chip.label as string} /> : String(item.chip?.label)}
+                label={
+                  hasMessage(item.chip?.label as string) ? <FormattedMessage id={item.chip.label as string} /> : String(item.chip?.label)
+                }
                 avatar={item.chip.avatar && <Avatar>{item.chip.avatar}</Avatar>}
               />
             )}
@@ -240,23 +242,23 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
           onClick={() => itemHandler()}
         >
           {itemIcon && (
-            <Tooltip title={<FormattedMessage id={item.title} defaultMessage={item.title} /> } placement="right">
+            <Tooltip title={<FormattedMessage id={item.title} defaultMessage={item.title} />} placement="right">
               <ListItemIcon
-              sx={{
-                minWidth: 36,
-                ...(!drawerOpen && {
-                  borderRadius: 1,
-                  width: 36,
-                  height: 36,
-                  alignItems: 'center',
-                  justifyContent: 'flex-start',
-                  '&:hover': { bgcolor: 'transparent' }
-                }),
-                ...(!drawerOpen && isSelected && { bgcolor: 'transparent', '&:hover': { bgcolor: 'transparent' } })
-              }}
-            >
-              {itemIcon}
-            </ListItemIcon>
+                sx={{
+                  minWidth: 36,
+                  ...(!drawerOpen && {
+                    borderRadius: 1,
+                    width: 36,
+                    height: 36,
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    '&:hover': { bgcolor: 'transparent' }
+                  }),
+                  ...(!drawerOpen && isSelected && { bgcolor: 'transparent', '&:hover': { bgcolor: 'transparent' } })
+                }}
+              >
+                {itemIcon}
+              </ListItemIcon>
             </Tooltip>
           )}
 

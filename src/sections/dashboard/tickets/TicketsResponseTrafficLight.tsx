@@ -1,12 +1,24 @@
-
 import React from 'react';
-import { Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Box } from '@mui/material';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress,
+  Box
+} from '@mui/material';
 import { useSupportTicketsResponseStats } from 'api/ticket';
 
 const colorMap = {
   verde: '#4CAF50',
   amarillo: '#FFC107',
-  rojo: '#F44336',
+  rojo: '#F44336'
 } as const;
 
 type SemaforoColor = keyof typeof colorMap;
@@ -38,10 +50,10 @@ export default function TicketsResponseTrafficLight() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {(!stats || stats.length === 0) ? (
+                {!stats || stats.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} align="center" sx={{ textAlign: 'center' }}>
-                        Sin datos en el periodo
+                      Sin datos en el periodo
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -59,11 +71,10 @@ export default function TicketsResponseTrafficLight() {
                             width: 18,
                             height: 18,
                             borderRadius: '50%',
-                            background: colorMap[(row.semaforo as SemaforoColor)] ?? '#BDBDBD',
+                            background: colorMap[row.semaforo as SemaforoColor] ?? '#BDBDBD'
                           }}
                           title={row.semaforo}
                         />
-                          
                       </TableCell>
                     </TableRow>
                   ))

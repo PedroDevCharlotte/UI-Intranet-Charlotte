@@ -34,11 +34,11 @@ export default function AlertAssignTeam({ id, userName, open, handleClose }: Pro
 
   const assignTeamHandler = async () => {
     setIsAssigning(true);
-    
+
     try {
       // Aquí deberías hacer la llamada a la API real para asignar equipo
       // const result = await assignTeam(id);
-      
+
       // Simulamos la llamada a la API
       setTimeout(() => {
         openSnackbar({
@@ -50,11 +50,10 @@ export default function AlertAssignTeam({ id, userName, open, handleClose }: Pro
             color: 'success'
           }
         } as SnackbarProps);
-        
+
         setIsAssigning(false);
         handleClose();
       }, 2000);
-      
     } catch (error) {
       console.error('Error inesperado:', error);
       openSnackbar({
@@ -103,20 +102,14 @@ export default function AlertAssignTeam({ id, userName, open, handleClose }: Pro
           </Stack>
 
           <Stack direction="row" sx={{ gap: 2, width: 1 }}>
-            <Button 
-              fullWidth 
-              onClick={handleClose} 
-              color="secondary" 
-              variant="outlined"
-              disabled={isAssigning}
-            >
+            <Button fullWidth onClick={handleClose} color="secondary" variant="outlined" disabled={isAssigning}>
               Cancelar
             </Button>
-            <Button 
-              fullWidth 
-              color="secondary" 
-              variant="contained" 
-              onClick={assignTeamHandler} 
+            <Button
+              fullWidth
+              color="secondary"
+              variant="contained"
+              onClick={assignTeamHandler}
               autoFocus
               disabled={isAssigning}
               startIcon={isAssigning ? <CircularProgress size={16} color="inherit" /> : undefined}

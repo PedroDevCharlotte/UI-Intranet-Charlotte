@@ -1,6 +1,4 @@
 // assets
-import { handlerUserDialog } from 'api/user';
-import { NavActionType } from 'config';
 import { Add, I24Support, MessageProgramming, Profile2User } from 'iconsax-react';
 
 // type
@@ -16,13 +14,12 @@ const icons = {
 
 // ==============================|| MENU ITEMS - PAGES ||============================== //
 
-
 const users: NavItemType = {
   id: 'user-list',
   title: 'Usuarios',
   type: 'group',
   icon: icons.user,
-  url: '/apps/user/user-list',
+  url: '/apps/user/user-list'
 };
 
 export default users;

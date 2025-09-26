@@ -1,8 +1,5 @@
 // project-imports
 import { loadingMenu } from './dashboard';
-import pages from './pages';
-import samplePage from './sample-page';
-import support from './support';
 import roles from './roles';
 import banners from './banners';
 import nonConformities from './non-conformities';

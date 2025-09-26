@@ -34,12 +34,14 @@ export default function Register() {
           <Grid container spacing={1}>
             <Grid size={12}>
               <AuthSocButton>
-                <CardMedia component="img" src={imgFacebook} alt="Facebook" sx={{ my: 0, mx: 1.25, width: 'auto' }} /> Iniciar sesión con Facebook
+                <CardMedia component="img" src={imgFacebook} alt="Facebook" sx={{ my: 0, mx: 1.25, width: 'auto' }} /> Iniciar sesión con
+                Facebook
               </AuthSocButton>
             </Grid>
             <Grid size={12}>
               <AuthSocButton>
-                <CardMedia component="img" src={imgTwitter} alt="Twitter" sx={{ my: 0, mx: 1.25, width: 'auto' }} /> Iniciar sesión con Twitter
+                <CardMedia component="img" src={imgTwitter} alt="Twitter" sx={{ my: 0, mx: 1.25, width: 'auto' }} /> Iniciar sesión con
+                Twitter
               </AuthSocButton>
             </Grid>
             <Grid size={12}>

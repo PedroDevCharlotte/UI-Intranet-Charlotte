@@ -1,11 +1,10 @@
-import { useEffect, useState, ChangeEvent, SyntheticEvent } from 'react';
+import { useEffect, useState, SyntheticEvent } from 'react';
 
 // material-ui
 import Autocomplete from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import InputAdornment from '@mui/material/InputAdornment';
-import Chip from '@mui/material/Chip';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -13,15 +12,12 @@ import Divider from '@mui/material/Divider';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormHelperText from '@mui/material/FormHelperText';
-import FormLabel from '@mui/material/FormLabel';
 import Grid from '@mui/material/Grid2';
 import InputLabel from '@mui/material/InputLabel';
 import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
@@ -39,72 +35,25 @@ import { useFormik, Form, FormikProvider } from 'formik';
 
 // project-imports
 import AlertUserDelete from './AlertUserDelete';
-import Avatar from 'components/@extended/Avatar';
 import IconButton from 'components/@extended/IconButton';
 import CircularWithPath from 'components/@extended/progress/CircularWithPath';
 import { strengthColor, strengthIndicator } from 'utils/password-strength';
 
 import { insertUser, updateUser, useGetRoles, useGetDepartments, useGetSupportTypes, assignSupportTypes, useGetUser } from 'api/user';
 import { openSnackbar } from 'api/snackbar';
-import { Gender } from 'config';
-import { ImagePath, getImageUrl } from 'utils/getImageUrl';
 
 // assets
-import { Camera, CloseCircle, Eye, EyeSlash, Key, Trash } from 'iconsax-react';
+import { Eye, EyeSlash, Key, Trash } from 'iconsax-react';
 
 // types
 import { SnackbarProps } from 'types/snackbar';
 import { UserList } from 'types/user';
-import { passiveEventSupported } from '@tanstack/react-table';
 import { StringColorProps } from 'types/password';
 import { Checkbox } from '@mui/material';
 
-interface StatusProps {
-  value: number;
-  label: string;
-}
+// Removed unused ImagePath/getImageUrl and StatusProps to reduce lint warnings
 
-const skills = [
-  'Adobe XD',
-  'After Effect',
-  'Angular',
-  'Animación',
-  'ASP.Net',
-  'Bootstrap',
-  'C#',
-  'CC',
-  'Corel Draw',
-  'CSS',
-  'DIV',
-  'Dreamweaver',
-  'Figma',
-  'Gráficos',
-  'HTML',
-  'Illustrator',
-  'J2Ee',
-  'Java',
-  'Javascript',
-  'JQuery',
-  'Diseño de logotipo',
-  'Material UI',
-  'Motion',
-  'MVC',
-  'MySQL',
-  'NodeJS',
-  'npm',
-  'Photoshop',
-  'PHP',
-  'React',
-  'Redux',
-  'Reduxjs & tooltit',
-  'SASS',
-  'SCSS',
-  'SQL Server',
-  'SVG',
-  'UI/UX',
-  'Diseño de interfaz de usuario',
-  'Wordpress'
-];
+// skills list removed (unused) to satisfy linter
 
 // CONSTANT
 const getInitialValues = (user: UserList | null) => {
@@ -131,11 +80,7 @@ const getInitialValues = (user: UserList | null) => {
   return newUser;
 };
 
-const allStatus: StatusProps[] = [
-  { value: 3, label: 'Rechazado' },
-  { value: 1, label: 'Verificado' },
-  { value: 2, label: 'Pendiente' }
-];
+// allStatus removed (unused) to satisfy linter
 
 // ==============================|| USER ADD / EDIT - FORM ||============================== //
 
@@ -170,8 +115,8 @@ export default function FormUserAdd({ user, closeModal }: { user: UserList | nul
   const [loading, setLoading] = useState<boolean>(true);
   const [showPassword, setShowPassword] = useState(false);
   const [level, setLevel] = useState<StringColorProps>();
-// Obtener usuarios para manager y subordinates
-const { users = [], usersLoading } = useGetUser();
+  // Obtener usuarios para manager y subordinates
+  const { users = [], usersLoading } = useGetUser();
   // API calls for roles and departments
   const { roles, rolesLoading } = useGetRoles();
   const { departments, departmentsLoading } = useGetDepartments();
@@ -179,16 +124,9 @@ const { users = [], usersLoading } = useGetUser();
 
   // Debug logs
 
-  const [selectedImage, setSelectedImage] = useState<File | undefined>(undefined);
-  const [avatar, setAvatar] = useState<string | undefined>(
-    getImageUrl(`avatar-${user && user !== null && user?.avatar ? user.avatar : 1}.png`, ImagePath.USERS)
-  );
-  const isNewUser = !user;
-  useEffect(() => {
-    if (selectedImage) {
-      setAvatar(URL.createObjectURL(selectedImage));
-    }
-  }, [selectedImage]);
+  // Image/avatar state removed (unused) to reduce lint noise
+  // isNewUser was previously unused; derive when needed through `!user` in-place to avoid lint warnings
+  // previous image effect removed (selectedImage/avatar not used)
 
   useEffect(() => {
     // El loading se controlará por las APIs de roles y departamentos
@@ -268,7 +206,6 @@ const { users = [], usersLoading } = useGetUser();
           managerId: values.manager ? values.manager.id : null,
           subordinateIds: Array.isArray(values.subordinates) ? values.subordinates.map((s: any) => s.id) : []
         };
-
 
         if (user) {
           // Para actualización, incluir el ID

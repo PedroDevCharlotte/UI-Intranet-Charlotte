@@ -76,7 +76,11 @@ export default function AuthRegister() {
           email: Yup.string().email('Debe ser un correo válido').max(255).required('El correo es obligatorio'),
           password: Yup.string()
             .required('La contraseña es obligatoria')
-            .test('no-leading-trailing-whitespace', 'La contraseña no puede comenzar ni terminar con espacios', (value) => value === value.trim())
+            .test(
+              'no-leading-trailing-whitespace',
+              'La contraseña no puede comenzar ni terminar con espacios',
+              (value) => value === value.trim()
+            )
             .max(10, 'La contraseña debe tener menos de 10 caracteres')
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {

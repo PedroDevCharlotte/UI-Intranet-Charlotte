@@ -17,13 +17,11 @@ interface Props {
   role: any | null;
 }
 
-
-
 export default function PermissionsModal({ open, onClose, role }: Props) {
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const { permissions = [], permissionsLoading } = useGetPermissions();
-  
+
   useEffect(() => {
     if (role && Array.isArray(role.permissions)) {
       // role.permissions may be string[] or Permission[]
@@ -113,7 +111,9 @@ export default function PermissionsModal({ open, onClose, role }: Props) {
         {/* Header - fixed */}
         <Box sx={{ p: 2, borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <Typography variant="h6">Asignar permisos</Typography>
-          <Typography variant="body2" color="text.secondary">{role ? `Rol: ${role.name}` : 'Selecciona un rol'}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {role ? `Rol: ${role.name}` : 'Selecciona un rol'}
+          </Typography>
         </Box>
 
         {/* Scrollable content grouped by modulePath */}
@@ -123,12 +123,15 @@ export default function PermissionsModal({ open, onClose, role }: Props) {
           ) : (
             (() => {
               // group permissions by modulePath
-              const groups = permissions.reduce((acc: Record<string, any[]>, cur: any) => {
-                const key = cur.modulePath || 'Sin módulo';
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(cur);
-                return acc;
-              }, {} as Record<string, any[]>);
+              const groups = permissions.reduce(
+                (acc: Record<string, any[]>, cur: any) => {
+                  const key = cur.modulePath || 'Sin módulo';
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(cur);
+                  return acc;
+                },
+                {} as Record<string, any[]>
+              );
 
               return Object.entries(groups).map(([modulePath, perms]: [string, any[]]) => {
                 const allSelected = perms.every((pp: any) => selected.includes(pp.name));
@@ -137,20 +140,27 @@ export default function PermissionsModal({ open, onClose, role }: Props) {
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                       <Typography variant="subtitle1">{modulePath}</Typography>
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <Typography variant="caption" color="text.secondary">{perms.length} permisos</Typography>
-                        <MuiButton size="small" onClick={() => {
-                          // toggle select all for this group
-                          if (allSelected) {
-                            // remove all
-                            const next = new Set(selected);
-                            perms.forEach((pp: any) => next.delete(pp.name));
-                            setSelected(Array.from(next));
-                          } else {
-                            const next = new Set(selected);
-                            perms.forEach((pp: any) => next.add(pp.name));
-                            setSelected(Array.from(next));
-                          }
-                        }}>{allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}</MuiButton>
+                        <Typography variant="caption" color="text.secondary">
+                          {perms.length} permisos
+                        </Typography>
+                        <MuiButton
+                          size="small"
+                          onClick={() => {
+                            // toggle select all for this group
+                            if (allSelected) {
+                              // remove all
+                              const next = new Set(selected);
+                              perms.forEach((pp: any) => next.delete(pp.name));
+                              setSelected(Array.from(next));
+                            } else {
+                              const next = new Set(selected);
+                              perms.forEach((pp: any) => next.add(pp.name));
+                              setSelected(Array.from(next));
+                            }
+                          }}
+                        >
+                          {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                        </MuiButton>
                       </Stack>
                     </Stack>
 
@@ -173,8 +183,12 @@ export default function PermissionsModal({ open, onClose, role }: Props) {
         {/* Footer - fixed */}
         <Box sx={{ p: 2, borderTop: '1px solid rgba(0,0,0,0.08)' }}>
           <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
-            <MuiButton onClick={onClose} disabled={saving}>Cancelar</MuiButton>
-            <MuiButton variant="contained" onClick={handleSave} disabled={saving}>{saving ? 'Guardando...' : 'Guardar'}</MuiButton>
+            <MuiButton onClick={onClose} disabled={saving}>
+              Cancelar
+            </MuiButton>
+            <MuiButton variant="contained" onClick={handleSave} disabled={saving}>
+              {saving ? 'Guardando...' : 'Guardar'}
+            </MuiButton>
           </Stack>
         </Box>
       </MainCard>

@@ -1,9 +1,8 @@
-import { bo } from '@fullcalendar/core/internal-common';
 import axios, { AxiosRequestConfig } from 'axios';
 import { showApiLoader, hideApiLoader } from '../api/loader';
 
 // const axiosServices = axios.create({ baseURL: import.meta.env.VITE_APP_API_URL || 'http://localhost:3006/' });
-const axiosServices = axios.create({ baseURL:'http://localhost:3006/' });
+const axiosServices = axios.create({ baseURL: 'http://localhost:3006/' });
 
 axiosServices.defaults.withCredentials = true;
 axiosServices.defaults.headers.common['Content-Type'] = 'application/json';
@@ -14,7 +13,7 @@ axiosServices.interceptors.request.use(
   async (config) => {
     try {
       showApiLoader();
-    } catch (e) {
+    } catch {
       // ignore loader errors
     }
     const accessToken = localStorage.getItem('serviceToken');
@@ -26,7 +25,7 @@ axiosServices.interceptors.request.use(
   (error) => {
     try {
       hideApiLoader();
-    } catch (e) {
+    } catch {
       // ignore
     }
     return Promise.reject(error);
@@ -37,7 +36,7 @@ axiosServices.interceptors.response.use(
   (response) => {
     try {
       hideApiLoader();
-    } catch (e) {
+    } catch {
       // ignore
     }
     return response;
@@ -45,7 +44,7 @@ axiosServices.interceptors.response.use(
   (error) => {
     try {
       hideApiLoader();
-    } catch (e) {
+    } catch {
       // ignore
     }
     if (error?.response?.status === 401 && !window.location.href.includes('/login')) {
@@ -64,4 +63,3 @@ export const fetcher = async (args: string | [string, AxiosRequestConfig]) => {
 
   return res.data;
 };
-

@@ -11,9 +11,7 @@ import VirtualizedRowsTable from 'sections/tables/react-table/VirtualizedRowsTab
 export default function VirtualizedRows() {
   return (
     <Grid container spacing={GRID_COMMON_SPACING}>
-      <Grid size={12}>
-        {/* <VirtualizedInfiniteScrollTable /> */}
-      </Grid>
+      <Grid size={12}>{/* <VirtualizedInfiniteScrollTable /> */}</Grid>
       <Grid size={12}>
         <VirtualizedRowsTable />
       </Grid>

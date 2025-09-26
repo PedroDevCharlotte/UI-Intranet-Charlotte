@@ -15,14 +15,14 @@ export default function DemoApiIntegration() {
 
   const handleHistoryOpen = () => setHistoryOpen(true);
   const handleHistoryClose = () => setHistoryOpen(false);
-  
+
   const handleSessionsOpen = () => setSessionsOpen(true);
   const handleSessionsClose = () => setSessionsOpen(false);
 
   return (
     <Stack spacing={3} sx={{ p: 3 }}>
       <Typography variant="h4">Demo: Integración con API Charlotte Core</Typography>
-      
+
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           ✅ Historial de Cambios Conectado
@@ -74,41 +74,19 @@ export default function DemoApiIntegration() {
           📋 Características Implementadas
         </Typography>
         <Stack spacing={1}>
-          <Typography variant="body2">
-            ✅ Conexión real con API Charlotte Core
-          </Typography>
-          <Typography variant="body2">
-            ✅ Manejo de errores y estados de carga
-          </Typography>
-          <Typography variant="body2">
-            ✅ Transformación de datos de API a UI
-          </Typography>
-          <Typography variant="body2">
-            ✅ Detección automática de dispositivos desde User Agent
-          </Typography>
-          <Typography variant="body2">
-            ✅ Formateo de fechas en español
-          </Typography>
-          <Typography variant="body2">
-            ✅ Validación de código 2FA con 6 dígitos
-          </Typography>
+          <Typography variant="body2">✅ Conexión real con API Charlotte Core</Typography>
+          <Typography variant="body2">✅ Manejo de errores y estados de carga</Typography>
+          <Typography variant="body2">✅ Transformación de datos de API a UI</Typography>
+          <Typography variant="body2">✅ Detección automática de dispositivos desde User Agent</Typography>
+          <Typography variant="body2">✅ Formateo de fechas en español</Typography>
+          <Typography variant="body2">✅ Validación de código 2FA con 6 dígitos</Typography>
         </Stack>
       </Paper>
 
       {/* Modales */}
-      <UserHistoryModal 
-        open={historyOpen}
-        onClose={handleHistoryClose}
-        userId={123}
-        userName="Usuario Demo"
-      />
+      <UserHistoryModal open={historyOpen} onClose={handleHistoryClose} userId={123} userName="Usuario Demo" />
 
-      <UserSessionsModal 
-        open={sessionsOpen}
-        onClose={handleSessionsClose}
-        userId={123}
-        userName="Usuario Demo"
-      />
+      <UserSessionsModal open={sessionsOpen} onClose={handleSessionsClose} userId={123} userName="Usuario Demo" />
     </Stack>
   );
 }

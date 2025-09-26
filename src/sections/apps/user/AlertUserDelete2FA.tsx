@@ -51,13 +51,13 @@ export default function AlertDisable2FA({ userId, userName, open, handleClose }:
     }
 
     setIsDisabling(true);
-    
+
     try {
       const response = await axios.post('/auth/2fa/disable', {
         userId: userId,
         token: token.trim()
       });
-      
+
       openSnackbar({
         open: true,
         message: 'Autenticación de dos factores desactivada correctamente',
@@ -67,15 +67,14 @@ export default function AlertDisable2FA({ userId, userName, open, handleClose }:
           color: 'success'
         }
       } as SnackbarProps);
-      
+
       setToken('');
       handleClose();
-      
     } catch (error: any) {
       console.error('Error desactivando 2FA:', error);
-      
+
       let errorMessage = 'Error al desactivar la autenticación de dos factores';
-      
+
       if (error.response?.status === 400) {
         errorMessage = 'Token inválido o expirado';
       } else if (error.response?.status === 401) {
@@ -85,7 +84,7 @@ export default function AlertDisable2FA({ userId, userName, open, handleClose }:
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
-      
+
       openSnackbar({
         open: true,
         message: errorMessage,
@@ -122,7 +121,7 @@ export default function AlertDisable2FA({ userId, userName, open, handleClose }:
           <Avatar color="warning" sx={{ width: 72, height: 72, fontSize: '1.75rem' }}>
             <Shield variant="Bold" />
           </Avatar>
-          
+
           <Stack sx={{ gap: 2, width: '100%' }}>
             <Typography variant="h4" align="center">
               Desactivar Autenticación de Dos Factores
@@ -135,7 +134,7 @@ export default function AlertDisable2FA({ userId, userName, open, handleClose }:
               </Typography>
               ?
             </Typography>
-            
+
             <Stack sx={{ gap: 1, mt: 2 }}>
               <InputLabel htmlFor="2fa-token">Token de Verificación</InputLabel>
               <TextField
@@ -151,19 +150,13 @@ export default function AlertDisable2FA({ userId, userName, open, handleClose }:
           </Stack>
 
           <Stack direction="row" sx={{ gap: 2, width: 1 }}>
-            <Button 
-              fullWidth 
-              onClick={handleDialogClose} 
-              color="secondary" 
-              variant="outlined"
-              disabled={isDisabling}
-            >
+            <Button fullWidth onClick={handleDialogClose} color="secondary" variant="outlined" disabled={isDisabling}>
               Cancelar
             </Button>
-            <Button 
-              fullWidth 
-              color="warning" 
-              variant="contained" 
+            <Button
+              fullWidth
+              color="warning"
+              variant="contained"
               onClick={handleDisable2FA}
               disabled={isDisabling || !token.trim()}
               startIcon={isDisabling ? <CircularProgress size={16} color="inherit" /> : undefined}

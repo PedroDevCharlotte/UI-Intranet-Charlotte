@@ -11,11 +11,10 @@ function useQueryFilters() {
 import { FormattedMessage } from 'react-intl';
 
 // material-ui
-import { useTheme, PaletteColor } from '@mui/material/styles';
+// PaletteColor import removed (unused)
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid2';
-import LinearProgress, { LinearProgressProps } from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Tab from '@mui/material/Tab';
 import Table from '@mui/material/Table';
@@ -26,7 +25,6 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Tabs from '@mui/material/Tabs';
 import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
@@ -55,31 +53,24 @@ import TicketsWidget from 'sections/dashboard/tickets/TicketsWidget';
 import usePermissions from 'hooks/usePermissions';
 import useAuth from 'hooks/useAuth';
 
-import {
-  
-  HeaderSort,
-  RowSelection,
-  TablePagination
-} from 'components/third-party/react-table';
+import { HeaderSort, RowSelection, TablePagination } from 'components/third-party/react-table';
 import EmptyReactTable from 'pages/tables/react-table/empty';
 import AlertTicketDelete from 'sections/apps/ticket/AlertTicketDelete';
 import AddTicketModal from 'sections/apps/ticket/AddTicketModal';
 import RichTextModal from 'sections/apps/ticket/RichTextModal';
 
-import { handlerDelete, closeTicket, useGetTicket, useGetTicketMaster, updateTicketStatus } from 'api/ticket';
+import { handlerDelete, closeTicket, useGetTicket, useGetTicketMaster, invalidateTicketCaches } from 'api/ticket';
 import { useGetSupportUsers } from 'api/user';
 import { openSnackbar } from 'api/snackbar';
-import { APP_DEFAULT_PATH, GRID_COMMON_SPACING } from 'config';
-import { ImagePath, getImageUrl } from 'utils/getImageUrl';
+import { GRID_COMMON_SPACING } from 'config';
 
 // types
 import { TicketList } from 'types/ticket';
 import { SnackbarProps } from 'types/snackbar';
 
 // assets
-import { Add, Edit, Eye, InfoCircle, MessageTick, ProfileTick, Trash } from 'iconsax-react';
+import { Add, Eye, MessageTick } from 'iconsax-react';
 import { Button, IconButton } from '@mui/material';
-import { formatDate } from 'date-fns';
 
 const fuzzyFilter: FilterFn<TicketList> = (row, columnId, value, addMeta) => {
   // rank the item
@@ -115,16 +106,10 @@ const dateRangeFilter: FilterFn<TicketList> = (row, columnId, filterValue) => {
     }
 
     return true;
-  } catch (e) {
+  } catch {
     return true;
   }
 };
-
-function ExactValueFilter({ column: { filterValue, setFilter } }: any) {
-  return (
-    <input value={filterValue || ''} onChange={(e) => setFilter(e.target.value || undefined)} placeholder="Filter by exact value..." />
-  );
-}
 
 interface TableCellWithFilterProps extends TableCellProps {
   filterComponent?: any;
@@ -134,15 +119,7 @@ function TableCellWithFilterComponent({ filterComponent, ...props }: TableCellWi
   return <TableCell {...props} />;
 }
 
-interface TicketWidgets {
-  title: string;
-  count: string;
-  percentage: number;
-  isLoss: boolean;
-  ticket: string;
-  color: PaletteColor;
-  chartData: number[];
-}
+// TicketWidgets interface removed (unused)
 
 interface Props {
   data: TicketList[];
@@ -154,7 +131,7 @@ interface Props {
 
 function ReactTable({ data, columns, onOpenAddModal }: Props) {
   const groups = ['All', ...new Set(data.map((item: TicketList) => item.status))];
-  const sortBy = { id: 'id', desc: false };
+  // sortBy removed (unused)
 
   const countGroup = data.map((item: TicketList) => item.status);
   const counts = countGroup.reduce(
@@ -170,12 +147,12 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState('');
-  const [visibleSearch, setVisibleSearch] = useState('');
+  // visibleSearch removed (unused)
   const [dateFrom, setDateFrom] = useState<string | null>(null);
   const [dateTo, setDateTo] = useState<string | null>(null);
   const [assignedFilter, setAssignedFilter] = useState<number | string | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const { supportUsers, supportUsersLoading } = useGetSupportUsers();
+  const { supportUsers } = useGetSupportUsers();
 
   const table = useReactTable({
     data,
@@ -365,8 +342,8 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
               // reset to first page when filter changes
               try {
                 table.setPageIndex(0);
-              } catch (err) {
-                console.log('Table not ready', err);
+              } catch {
+                console.log('Table not ready');
                 // table may not be ready in some contexts
               }
             }}
@@ -388,10 +365,10 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
               setDateFrom(null);
               setDateTo(null);
               setGlobalFilter('');
-              setVisibleSearch('');
+              // setVisibleSearch('');
               try {
                 table.setPageIndex(0);
-              } catch (err) {
+              } catch {
                 // ignore
               }
             }}
@@ -481,13 +458,13 @@ function ReactTable({ data, columns, onOpenAddModal }: Props) {
 export default function List() {
   const { ticketLoading, ticket: list } = useGetTicket();
   const { ticketMaster } = useGetTicketMaster();
-  const [ticketId, setTicketId] = useState(0);
+  const [ticketId /*, setTicketId */] = useState(0);
   const [openAddModal, setOpenAddModal] = useState(false);
   const [openCloseModal, setOpenCloseModal] = useState(false);
   const [closingTicketId, setClosingTicketId] = useState<number>(0);
-  const [closeComment, setCloseComment] = useState('');
+  const [, setCloseComment] = useState('');
 
-  const navigation = useNavigate();
+  // navigation removed (unused)
   const handleClose = (status: boolean) => {
     if (status) {
     }
@@ -503,6 +480,7 @@ export default function List() {
 
   const { user: currentUser } = useAuth();
   const currentUserId = currentUser && currentUser.id ? Number(currentUser.id) : undefined;
+  const navigate = useNavigate();
 
   const columns = useMemo<ColumnDef<TicketList>[]>(
     () => [
@@ -513,12 +491,12 @@ export default function List() {
       },
       {
         header: 'Título',
-        accessorKey: 'title',
+        accessorKey: 'title'
       },
       {
         header: 'Estatus',
         accessorKey: 'status',
-        cell: info => {
+        cell: (info) => {
           const value = info.getValue();
           let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = 'default';
           let label = value;
@@ -561,24 +539,23 @@ export default function List() {
         },
         filterFn: exactValueFilter,
         meta: { className: 'cell-center' }
-            
       },
       {
         header: 'Tipo',
-        accessorKey: 'ticketTypeName',
+        accessorKey: 'ticketTypeName'
       },
       {
         header: 'Creador',
-        accessorKey: 'creatorName',
+        accessorKey: 'creatorName'
       },
       {
         header: 'Asignado',
-        accessorKey: 'assigneeName',
+        accessorKey: 'assigneeName'
       },
       {
         header: 'Creado',
         accessorKey: 'createdAt',
-        cell: info => {
+        cell: (info) => {
           const value = info.getValue();
           if (!value) return '';
           const date = new Date(value as string);
@@ -591,7 +568,6 @@ export default function List() {
         header: 'Ver detalle',
         id: 'verDetalle',
         cell: ({ row }) => {
-          const navigate = useNavigate();
           return (
             <Button
               variant="outlined"
@@ -609,7 +585,6 @@ export default function List() {
         header: 'Encuesta',
         id: 'encuesta',
         cell: ({ row }) => {
-          const navigate = useNavigate();
           // show only when ticket is CLOSED
           if (row.original.status !== 'CLOSED') return null;
           // show only to the creator of the ticket
@@ -632,22 +607,28 @@ export default function List() {
           );
         },
         meta: { className: 'cell-center' }
-      },
+      }
     ],
-    []
+    [navigate, currentUser, currentUserId]
   );
 
-  const theme = useTheme();
-
   const { hasPerm } = usePermissions();
- 
+
+  // Force refresh of ticket list when this component mounts
+  useEffect(() => {
+    try {
+      invalidateTicketCaches();
+    } catch (err) {
+      console.debug('invalidateTicketCaches error', err);
+    }
+  }, []);
 
   return (
     <>
       <Grid container spacing={GRID_COMMON_SPACING} sx={{ pb: 2 }}>
         {/* Mostrar TicketsWidget sólo si el usuario tiene el permiso tickets.viewDashboardTicket */}
         {(() => {
-            return hasPerm('tickets.viewDashboardTicket') ? <TicketsWidget /> : null;
+          return hasPerm('tickets.viewDashboardTicket') ? <TicketsWidget /> : null;
         })()}
         <Grid size={12}>
           {(() => {
@@ -702,15 +683,4 @@ export default function List() {
   );
 }
 
-function LinearWithLabel({ value, ...others }: LinearProgressProps) {
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <Box sx={{ width: '100%', mr: 1 }}>
-        <LinearProgress color="warning" variant="determinate" value={value} {...others} />
-      </Box>
-      <Box sx={{ minWidth: 35 }}>
-        <Typography variant="body2" color="white">{`${Math.round(value!)}%`}</Typography>
-      </Box>
-    </Box>
-  );
-}
+// LinearWithLabel removed (unused)

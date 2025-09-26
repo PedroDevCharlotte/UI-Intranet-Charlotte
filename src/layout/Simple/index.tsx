@@ -15,7 +15,7 @@ export default function SimpleLayout({ layout = SimpleLayoutType.SIMPLE }: { lay
     <Suspense fallback={<Loader />}>
       <Header />
       <Outlet />
-      <FooterBlock isFull={layout === SimpleLayoutType.LANDING} />
+      <FooterBlock />
     </Suspense>
   );
 }

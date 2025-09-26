@@ -76,7 +76,7 @@ export default function AlertDisable2FA({ id, userName, open, handleClose }: Pro
             color: 'success'
           }
         } as SnackbarProps);
-        
+
         setTimeout(() => {
           setIsDisabling(false);
           handleDialogClose();
@@ -98,10 +98,9 @@ export default function AlertDisable2FA({ id, userName, open, handleClose }: Pro
         }
         setIsDisabling(false);
       }
-      
     } catch (error: any) {
       console.error('Error inesperado:', error);
-      
+
       // Verificar si es un error de código inválido
       if (error.response?.status === 400 || error.message?.includes('código')) {
         setCodeError('Código de autenticación inválido');
@@ -153,9 +152,7 @@ export default function AlertDisable2FA({ id, userName, open, handleClose }: Pro
 
             {/* Campo de código de autenticación */}
             <Stack sx={{ gap: 1, mt: 2 }}>
-              <InputLabel htmlFor="auth-code">
-                Código de Autenticación (6 dígitos)
-              </InputLabel>
+              <InputLabel htmlFor="auth-code">Código de Autenticación (6 dígitos)</InputLabel>
               <TextField
                 id="auth-code"
                 value={authCode}
@@ -174,9 +171,7 @@ export default function AlertDisable2FA({ id, userName, open, handleClose }: Pro
                   }
                 }}
               />
-              {codeError && (
-                <FormHelperText error>{codeError}</FormHelperText>
-              )}
+              {codeError && <FormHelperText error>{codeError}</FormHelperText>}
               <Typography variant="caption" color="text.secondary" align="center">
                 Ingresa el código de 6 dígitos de tu aplicación autenticadora
               </Typography>

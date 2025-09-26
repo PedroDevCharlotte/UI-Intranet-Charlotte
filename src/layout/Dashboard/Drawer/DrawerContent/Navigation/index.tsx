@@ -1,4 +1,4 @@
-import { Fragment, useLayoutEffect, useState, useContext } from 'react';
+import { Fragment, useState, useContext } from 'react';
 
 // material-ui
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -9,24 +9,15 @@ import Box from '@mui/material/Box';
 // project-imports
 import NavGroup from './NavGroup';
 import NavItem from './NavItem';
-import { useGetMenu, useGetMenuMaster } from 'api/menu';
+import { useGetMenuMaster } from 'api/menu';
 import { MenuOrientation, HORIZONTAL_MAX_ITEM } from 'config';
 import useConfig from 'hooks/useConfig';
 import menuItem from 'menu-items';
-import { MenuFromAPI } from 'menu-items/dashboard';
+// dashboard menu from API is currently unused; implementation kept commented
 import JWTContext from 'contexts/JWTContext';
 
 // types
 import { NavItemType } from 'types/menu';
-
-function isFound(arr: any, str: string) {
-  return arr.items.some((element: any) => {
-    if (element.id === str) {
-      return true;
-    }
-    return false;
-  });
-}
 
 // ==============================|| DRAWER CONTENT - NAVIGATION ||============================== //
 
@@ -36,44 +27,31 @@ export default function Navigation() {
   const { menuOrientation } = useConfig();
   // const { menuLoading } = useGetMenu();
   const { menuMaster } = useGetMenuMaster();
-  const drawerOpen = menuMaster.isDashboardDrawerOpened;
+  const drawerOpen = menuMaster?.isDashboardDrawerOpened ?? false;
 
   const [selectedID, setSelectedID] = useState<string | undefined>('');
-  const [selectedItems, setSelectedItems] = useState<string | undefined>('');
   const [selectedLevel, setSelectedLevel] = useState<number>(0);
-  const [menuItems, setMenuItems] = useState<{ items: NavItemType[] }>({ items: [] });
+  // selectedItems is referenced when rendering NavGroup/NavCollapse; use a single selected id string
+  const [selectedItems, setSelectedItems] = useState<string | undefined>('');
 
   // Get allowed menu paths from user context (set by /account/me)
   const auth = useContext(JWTContext);
-  const allowedMenus: string[] = auth?.user?.menus ?? [];
+  // make a shallow copy to avoid mutating arrays that may come from context
+  const allowedMenus: string[] = [...(auth?.user?.menus ?? [])];
   allowedMenus.push('/dashboard/default'); // Always allow dashboard
 
-  // let dashboardMenu = MenuFromAPI();
-  // Add menu from API if it is loading
-  // useLayoutEffect(() => {
-  //   if (menuLoading && !isFound(menuItem, 'group-dashboard-loading')) {
-  //     menuItem.items.splice(0, 0, dashboardMenu);
-  //     setMenuItems({ items: [...menuItem.items] });
-  //   } else if (!menuLoading && dashboardMenu?.id !== undefined && !isFound(menuItem, 'group-dashboard')) {
-  //     menuItem.items.splice(0, 1, dashboardMenu);
-  //     setMenuItems({ items: [...menuItem.items] });
-  //   } else {
-  //     setMenuItems({ items: [...menuItem.items] });
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [menuLoading]);
-
+  // dashboard menu from API is currently unused; keep implementation commented
 
   const isHorizontal = menuOrientation === MenuOrientation.HORIZONTAL && !downLG;
 
   const lastItem = isHorizontal ? HORIZONTAL_MAX_ITEM : null;
   let lastItemIndex = menuItem.items.length - 1;
   let remItems: NavItemType[] = [];
-  let lastItemId: string;
+  let lastItemId: string | undefined;
   // console.log('menuItem.items', menuItem.items);
   // console.log('lastItem', lastItem);
   if (lastItem && lastItem < menuItem.items.length) {
-    lastItemId = menuItem.items[lastItem - 1].id!;
+    lastItemId = menuItem.items[lastItem - 1].id;
     lastItemIndex = lastItem - 1;
     remItems = menuItem.items.slice(lastItem - 1, menuItem.items.length).map((item) => ({
       title: item.title,
@@ -86,24 +64,25 @@ export default function Navigation() {
   }
 
   // Filter menuItem.items by allowedMenus if provided (match by item.url or children urls)
-  const filteredItems = (allowedMenus && allowedMenus.length > 0)
-    ? menuItem.items.filter((it) => {
-      // If group has a url, allow only if its url is in allowedMenus
-      if (it.url) return allowedMenus.includes(it.url);
-      // If group has children, allow group if any child url is allowed
-      if (Array.isArray(it.children) && it.children.length > 0) {
-        return it.children.some((child: any) => {
-          if (child.url && allowedMenus.includes(child.url)) return true;
-          if (Array.isArray(child.children)) {
-            return child.children.some((sub: any) => sub.url && allowedMenus.includes(sub.url));
+  const filteredItems =
+    allowedMenus && allowedMenus.length > 0
+      ? menuItem.items.filter((it) => {
+          // If group has a url, allow only if its url is in allowedMenus
+          if (it.url) return allowedMenus.includes(it.url);
+          // If group has children, allow group if any child url is allowed
+          if (Array.isArray(it.children) && it.children.length > 0) {
+            return it.children.some((child: any) => {
+              if (child.url && allowedMenus.includes(child.url)) return true;
+              if (Array.isArray(child.children)) {
+                return child.children.some((sub: any) => sub.url && allowedMenus.includes(sub.url));
+              }
+              return false;
+            });
           }
-          return false;
-        });
-      }
-      // Default: keep item (e.g., non-url groups)
-      return true;
-    })
-    : menuItem.items;
+          // Default: keep item (e.g., non-url groups)
+          return true;
+        })
+      : menuItem.items;
 
   const navGroups = filteredItems.slice(0, lastItemIndex + 1).map((item) => {
     // console.log('item', item);
@@ -128,7 +107,7 @@ export default function Navigation() {
             selectedItems={selectedItems}
             lastItem={lastItem!}
             remItems={remItems}
-            lastItemId={lastItemId}
+            lastItemId={lastItemId || ''}
             item={item}
           />
         );
