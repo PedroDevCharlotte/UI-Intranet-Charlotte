@@ -25,12 +25,12 @@ export default function DashboardDefault() {
         <BannersSlider />
       </Grid>
       {hasPerm('tickets.viewDashboardTicket') && (
-        <Grid size={{ xs: 12 }}>
+        // <Grid size={{ xs: 12 }}>
           <TicketsWidget />
-        </Grid>
+        // </Grid>
       )}
       {hasPerm('tickets.seeTrafficLight') && (
-        <Grid size={{ xs: 4 }}>
+        <Grid size={{ xs: 5 }}>
           <TicketsResponseTrafficLight />
         </Grid>
       )}
@@ -40,7 +40,7 @@ export default function DashboardDefault() {
         </Grid>
       )}
       {hasPerm('tickets.viewDashboardTicket') && (
-        <Grid size={{ xs: 4 }}>
+        <Grid size={{ xs: 3 }}>
           <RequestFeedbackTable />
         </Grid>
       )}

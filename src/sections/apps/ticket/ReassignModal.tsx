@@ -12,6 +12,7 @@ import * as Yup from 'yup';
 import { reassignTechnician } from 'api/ticket';
 import { openSnackbar } from 'api/snackbar';
 import { SnackbarProps } from 'types/snackbar';
+import { MenuItem } from '@mui/material';
 
 interface UserOption {
   id: number;
@@ -104,13 +105,13 @@ export default function ReassignModal({ open, onClose, onSubmit, userOptions, in
                 error={!!formik.errors.user && formik.touched.user}
                 helperText={formik.touched.user && formik.errors.user}
               >
-                <option value="" disabled>
+                <MenuItem value="" disabled>
                   Selecciona un usuario
-                </option>
+                </MenuItem>
                 {userOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
+                  <MenuItem key={option.id} value={option.id}>
                     {option.label}
-                  </option>
+                  </MenuItem>
                 ))}
               </TextField>
             </Stack>

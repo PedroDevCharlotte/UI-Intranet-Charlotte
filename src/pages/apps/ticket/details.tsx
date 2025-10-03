@@ -332,7 +332,7 @@ export default function TicketDetails() {
             setOpenNCModal(false);
 
             // Redirigir al formulario por pasos de no conformidades
-            navigate(`/apps/non-conformities/new?nonConformityId=${nonConformity.id}`);
+            navigate(`/apps/non-conformities/${nonConformity.id}?ticketId=${nonConformity.ticketId || ''}`);
           } catch (error) {
             console.error('Error creating non-conformity from ticket:', error);
             openSnackbar({

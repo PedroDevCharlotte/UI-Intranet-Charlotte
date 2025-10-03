@@ -102,3 +102,29 @@ export const getNonConformityById = async (id: string) => {
     throw error;
   }
 };
+
+export const getNextConsecutiveNumber = async () => {
+  try {
+    const currentYear = new Date().getFullYear();
+    const response = await axiosServices.get(`/non-conformities/next-number/${currentYear}`);
+    return response.data.nextNumber;
+  } catch (error) {
+    console.error('Error fetching next consecutive number:', error);
+    // Fallback: generar número basado en el año actual
+    const currentYear = new Date().getFullYear();
+    const yearSuffix = currentYear.toString().slice(-2);
+    return `NC-${yearSuffix}-01`;
+  }
+};
+
+export const generateNonConformityPdf = async (id: number): Promise<Blob> => {
+  try {
+    const response = await axiosServices.get(`/non-conformities/${id}/pdf`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw error;
+  }
+};

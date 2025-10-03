@@ -52,7 +52,9 @@ export function useGetUser() {
     revalidateOnReconnect: false
   });
 
-  // console.log('useGetUser', data);
+  console.log('useGetUser - raw data:', data);
+  console.log('useGetUser - error:', error);
+  console.log('useGetUser - isLoading:', isLoading);
 
   const memoizedValue = useMemo(
     () => ({
@@ -64,7 +66,7 @@ export function useGetUser() {
     }),
     [data, error, isLoading, isValidating]
   );
-  // console.log('memoizedValue', memoizedValue);
+  console.log('useGetUser - memoizedValue:', memoizedValue);
   return memoizedValue;
 }
 

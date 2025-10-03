@@ -161,7 +161,7 @@ const MainRoutes = {
                   element: <AppNonConformities />
                 },
                 {
-                  path: 'new',
+                  path: ':id',
                   element: <AppNonConformityNew />
                 }
               ]

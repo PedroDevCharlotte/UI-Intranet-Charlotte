@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 // material-ui
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -26,6 +26,7 @@ import AuthGuard from 'utils/route-guard/AuthGuard';
 
 export default function MainLayout() {
   const { menuMasterLoading } = useGetMenuMaster();
+  const location = useLocation();
   const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
 
@@ -41,6 +42,8 @@ export default function MainLayout() {
   }, [downXL, miniDrawer]);
 
   if (menuMasterLoading) return <Loader />;
+
+
 
   return (
     <AuthGuard>

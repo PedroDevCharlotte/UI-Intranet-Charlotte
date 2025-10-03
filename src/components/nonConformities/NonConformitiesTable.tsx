@@ -15,16 +15,18 @@ import {
   Typography,
   Chip
 } from '@mui/material';
-import { Edit, Trash, SearchNormal1 } from 'iconsax-react';
+import { Edit, Trash, SearchNormal1, DocumentDownload, DocumentText } from 'iconsax-react';
 
 type Props = {
   items: any[];
   onEdit?: (item: any) => void;
   onDelete?: (item: any) => void;
+  onDownloadExcel?: (item: any) => void;
+  onDownloadPDF?: (item: any) => void;
   canRead?: boolean;
 };
 
-export default function NonConformitiesTable({ items, onEdit, onDelete, canRead = true }: Props) {
+export default function NonConformitiesTable({ items, onEdit, onDelete, onDownloadExcel, onDownloadPDF, canRead = true }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -146,7 +148,7 @@ export default function NonConformitiesTable({ items, onEdit, onDelete, canRead 
               <TableCell sx={{ fontWeight: 'bold' }}>Área/Proceso</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Estado</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Fecha Creación</TableCell>
-              {(onEdit || onDelete) && (
+              {(onEdit || onDelete || onDownloadExcel || onDownloadPDF) && (
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Acciones</TableCell>
               )}
             </TableRow>
@@ -154,7 +156,7 @@ export default function NonConformitiesTable({ items, onEdit, onDelete, canRead 
           <TableBody>
             {paginatedItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
+                <TableCell colSpan={(onEdit || onDelete || onDownloadExcel || onDownloadPDF) ? 7 : 6} sx={{ textAlign: 'center', py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
                     {searchTerm ? 'No se encontraron resultados para la búsqueda' : 'No hay no conformidades registradas'}
                   </Typography>
@@ -195,29 +197,50 @@ export default function NonConformitiesTable({ items, onEdit, onDelete, canRead 
                       {formatDate(item.createdAt)}
                     </Typography>
                   </TableCell>
-                  {(onEdit || onDelete) && (
+                  {(onEdit || onDelete || onDownloadExcel || onDownloadPDF) && (
                     <TableCell sx={{ textAlign: 'center' }}>
-                      {onEdit && (
-                        <IconButton
-                          size="small"
-                          onClick={() => onEdit(item)}
-                          color="primary"
-                          sx={{ mr: 1 }}
-                          title="Editar no conformidad"
-                        >
-                          <Edit size={16} />
-                        </IconButton>
-                      )}
-                      {onDelete && (
-                        <IconButton
-                          size="small"
-                          onClick={() => onDelete(item)}
-                          color="error"
-                          title="Cancelar no conformidad"
-                        >
-                          <Trash size={16} />
-                        </IconButton>
-                      )}
+                      <Stack direction="row" spacing={0.5} justifyContent="center">
+                        {onEdit && (
+                          <IconButton
+                            size="small"
+                            onClick={() => onEdit(item)}
+                            color="primary"
+                            title="Editar no conformidad"
+                          >
+                            <Edit size={16} />
+                          </IconButton>
+                        )}
+                        {onDownloadExcel && (
+                          <IconButton
+                            size="small"
+                            onClick={() => onDownloadExcel(item)}
+                            sx={{ color: 'success.main' }}
+                            title="Descargar Excel"
+                          >
+                            <DocumentDownload size={16} />
+                          </IconButton>
+                        )}
+                        {onDownloadPDF && (
+                          <IconButton
+                            size="small"
+                            onClick={() => onDownloadPDF(item)}
+                            sx={{ color: 'error.main' }}
+                            title="Descargar PDF"
+                          >
+                            <DocumentText size={16} />
+                          </IconButton>
+                        )}
+                        {onDelete && (
+                          <IconButton
+                            size="small"
+                            onClick={() => onDelete(item)}
+                            color="error"
+                            title="Cancelar no conformidad"
+                          >
+                            <Trash size={16} />
+                          </IconButton>
+                        )}
+                      </Stack>
                     </TableCell>
                   )}
                 </TableRow>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { TextField, Grid, FormControl, InputLabel, Select, MenuItem, CircularProgress, SelectChangeEvent } from '@mui/material';
+import { TextField, FormControl, InputLabel, Select, MenuItem, CircularProgress, SelectChangeEvent } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 
 interface Option {
   id: number;
@@ -34,28 +35,28 @@ export default function NonConformityTabGeneral({ formik, typeOptions, motiveOpt
   };
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12}>
-  <TextField fullWidth label="Número" name="number" value={values.number} onChange={handleChange} />
+      <Grid size={12}>
+        <TextField fullWidth label="Número" name="number" value={values.number} onChange={handleChange} />
       </Grid>
-      <Grid item xs={12}>
-  <TextField fullWidth label="Descripción del Hallazgo" name="description" value={values.description} onChange={handleChange} multiline rows={3} />
+      <Grid size={12}>
+        <TextField fullWidth label="Descripción del Hallazgo" name="description" value={values.description} onChange={handleChange} multiline rows={3} />
       </Grid>
-      <Grid item xs={6}>
-  <TextField fullWidth label="Clasificación" name="classification" value={values.classification} onChange={handleChange} />
+      <Grid size={6}>
+        <TextField fullWidth label="Clasificación" name="classification" value={values.classification} onChange={handleChange} />
       </Grid>
-      <Grid item xs={6}>
-  <TextField fullWidth label="Categoría" name="category" value={values.category} onChange={handleChange} />
+      <Grid size={6}>
+        <TextField fullWidth label="Categoría" name="category" value={values.category} onChange={handleChange} />
       </Grid>
-      <Grid item xs={12}>
-  <TextField fullWidth label="Área y/o Proceso" name="areaOrProcess" value={values.areaOrProcess} onChange={handleChange} />
+      <Grid size={12}>
+        <TextField fullWidth label="Área y/o Proceso" name="areaOrProcess" value={values.areaOrProcess} onChange={handleChange} />
       </Grid>
-      <Grid item xs={6}>
-  <TextField fullWidth type="date" label="Fecha de Elaboración" name="validFrom" value={values.validFrom} onChange={handleChange} InputLabelProps={{ shrink: true }} />
+      <Grid size={6}>
+        <TextField fullWidth type="date" label="Fecha de Elaboración" name="validFrom" value={values.validFrom} onChange={handleChange} InputLabelProps={{ shrink: true }} />
       </Grid>
-      <Grid item xs={6}>
-  <TextField fullWidth type="date" label="Fecha de Detección" name="detectedAt" value={values.detectedAt} onChange={handleChange} InputLabelProps={{ shrink: true }} />
+      <Grid size={6}>
+        <TextField fullWidth type="date" label="Fecha de Detección" name="detectedAt" value={values.detectedAt} onChange={handleChange} InputLabelProps={{ shrink: true }} />
       </Grid>
-      <Grid item xs={6}>
+      <Grid size={6}>
         <FormControl fullWidth>
           <InputLabel shrink>Tipo</InputLabel>
           {loadingOptions ? <CircularProgress size={20} /> : (
@@ -71,11 +72,11 @@ export default function NonConformityTabGeneral({ formik, typeOptions, motiveOpt
         if (!selected) return false;
         return (selected.displayText ?? selected.value) === "Otro:";
       })()) && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField fullWidth label="Especifique otro tipo" name="otherType" value={values.otherType} onChange={handleChange} />
         </Grid>
       )}
-      <Grid item xs={6}>
+      <Grid size={6}>
         <FormControl fullWidth>
           <InputLabel shrink>Motivo</InputLabel>
           {loadingOptions ? <CircularProgress size={20} /> : (
@@ -91,7 +92,7 @@ export default function NonConformityTabGeneral({ formik, typeOptions, motiveOpt
         if (!selected) return false;
         return ["Incidente, indique tipo", "Otro:"].includes(selected.displayText ?? selected.value);
       })()) && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField
             fullWidth
             label={(() => {

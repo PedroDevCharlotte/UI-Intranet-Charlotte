@@ -26,10 +26,12 @@ export default function RequestFeedbackTable() {
   const [selectedTicket, setSelectedTicket] = useState<{ id: number; ticketNumber?: string | number } | null>(null);
   const [loading, setLoading] = useState(false);
   console.log('tickets for feedback request', tickets);
+  // Ordenar por fecha de cierre/actualización/creación descendente
   const rows = useMemo(
     () =>
       (tickets || [])
         .filter((t) => t.status === 'CLOSED')
+        .sort((a, b) => new Date(b.updatedAt || b.closedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.closedAt || a.createdAt).getTime())
         .map((t) => ({
           id: t.id,
           ticketNumber: t.ticketNumber,
@@ -37,6 +39,10 @@ export default function RequestFeedbackTable() {
         })),
     [tickets]
   );
+
+  // Solo los 2 más recientes
+  const rowsPreview = rows.slice(0, 2);
+  const [openModal, setOpenModal] = useState(false);
 
   const handleRequest = async (id: number) => {
     // open confirmation dialog
@@ -88,7 +94,7 @@ export default function RequestFeedbackTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((r) => (
+          {rowsPreview.map((r) => (
             <TableRow key={r.id}>
               <TableCell>#{r.ticketNumber}</TableCell>
               <TableCell>{r.creatorName}</TableCell>
@@ -103,6 +109,53 @@ export default function RequestFeedbackTable() {
           ))}
         </TableBody>
       </Table>
+      {rows.length > 2 && (
+        <Button sx={{ mt: 2 }} variant="outlined" onClick={() => setOpenModal(true)}>
+          Ver más
+        </Button>
+      )}
+
+      {/* Modal con la lista completa */}
+      <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Todos los tickets cerrados</DialogTitle>
+        <DialogContent>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell component="th" scope="col" sx={{ fontWeight: 700 }}>
+                  Folio
+                </TableCell>
+                <TableCell component="th" scope="col" sx={{ fontWeight: 700 }}>
+                  Creador
+                </TableCell>
+                <TableCell component="th" scope="col" sx={{ fontWeight: 700 }}>
+                  Acción
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell>#{r.ticketNumber}</TableCell>
+                  <TableCell>{r.creatorName}</TableCell>
+                  <TableCell>
+                    <Tooltip title="Solicitar que contesten la encuesta">
+                      <IconButton aria-label={`request-feedback-${r.id}`} onClick={() => handleRequest(r.id)}>
+                        <CardSend />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenModal(false)} color="primary">
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={confirmOpen} onClose={handleCancel} aria-labelledby="confirm-request-dialog">
         <DialogTitle id="confirm-request-dialog">Confirmar solicitud</DialogTitle>

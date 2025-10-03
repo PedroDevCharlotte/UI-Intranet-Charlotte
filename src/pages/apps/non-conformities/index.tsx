@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NonConformitiesTable from '../../../components/nonConformities/NonConformitiesTable';
-import { useGetNonConformities, cancelNonConformity } from '../../../api/nonConformities';
+import { useGetNonConformities, cancelNonConformity, generateNonConformityPdf } from '../../../api/nonConformities';
+import PdfModal from '../../../components/PdfModal';
 import {
   CircularProgress,
   Container,
@@ -39,6 +40,14 @@ export default function NonConformitiesPage() {
 
   // Estado para el stepper
   const [activeStep, setActiveStep] = useState(0);
+
+  // Estado para el modal de PDF
+  const [pdfModalData, setPdfModalData] = useState({
+    open: false,
+    url: null as string | null,
+    title: '',
+    fileName: 'documento.pdf'
+  });
 
   // Actualizar la lista de no conformidades al cargar la página
   useEffect(() => {
@@ -139,7 +148,7 @@ export default function NonConformitiesPage() {
       return;
     }
     // Navegar a la ruta homologada para edición
-    navigate(`/apps/non-conformities/new?nonConformityId=${item.id}`);
+    navigate(`/apps/non-conformities/${item.id}`);
   };
 
   const handleCreate = () => {
@@ -153,10 +162,10 @@ export default function NonConformitiesPage() {
       } as SnackbarProps);
       return;
     }
-    navigate('/apps/non-conformities/create');
+    navigate('/apps/non-conformities/new');
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = (item: any) => {
     if (!hasPerm('non-conformities.dowloadxls')) {
       openSnackbar({
         open: true,
@@ -167,17 +176,17 @@ export default function NonConformitiesPage() {
       } as SnackbarProps);
       return;
     }
-    // TODO: Implementar descarga de Excel
+    // TODO: Implementar descarga de Excel para la no conformidad específica
     openSnackbar({
       open: true,
-      message: 'Descarga de Excel próximamente disponible',
+      message: `Descarga de Excel para ${item.number} próximamente disponible`,
       anchorOrigin: { vertical: 'top', horizontal: 'right' },
       variant: 'alert',
       alert: { color: 'info' }
     } as SnackbarProps);
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async (item: any) => {
     if (!hasPerm('non-conformities.dowloadpdf')) {
       openSnackbar({
         open: true,
@@ -188,14 +197,36 @@ export default function NonConformitiesPage() {
       } as SnackbarProps);
       return;
     }
-    // TODO: Implementar descarga de PDF
-    openSnackbar({
-      open: true,
-      message: 'Descarga de PDF próximamente disponible',
-      anchorOrigin: { vertical: 'top', horizontal: 'right' },
-      variant: 'alert',
-      alert: { color: 'info' }
-    } as SnackbarProps);
+
+    try {
+      openSnackbar({
+        open: true,
+        message: 'Generando PDF...',
+        anchorOrigin: { vertical: 'top', horizontal: 'right' },
+        variant: 'alert',
+        alert: { color: 'info' }
+      } as SnackbarProps);
+
+      const pdfBlob = await generateNonConformityPdf(item.id);
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      
+      setPdfModalData({
+        open: true,
+        url: pdfUrl,
+        title: `No Conformidad ${item.number}`,
+        fileName: `no-conformidad-${item.number}.pdf`
+      });
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      openSnackbar({
+        open: true,
+        message: 'Error al generar el PDF',
+        anchorOrigin: { vertical: 'top', horizontal: 'right' },
+        variant: 'alert',
+        alert: { color: 'error' }
+      } as SnackbarProps);
+    }
   };
 
   const handleConfirmCancel = async () => {
@@ -244,6 +275,18 @@ export default function NonConformitiesPage() {
     setCancelReason('');
   };
 
+  const handleClosePdfModal = () => {
+    if (pdfModalData.url) {
+      URL.revokeObjectURL(pdfModalData.url);
+    }
+    setPdfModalData({
+      open: false,
+      url: null,
+      title: '',
+      fileName: 'documento.pdf'
+    });
+  };
+
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
@@ -278,28 +321,6 @@ export default function NonConformitiesPage() {
                 Nueva No Conformidad
               </Button>
             )}
-            
-            {hasPerm('non-conformities.dowloadxls') && (
-              <Button
-                variant="outlined"
-                startIcon={<DocumentDownload />}
-                onClick={handleDownloadExcel}
-                color="success"
-              >
-                Excel
-              </Button>
-            )}
-            
-            {hasPerm('non-conformities.dowloadpdf') && (
-              <Button
-                variant="outlined"
-                startIcon={<DocumentText />}
-                onClick={handleDownloadPDF}
-                color="error"
-              >
-                PDF
-              </Button>
-            )}
           </Stack>
         </Stack>
       </Box>
@@ -308,7 +329,9 @@ export default function NonConformitiesPage() {
       <NonConformitiesTable 
         items={data || []} 
         onEdit={hasPerm('non-conformities.update') ? handleEdit : undefined} 
-        onDelete={hasPerm('non-conformities.cancel') ? (item) => handleCancel(item) : undefined} 
+        onDelete={hasPerm('non-conformities.cancel') ? (item) => handleCancel(item) : undefined}
+        onDownloadExcel={hasPerm('non-conformities.dowloadxls') ? handleDownloadExcel : undefined}
+        onDownloadPDF={hasPerm('non-conformities.dowloadpdf') ? handleDownloadPDF : undefined}
         canRead={hasPerm('non-conformities.read')}
       />
 
@@ -369,68 +392,15 @@ export default function NonConformitiesPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Formulario de No Conformidad */}
-      <Box sx={{ mt: 4, p: 3, borderRadius: 2, boxShadow: 1, backgroundColor: 'white' }}>
-        <Typography variant="h5" component="h2" gutterBottom>
-          Nueva No Conformidad
-        </Typography>
-        
-        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-        
-        <Box>
-          {activeStep === 0 && (
-            <Box>
-              {/* Información General */}
-              <TextField label="Número" fullWidth />
-              <TextField label="Área o Proceso" fullWidth />
-            </Box>
-          )}
-          {activeStep === 1 && (
-            <Box>
-              {/* Motivos y Clasificación */}
-              <TextField label="Motivo" fullWidth />
-              <TextField label="Clasificación" fullWidth />
-            </Box>
-          )}
-          {activeStep === 2 && (
-            <Box>
-              {/* Planes de Acción */}
-              <TextField label="Descripción del Plan" fullWidth />
-            </Box>
-          )}
-          {activeStep === 3 && (
-            <Box>
-              {/* Seguimientos */}
-              <TextField label="Justificación" fullWidth />
-            </Box>
-          )}
-        </Box>
-        
-        <Box sx={{ mt: 2 }}>
-          <Button 
-            disabled={activeStep === 0} 
-            onClick={handleBack}
-            variant="outlined"
-            color="inherit"
-            sx={{ mr: 1 }}
-          >
-            Atrás
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleNext}
-          >
-            {activeStep === steps.length - 1 ? 'Finalizar' : 'Siguiente'}
-          </Button>
-        </Box>
-      </Box>
+      {/* Modal para mostrar el PDF */}
+      <PdfModal
+        open={pdfModalData.open}
+        onClose={handleClosePdfModal}
+        pdfUrl={pdfModalData.url}
+        title={pdfModalData.title}
+        fileName={pdfModalData.fileName}
+      />
+      
     </Container>
   );
 }
