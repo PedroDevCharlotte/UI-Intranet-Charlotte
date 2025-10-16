@@ -39,7 +39,7 @@ export default function DashboardDefault() {
           <ClosedTicketsSurvey />
         </Grid>
       )}
-      {hasPerm('tickets.viewDashboardTicket') && (
+      {hasPerm('tickets.answerSurvey') && (
         <Grid size={{ xs: 3 }}>
           <RequestFeedbackTable />
         </Grid>

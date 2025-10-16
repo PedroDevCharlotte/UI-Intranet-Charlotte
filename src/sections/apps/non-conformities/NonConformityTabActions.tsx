@@ -26,6 +26,7 @@ interface ActionPlan {
   description: string;
   commitmentDate: string;
   responsibles: UserOption[];
+  responsibleOptionIds: number[];
   type: 'principal' | 'secundaria';
 }
 
@@ -44,12 +45,12 @@ export default function NonConformityTabActions({ formik, userOptions }: Props) 
   const { values, handleChange, setFieldValue } = formik;
 
   // Log para depurar userOptions
-  console.log('NonConformityTabActions - userOptions received:', userOptions);
+  // console.log('NonConformityTabActions - userOptions received:', userOptions);
 
   // Filtrar usuarios excluyendo el usuario con id 1
   const filteredUserOptions = userOptions.filter(user => user.id !== 1);
   
-  console.log('NonConformityTabActions - filteredUserOptions:', filteredUserOptions);
+  // console.log('NonConformityTabActions - filteredUserOptions:', filteredUserOptions);
 
   // Inicializar actionPlans si no existe
   const actionPlans: ActionPlan[] = values.actionPlans || [];
@@ -64,6 +65,7 @@ export default function NonConformityTabActions({ formik, userOptions }: Props) 
       description: '',
       commitmentDate: '',
       responsibles: [],
+      responsibleOptionIds: [],
       type: 'secundaria'
     };
     
@@ -93,6 +95,7 @@ export default function NonConformityTabActions({ formik, userOptions }: Props) 
         description: '',
         commitmentDate: '',
         responsibles: [],
+        responsibleOptionIds: [],
         type: 'principal'
       };
       setFieldValue('actionPlans', [initialPlan]);
@@ -137,7 +140,8 @@ export default function NonConformityTabActions({ formik, userOptions }: Props) 
         )}
 
         {/* Lista de planes de acción */}
-        {actionPlans.map((plan, index) => (
+        {actionPlans.map((plan, index) => {
+          return(
           <Paper key={plan.id} elevation={1} sx={{ p: 3, mb: 2, border: '1px solid', borderColor: 'divider' }}>
             <Grid container spacing={2}>
               
@@ -223,7 +227,7 @@ export default function NonConformityTabActions({ formik, userOptions }: Props) 
 
             </Grid>
           </Paper>
-        ))}
+        )})}
 
         {actionPlans.length === 0 && (
           <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: 'grey.50' }}>

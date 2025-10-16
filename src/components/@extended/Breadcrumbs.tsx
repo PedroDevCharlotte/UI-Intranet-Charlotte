@@ -134,6 +134,9 @@ export default function Breadcrumbs({
   let CollapseIcon;
   let ItemIcon;
 
+  // Evitar mostrar Inicio/Inicio cuando estamos en la raíz
+  const isHome = location.pathname === '/' || location.pathname === '' || location.pathname === '/dashboard' || location.pathname === '/dashboard/default';
+
   // collapse item
   if (main && main.type === 'collapse' && !main.breadcrumbs) {
     CollapseIcon = main.icon ? main.icon : Buildings2;
@@ -196,7 +199,10 @@ export default function Breadcrumbs({
   }
 
   // items
-  if ((item && item.type === 'item') || (item?.type === 'group' && item?.url) || custom) {
+  // Si hay links personalizados pero solo es Inicio, evitar duplicado
+  const onlyHomeLink = custom && links && links.length === 1 && (links[0].to === '/' || links[0].to === '' || links[0].title === 'home');
+
+  if (((item && item.type === 'item') || (item?.type === 'group' && item?.url) || (custom && !onlyHomeLink)) && !isHome) {
     itemTitle = item?.title;
 
     ItemIcon = item?.icon ? item.icon : Buildings2;
@@ -287,5 +293,36 @@ export default function Breadcrumbs({
     }
   }
 
+  // Si estamos en la raíz, solo mostrar un breadcrumb simple con Inicio
+  if (isHome) {
+    breadcrumbContent = (
+      <MainCard
+        border={card}
+        sx={card === false ? { mb: 3, bgcolor: 'transparent', borderRadius: 0, overflow: 'visible', ...sx } : { mb: 3, ...sx }}
+        {...others}
+        content={card}
+        boxShadow={false}
+      >
+        <Grid container spacing={0.5} alignItems="center">
+          <Grid>
+            <MuiBreadcrumbs aria-label="breadcrumb">
+              <Typography
+                component={Link}
+                to="/"
+                color="text.primary"
+                variant="body1"
+                sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+              >
+                {icons && <Home3 style={iconSX} />}
+                {icon && !icons && <Home3 variant="Bold" style={{ ...iconSX, marginRight: 0 }} />}
+                {(!icon || icons) && <FormattedMessage id="home" />}
+              </Typography>
+            </MuiBreadcrumbs>
+          </Grid>
+        </Grid>
+        {card === false && divider !== false && <Divider sx={{ mt: 2 }} />}
+      </MainCard>
+    );
+  }
   return breadcrumbContent;
 }

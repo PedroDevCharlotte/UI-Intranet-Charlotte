@@ -1,14 +1,14 @@
 import React from 'react';
-import { 
-  TextField, 
-  Button, 
-  Paper, 
-  Typography, 
-  IconButton, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
+import {
+  TextField,
+  Button,
+  Paper,
+  Typography,
+  IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Divider,
   Switch,
   FormControlLabel,
@@ -45,14 +45,11 @@ export default function NonConformityTabFollowUp({ formik, userOptions }: Props)
   const { values, setFieldValue } = formik;
 
   // Filtrar usuarios excluyendo el usuario con id 1 y agregar opción "Otro"
-  const auditorOptions = [
-    ...userOptions.filter(user => user.id !== 1),
-    { id: -1, label: 'Otro' }
-  ];
+  const auditorOptions = [...userOptions.filter((user) => user.id !== 1), { id: -1, label: 'Otro' }];
 
   // Inicializar followUps si no existe
   const followUps: FollowUp[] = values.followUps || [];
-
+console.log('NonConformityTabFollowUp - followUps:', followUps);
   // Función para agregar un nuevo seguimiento
   const addFollowUp = () => {
     const newFollowUp: FollowUp = {
@@ -63,23 +60,32 @@ export default function NonConformityTabFollowUp({ formik, userOptions }: Props)
       justification: '',
       wasEffective: false
     };
-    
+
     const updatedFollowUps = [...followUps, newFollowUp];
     setFieldValue('followUps', updatedFollowUps);
   };
 
   // Función para eliminar un seguimiento
   const removeFollowUp = (followUpId: string) => {
-    const updatedFollowUps = followUps.filter(followUp => followUp.id !== followUpId);
+    const updatedFollowUps = followUps.filter((followUp) => followUp.id !== followUpId);
     setFieldValue('followUps', updatedFollowUps);
   };
 
   // Función para actualizar un campo específico de un seguimiento
   const updateFollowUp = (followUpId: string, field: keyof FollowUp, value: any) => {
-    const updatedFollowUps = followUps.map(followUp => 
-      followUp.id === followUpId ? { ...followUp, [field]: value } : followUp
-    );
+    console.log('Update FollowUp:', followUpId, field, value);
+
+    const updatedFollowUps = followUps.map((followUp) => {
+      const isTarget = followUp.id === followUpId;
+      if (isTarget && field === 'verifiedBy' && value?.id !== -1) {
+        followUp.verifiedByOther = '';
+      }
+      return isTarget ? { ...followUp, [field]: value } : followUp;
+    });
+    // Siempre aplicar la actualización (permitir seleccionar 'Otro' o limpiar a null)
     setFieldValue('followUps', updatedFollowUps);
+    console.log('Updated FollowUps:', updatedFollowUps);
+    console.log('Current Formik Values:', values);
   };
 
   // Agregar seguimiento inicial si no hay ninguno
@@ -99,18 +105,11 @@ export default function NonConformityTabFollowUp({ formik, userOptions }: Props)
 
   return (
     <Grid container spacing={3}>
-      
       <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
           Seguimientos y Análisis de Efectividad
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<Add size={16} />}
-            onClick={addFollowUp}
-            sx={{ ml: 'auto' }}
-          >
+          <Button variant="outlined" size="small" startIcon={<Add size={16} />} onClick={addFollowUp} sx={{ ml: 'auto' }}>
             Agregar Seguimiento
           </Button>
         </Typography>
@@ -119,7 +118,6 @@ export default function NonConformityTabFollowUp({ formik, userOptions }: Props)
         {followUps.map((followUp, index) => (
           <Paper key={followUp.id} elevation={1} sx={{ p: 3, mb: 2, border: '1px solid', borderColor: 'divider' }}>
             <Grid container spacing={2}>
-              
               {/* Header del seguimiento */}
               <Grid size={12}>
                 <Grid container spacing={1} alignItems="center">
@@ -130,11 +128,7 @@ export default function NonConformityTabFollowUp({ formik, userOptions }: Props)
                   </Grid>
                   <Grid size={3} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                     {followUps.length > 1 && (
-                      <IconButton
-                        color="error"
-                        onClick={() => removeFollowUp(followUp.id)}
-                        size="small"
-                      >
+                      <IconButton color="error" onClick={() => removeFollowUp(followUp.id)} size="small">
                         <Trash size={18} />
                       </IconButton>
                     )}
@@ -163,16 +157,18 @@ export default function NonConformityTabFollowUp({ formik, userOptions }: Props)
                     value={followUp.verifiedBy?.id || ''}
                     label="Verificado por Auditor"
                     onChange={(e) => {
-                      const selectedOption = auditorOptions.find(option => option.id === e.target.value);
-                      updateFollowUp(followUp.id, 'verifiedBy', selectedOption || null);
-                      // Limpiar el campo "otro" si no se seleccionó "Otro"
-                      if (selectedOption?.id !== -1) {
-                        updateFollowUp(followUp.id, 'verifiedByOther', '');
-                      }
+                      // e.target.value puede venir como string; convertir a número cuando corresponda
+                      const raw = e.target.value;
+                      const val = raw === '' ? '' : Number(raw);
+                      const selectedOption = auditorOptions.find((option) => option.id === val) || null;
+                      updateFollowUp(followUp.id, 'verifiedBy', selectedOption);
+                      // Si se seleccionó una opción distinta a 'Otro', limpiar el campo "otro"
+
+                      
                     }}
                   >
                     <MenuItem value="">Seleccionar auditor</MenuItem>
-                    {auditorOptions.map(option => (
+                    {auditorOptions.map((option) => (
                       <MenuItem key={option.id} value={option.id}>
                         {option.label}
                       </MenuItem>
@@ -222,7 +218,6 @@ export default function NonConformityTabFollowUp({ formik, userOptions }: Props)
                   sx={{ mt: 1 }}
                 />
               </Grid>
-
             </Grid>
           </Paper>
         ))}
@@ -238,7 +233,6 @@ export default function NonConformityTabFollowUp({ formik, userOptions }: Props)
           </Paper>
         )}
       </Grid>
-      
     </Grid>
   );
 }

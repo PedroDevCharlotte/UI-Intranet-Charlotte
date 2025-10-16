@@ -10,6 +10,7 @@ import {
   FormControlLabel,
   Typography,
   Divider,
+  Chip,
   Grid2 as Grid
 } from '@mui/material';
 
@@ -79,20 +80,56 @@ export default function NonConformityTabFiveWhys({ formik, userOptions }: Props)
       <Grid size={12}>
         <Autocomplete
           multiple
-          options={filteredUserOptions}
+          id="fiveWhysParticipants"
+          options={[...filteredUserOptions, { id: -1, label: 'Otro' }]}
           getOptionLabel={(option) => option.label}
           value={values.fiveWhysParticipants || []}
-          onChange={(_, newValue) => setFieldValue('fiveWhysParticipants', newValue)}
+          onChange={(_, newValue) => {
+            setFieldValue('fiveWhysParticipants', newValue);
+            
+            // Si se deselecciona la opción "Otro", limpiar el campo otherParticipant
+            const hasOtherOption = newValue.some((option: any) => option.id === -1);
+            if (!hasOtherOption && values.otherParticipant) {
+              setFieldValue('otherParticipant', '');
+            }
+          }}
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) => (
+              <Chip 
+                variant="outlined" 
+                label={option.label} 
+                {...getTagProps({ index })} 
+                key={option.id}
+              />
+            ))
+          }
           renderInput={(params) => (
             <TextField 
               {...params} 
               label="Personal Participante" 
               placeholder="Seleccionar participantes"
+              helperText="Puede seleccionar múltiples participantes. Use 'Otro' para agregar participantes externos."
               required={(values.fiveWhysParticipants || []).length === 0}
             />
           )}
         />
       </Grid>
+
+      {/* Campo de texto condicional para "Otro" participante */}
+      {values.fiveWhysParticipants?.some((p: any) => p.id === -1) && (
+        <Grid size={12}>
+          <TextField
+            fullWidth
+            label="Especifique otro participante"
+            name="otherParticipant"
+            value={values.otherParticipant || ''}
+            onChange={handleChange}
+            placeholder="Ingrese el nombre del participante externo..."
+            helperText="Escriba el nombre completo del participante que no está en la lista de usuarios"
+            required
+          />
+        </Grid>
+      )}
 
       {/* Fecha */}
       <Grid size={6}>
